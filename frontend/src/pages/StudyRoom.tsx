@@ -115,7 +115,6 @@ export const StudyRoom: React.FC = () => {
   const fetchGiphy = async (query: string) => {
     const q = query || 'study';
     try {
-      // 使用更可靠的公共 Beta Key
       const res = await fetch(`https://api.giphy.com/v1/gifs/search?api_key=dc6zaTOxFJmzC&q=${encodeURIComponent(q)}&limit=12&rating=g`);
       const data = await res.json();
       if (data.data) setGiphyResults(data.data);
@@ -137,6 +136,11 @@ export const StudyRoom: React.FC = () => {
     }
   };
 
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) uploadImage(file);
+  };
+
   const onDrop = async (e: React.DragEvent) => {
     e.preventDefault(); e.stopPropagation();
     setIsDragging(false);
@@ -144,6 +148,14 @@ export const StudyRoom: React.FC = () => {
     if (file && file.type.startsWith('image/')) {
       uploadImage(file);
     }
+  };
+
+  const sendGif = async (url: string) => {
+    try {
+      await api.post('/study/messages/', { content: `![gif](${url})` });
+      fetchMessages();
+      setIsAtBottom(true);
+    } catch (e) {}
   };
 
   const sendMessage = async () => {
@@ -173,7 +185,7 @@ export const StudyRoom: React.FC = () => {
   };
 
   return (
-    <div className="h-[calc(100vh-8.5rem)] flex gap-6 animate-in fade-in duration-300 text-left">
+    <div className="h-[calc(100vh-8.5rem)] flex gap-6 animate-in fade-in duration-300 text-left text-foreground">
       
       {/* Main Discussion Area */}
       <div 
@@ -192,7 +204,7 @@ export const StudyRoom: React.FC = () => {
           </div>
           
           <div className="flex items-center gap-2">
-            <Button variant="ghost" size="icon" onClick={() => { fetchOnline(); fetchMessages(); }} className="rounded-xl h-9 w-9 text-muted-foreground hover:text-foreground"><RotateCcw className="h-4 w-4"/></Button>
+            <Button variant="ghost" size="icon" onClick={() => { fetchOnline(); fetchMessages(); }} className="rounded-xl h-9 w-9 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"><RotateCcw className="h-4 w-4"/></Button>
             <Popover open={isTimerOpen} onOpenChange={setIsTimerOpen}>
               <PopoverTrigger asChild>
                 <Button className={cn("rounded-2xl h-10 px-5 gap-3 transition-all duration-500 shadow-xl border border-black/5", isActive ? "bg-emerald-500 text-white" : "bg-primary text-primary-foreground hover:opacity-90")}>
@@ -252,7 +264,7 @@ export const StudyRoom: React.FC = () => {
                         remarkPlugins={[remarkMath]} 
                         rehypePlugins={[rehypeKatex]}
                         components={{
-                          img: ({node, ...props}) => <img {...props} className="max-w-full rounded-lg my-2 cursor-zoom-in hover:opacity-90 transition-opacity" onClick={() => window.open(props.src || '', '_blank')}/>,
+                          img: ({node, ...props}) => <img {...props} className="max-w-full rounded-lg my-2 cursor-zoom-in hover:opacity-90 transition-opacity bg-muted" onClick={() => window.open(props.src || '', '_blank')}/>,
                           p: ({node, ...props}) => <p {...props} className="m-0" />
                         }}
                       >
@@ -281,7 +293,7 @@ export const StudyRoom: React.FC = () => {
           <div className="max-w-4xl mx-auto space-y-3">
             <div className="flex gap-2 px-1">
               <Popover>
-                <PopoverTrigger asChild><Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted"><Smile className="h-4 w-4"/></Button></PopoverTrigger>
+                <PopoverTrigger asChild><Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"><Smile className="h-4 w-4"/></Button></PopoverTrigger>
                 <PopoverContent side="top" className="w-64 p-2 rounded-2xl border-border shadow-2xl bg-card">
                   <div className="grid grid-cols-8 gap-1">
                     {['😊','😂','🤣','😍','😒','🤔','😭','👍','🙌','🔥','✨','💯','📚','🎓','💪','🎯','❤️','✔️','❌','⚠️','🚀','💡','🌟','🎉'].map(e => (
@@ -291,13 +303,13 @@ export const StudyRoom: React.FC = () => {
                 </PopoverContent>
               </Popover>
               <Popover onOpenChange={(open) => open && giphyResults.length === 0 && fetchGiphy('study')}>
-                <PopoverTrigger asChild><Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted"><FileVideo className="h-4 w-4"/></Button></PopoverTrigger>
+                <PopoverTrigger asChild><Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"><FileVideo className="h-4 w-4"/></Button></PopoverTrigger>
                 <PopoverContent side="top" className="w-72 p-3 rounded-2xl border-border shadow-2xl space-y-3 bg-card">
                   <Input 
                     placeholder="搜索 GIPHY..." 
                     value={giphySearch} 
                     onChange={e => { setGiphySearch(e.target.value); fetchGiphy(e.target.value); }} 
-                    className="h-9 text-xs rounded-xl bg-muted border-none text-foreground placeholder:opacity-50" 
+                    className="h-9 text-xs rounded-xl bg-muted border-none text-foreground placeholder:opacity-50 focus-visible:ring-1 focus-visible:ring-primary/20" 
                   />
                   <div className="grid grid-cols-2 gap-2 h-48 overflow-y-auto pr-1 scrollbar-thin">
                     {giphyResults.map(g => (
@@ -307,7 +319,7 @@ export const StudyRoom: React.FC = () => {
                   <p className="text-[8px] text-center text-muted-foreground font-bold opacity-50 uppercase tracking-tighter">Powered by GIPHY</p>
                 </PopoverContent>
               </Popover>
-              <Button variant="ghost" size="icon" onClick={() => fileInputRef.current?.click()} className="h-8 w-8 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted"><ImageIcon className="h-4 w-4"/></Button>
+              <Button variant="ghost" size="icon" onClick={() => fileInputRef.current?.click()} className="h-8 w-8 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"><ImageIcon className="h-4 w-4"/></Button>
               <input type="file" ref={fileInputRef} onChange={handleFileUpload} className="hidden" accept="image/*" />
             </div>
             <div className="flex gap-3 bg-muted rounded-2xl p-1 focus-within:bg-card focus-within:ring-2 focus-within:ring-primary/5 transition-all shadow-inner border border-border">
@@ -351,8 +363,8 @@ export const StudyRoom: React.FC = () => {
                   <HoverCardContent side="left" className="w-80 rounded-[2rem] p-6 border-none shadow-2xl bg-card/95 backdrop-blur-xl z-50 text-left">
                     <div className="flex space-x-4">
                       <Avatar className="h-12 w-12 border border-border shadow-sm"><AvatarImage src={u.avatar_url}/></Avatar>
-                      <div className="space-y-3 flex-1 text-left">
-                        <div className="flex justify-between items-center"><h4 className="text-sm font-bold text-foreground">{u.username}</h4><Badge variant="outline" className="text-[10px] border-emerald-500/20 text-emerald-600 rounded-full">ELO {u.elo_score}</Badge></div>
+                      <div className="space-y-3 flex-1 text-left text-foreground">
+                        <div className="flex justify-between items-center"><h4 className="text-sm font-bold">{u.username}</h4><Badge variant="outline" className="text-[10px] border-emerald-500/20 text-emerald-600 rounded-full">ELO {u.elo_score}</Badge></div>
                         <div className="space-y-2 pt-2 border-t border-border">
                            <div className="flex items-center gap-2 text-muted-foreground"><Clock className="h-3.5 w-3.5"/><span className="text-[10px] font-bold uppercase tracking-widest">今日专注: {u.today_focused_minutes} min</span></div>
                            <div className="flex items-center gap-2 text-muted-foreground"><CheckCircle2 className="h-3.5 w-3.5"/><span className="text-[10px] font-bold uppercase tracking-widest">今日已完成: {u.today_completed_tasks?.length || 0} tasks</span></div>
@@ -376,18 +388,18 @@ export const StudyRoom: React.FC = () => {
                   <button onClick={() => {
                     api.patch(`/users/plans/${p.id}/`, { is_completed: !p.is_completed }).then(() => fetchPlans());
                   }}>{p.is_completed ? <CheckCircle2 className="h-5 w-5 text-emerald-500" /> : <Circle className="h-5 w-5 text-muted-foreground/20" />}</button>
-                  <span onClick={() => { setTaskName(p.content); setIsTimerOpen(true); }} className={cn("text-xs font-bold truncate flex-1 cursor-pointer", p.is_completed ? "line-through opacity-30" : "text-foreground")}>{p.content}</span>
+                  <span onClick={() => { setTaskName(p.content); setIsTimerOpen(true); }} className={cn("text-xs font-bold truncate flex-1 cursor-pointer", p.is_completed ? "line-through opacity-30 text-muted-foreground" : "text-foreground")}>{p.content}</span>
                 </div>
               ))}
           </div>
-          <div className="mt-4 flex gap-2"><Input value={newPlan} onChange={e => setNewPlan(e.target.value)} onKeyDown={e => e.key === 'Enter' && (async () => { if (!newPlan.trim()) return; await api.post('/users/plans/', { content: newPlan }); fetchPlans(); setNewPlan(''); })()} placeholder="ADD TARGET..." className="bg-muted border-none h-10 rounded-xl text-[10px] font-bold px-4 text-foreground" /><Button onClick={async () => { if (!newPlan.trim()) return; await api.post('/users/plans/', { content: newPlan }); fetchPlans(); setNewPlan(''); }} size="icon" className="h-10 w-10 bg-primary text-primary-foreground rounded-xl shrink-0"><Plus className="h-4 w-4"/></Button></div>
+          <div className="mt-4 flex gap-2"><Input value={newPlan} onChange={e => setNewPlan(e.target.value)} onKeyDown={e => e.key === 'Enter' && (async () => { if (!newPlan.trim()) return; await api.post('/users/plans/', { content: newPlan }); fetchPlans(); setNewPlan(''); })()} placeholder="ADD TARGET..." className="bg-muted border-none h-10 rounded-xl text-[10px] font-bold px-4 text-foreground focus-visible:ring-1 focus-visible:ring-primary/20" /><Button onClick={async () => { if (!newPlan.trim()) return; await api.post('/users/plans/', { content: newPlan }); fetchPlans(); setNewPlan(''); }} size="icon" className="h-10 w-10 bg-primary text-primary-foreground rounded-xl shrink-0 hover:opacity-90 active:scale-95 transition-all"><Plus className="h-4 w-4"/></Button></div>
         </Card>
       </div>
 
       <AlertDialog open={showStopAlert} onOpenChange={setShowStopAlert}>
         <AlertDialogContent className="rounded-[2.5rem] border-none shadow-2xl bg-card">
           <AlertDialogHeader><AlertDialogTitle className="text-foreground">确定要中止任务吗？</AlertDialogTitle><AlertDialogDescription className="text-muted-foreground">离开当前页面将视为一次未完成的任务，并向讨论区广播。确定离开吗？</AlertDialogDescription></AlertDialogHeader>
-          <AlertDialogFooter><AlertDialogCancel onClick={() => setShowStopAlert(false)} className="rounded-xl border-border">继续专注</AlertDialogCancel><AlertDialogAction onClick={async () => { 
+          <AlertDialogFooter><AlertDialogCancel onClick={() => setShowStopAlert(false)} className="rounded-xl border-border text-foreground hover:bg-muted">继续专注</AlertDialogCancel><AlertDialogAction onClick={async () => { 
             setIsActive(false); setShowStopAlert(false);
             const focusedMins = Math.floor((duration * 60 - timeLeft) / 60);
             await api.post('/study/messages/', { content: `❌ 中止了“${taskName}”任务 (专注 ${focusedMins} 分钟)` });
