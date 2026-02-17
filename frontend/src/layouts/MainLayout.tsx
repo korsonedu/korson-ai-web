@@ -195,13 +195,14 @@ export const MainLayout: React.FC = () => {
         </main>
 
         <AlertDialog open={showLogoutAlert} onOpenChange={setShowLogoutAlert}>
-          <AlertDialogContent className="rounded-[2.5rem] border-none shadow-2xl">
-            <AlertDialogHeader><AlertDialogTitle className="text-xl font-bold">确认退出登录？</AlertDialogTitle><AlertDialogDescription className="font-medium text-[#86868B]">退出后你将需要重新验证身份以访问网校资源。</AlertDialogDescription></AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel className="rounded-xl font-bold">返回</AlertDialogCancel>
-              <AlertDialogAction onClick={() => { logout(); navigate('/login'); }} className="rounded-xl bg-black text-white font-bold hover:bg-black/90">确认退出</AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
+                  <AlertDialogContent className="rounded-[2.5rem] border-none shadow-2xl bg-card">
+                    <AlertDialogHeader><AlertDialogTitle className="text-xl font-bold text-foreground">确认退出登录？</AlertDialogTitle><AlertDialogDescription className="font-medium text-muted-foreground">退出后你将需要重新验证身份以访问网校资源。</AlertDialogDescription></AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel className="rounded-xl font-bold border-border text-foreground hover:bg-muted">返回</AlertDialogCancel>
+                      <AlertDialogAction onClick={() => { logout(); navigate('/login'); }} className="rounded-xl bg-primary text-primary-foreground font-bold hover:opacity-90">确认退出</AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+          
         </AlertDialog>
       </div>
     </TooltipProvider>

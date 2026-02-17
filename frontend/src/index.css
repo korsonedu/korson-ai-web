@@ -85,13 +85,13 @@ html {
   --tw-ring-color: var(--primary-override) !important;
 }
 
-/* Custom Sonner styling for White/Apple Look */
+/* Custom Sonner styling */
 [data-sonner-toast] {
-  @apply bg-white border border-black/5 shadow-2xl rounded-2xl p-4 font-sans !important;
+  @apply bg-card text-foreground border border-border shadow-2xl rounded-2xl p-4 font-sans !important;
 }
 [data-sonner-toast] [data-title] {
-  @apply text-[#1D1D1F] font-bold !important;
+  @apply text-foreground font-bold !important;
 }
 [data-sonner-toast] [data-description] {
-  @apply text-[#86868B] font-medium !important;
+  @apply text-muted-foreground font-medium !important;
 }
