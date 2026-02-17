@@ -60,7 +60,7 @@ interface Message {
 interface Plan { id: number; content: string; is_completed: boolean; }
 
 export const StudyRoom: React.FC = () => {
-  const { user, updateUser } = useAuthStore();
+  const { user } = useAuthStore();
   const [timeLeft, setTimeLeft] = useState(25 * 60);
   const [isActive, setIsActive] = useState(false);
   const [duration, setDuration] = useState(25);
@@ -96,20 +96,29 @@ export const StudyRoom: React.FC = () => {
   const handleScroll = () => {
     if (!scrollContainerRef.current) return;
     const { scrollTop, scrollHeight, clientHeight } = scrollContainerRef.current;
-    const isBottom = scrollHeight - scrollTop - clientHeight < 100;
-    setIsAtBottom(isBottom);
+    // Check if we are near the bottom (within 150px)
+    const atBottom = scrollHeight - scrollTop - clientHeight < 150;
+    setIsAtBottom(atBottom);
   };
 
   const scrollToBottom = (force = false) => {
     if (scrollContainerRef.current && (isAtBottom || force)) {
-      scrollContainerRef.current.scrollTop = scrollContainerRef.current.scrollHeight;
+      scrollContainerRef.current.scrollTo({
+        top: scrollContainerRef.current.scrollHeight,
+        behavior: force ? 'smooth' : 'auto'
+      });
     }
   };
 
+  // Handle message updates
   useEffect(() => {
+    if (messages.length === 0) return;
     const lastMsg = messages[messages.length - 1];
     const isMe = lastMsg?.user_detail?.username === user?.username;
-    scrollToBottom(isMe);
+    // Auto scroll if it's my message OR I was already at the bottom
+    if (isMe || isAtBottom) {
+      scrollToBottom(isMe); // smooth scroll for my own messages
+    }
   }, [messages]);
 
   const fetchGiphy = async (query: string) => {
@@ -118,15 +127,13 @@ export const StudyRoom: React.FC = () => {
       const res = await fetch(`https://api.giphy.com/v1/gifs/search?api_key=dc6zaTOxFJmzC&q=${encodeURIComponent(q)}&limit=12&rating=g`);
       const data = await res.json();
       if (data.data) setGiphyResults(data.data);
-    } catch (e) {
-      console.error("Giphy error", e);
-    }
+    } catch (e) { console.error("Giphy error", e); }
   };
 
   const uploadImage = async (file: File) => {
     const formData = new FormData();
     formData.append('image', file);
-    const tid = toast.loading("正在处理图片...");
+    const tid = toast.loading("正在准备图片...");
     try {
       const res = await api.post('/study/upload-image/', formData);
       setChatInput(prev => (prev ? prev + '\n' : '') + `![image](${res.data.url})`);
@@ -141,21 +148,29 @@ export const StudyRoom: React.FC = () => {
     if (file) uploadImage(file);
   };
 
+  // Robust Drag and Drop
+  const onDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  };
+
+  const onDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  };
+
   const onDrop = async (e: React.DragEvent) => {
-    e.preventDefault(); e.stopPropagation();
+    e.preventDefault();
+    e.stopPropagation();
     setIsDragging(false);
     const file = e.dataTransfer.files?.[0];
     if (file && file.type.startsWith('image/')) {
       uploadImage(file);
+    } else {
+      toast.error("仅支持拖入图片格式");
     }
-  };
-
-  const sendGif = async (url: string) => {
-    try {
-      await api.post('/study/messages/', { content: `![gif](${url})` });
-      fetchMessages();
-      setIsAtBottom(true);
-    } catch (e) {}
   };
 
   const sendMessage = async () => {
@@ -166,6 +181,7 @@ export const StudyRoom: React.FC = () => {
       await api.post('/study/messages/', { content });
       fetchMessages();
       setIsAtBottom(true);
+      setTimeout(() => scrollToBottom(true), 100);
     } catch (e) {
       setChatInput(content);
       toast.error("发送失败");
@@ -191,16 +207,17 @@ export const StudyRoom: React.FC = () => {
       <div 
         className={cn(
           "flex-1 flex flex-col bg-card rounded-3xl shadow-sm border border-border overflow-hidden relative transition-all duration-300",
-          isDragging && "ring-4 ring-primary/20 bg-primary/5 border-primary border-dashed"
+          isDragging && "ring-4 ring-primary/20 bg-primary/5 border-primary border-dashed z-50"
         )}
-        onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); setIsDragging(true); }}
-        onDragLeave={(e) => { e.preventDefault(); e.stopPropagation(); setIsDragging(false); }}
+        onDragOver={onDragOver}
+        onDragEnter={onDragOver}
+        onDragLeave={onDragLeave}
         onDrop={onDrop}
       >
         <header className="px-8 py-3 border-b border-border flex items-center justify-between bg-card/80 backdrop-blur-md sticky top-0 z-20">
           <div className="flex items-center gap-4">
-            <div className="h-9 w-9 rounded-xl bg-primary flex items-center justify-center shadow-lg"><MessageSquare className="h-4 w-4 text-primary-foreground" /></div>
-            <h2 className="text-sm font-bold tracking-tight text-foreground">讨论区</h2>
+            <div className="h-9 w-9 rounded-xl bg-primary flex items-center justify-center shadow-lg text-primary-foreground"><MessageSquare className="h-4 w-4" /></div>
+            <h2 className="text-sm font-bold tracking-tight">讨论区</h2>
           </div>
           
           <div className="flex items-center gap-2">
@@ -216,11 +233,11 @@ export const StudyRoom: React.FC = () => {
                     <div className="text-5xl font-mono font-bold tracking-tighter text-foreground tabular-nums">{formatTime(timeLeft)}</div>
                     <div className="space-y-4 text-left">
                       <div className="space-y-2">
-                        <div className="flex justify-between items-center mb-1"><label className="text-[10px] font-bold uppercase tracking-widest opacity-30">时长设定</label>
-                        <div className="flex items-center gap-1"><Input type="number" disabled={isActive} value={duration} onChange={e => handleDurationChange(parseInt(e.target.value) || 0)} className="w-12 h-6 p-0 text-center border-none bg-muted rounded-md text-[10px] font-bold" /><span className="text-[10px] font-bold opacity-30 uppercase">Min</span></div></div>
+                        <div className="flex justify-between items-center mb-1"><label className="text-[10px] font-bold uppercase tracking-widest opacity-30 text-foreground">时长设定</label>
+                        <div className="flex items-center gap-1"><Input type="number" disabled={isActive} value={duration} onChange={e => handleDurationChange(parseInt(e.target.value) || 0)} className="w-12 h-6 p-0 text-center border-none bg-muted rounded-md text-[10px] font-bold text-foreground" /><span className="text-[10px] font-bold opacity-30 uppercase text-foreground">Min</span></div></div>
                         <Slider disabled={isActive} value={[duration]} onValueChange={v => handleDurationChange(v[0])} max={120} min={1} step={1}/>
                       </div>
-                      <div className="space-y-2"><label className="text-[10px] font-bold uppercase tracking-widest opacity-30 ml-1">任务目标</label><Input value={taskName} onChange={e => setTaskName(e.target.value)} placeholder="你想完成什么？" className="bg-muted border-none h-11 rounded-xl text-center font-bold text-sm" /></div>
+                      <div className="space-y-2"><label className="text-[10px] font-bold uppercase tracking-widest opacity-30 ml-1 text-foreground">任务目标</label><Input value={taskName} onChange={e => setTaskName(e.target.value)} placeholder="你想完成什么？" className="bg-muted border-none h-11 rounded-xl text-center font-bold text-sm text-foreground" /></div>
                     </div>
                     <div className="flex justify-center gap-2.5 pt-1">
                       <Button size="lg" onClick={isActive ? () => setIsActive(false) : () => setIsActive(true)} className={cn("rounded-2xl flex-1 font-bold h-12 shadow-lg", isActive ? "bg-muted text-foreground" : "bg-primary text-primary-foreground shadow-primary/10")}>{isActive ? <Pause className="mr-2 h-4 w-4" /> : <Play className="mr-2 h-4 w-4" />}{isActive ? '暂停' : '开始学习'}</Button>
@@ -236,9 +253,9 @@ export const StudyRoom: React.FC = () => {
         <div 
           ref={scrollContainerRef}
           onScroll={handleScroll}
-          className="flex-1 overflow-y-auto p-8 space-y-8 scroll-smooth scrollbar-thin scrollbar-thumb-primary/10"
+          className="flex-1 overflow-y-auto p-8 space-y-8 scrollbar-thin scrollbar-thumb-primary/10"
         >
-          <div className="max-w-4xl mx-auto space-y-8">
+          <div className="max-w-4xl mx-auto space-y-8 pb-4">
             {messages.map((msg) => {
               const isMe = msg.user_detail.username === user?.username;
               const isTask = msg.content.includes('💪') || msg.content.includes('✅') || msg.content.includes('❌') || msg.content.includes('开始了“');
@@ -278,12 +295,12 @@ export const StudyRoom: React.FC = () => {
           </div>
         </div>
 
-        {/* Scroll to Bottom Button */}
+        {/* Scroll to Bottom Button - Fixed at bottom-right of chat */}
         {!isAtBottom && (
           <Button 
             onClick={() => scrollToBottom(true)} 
             size="icon" 
-            className="absolute bottom-32 left-1/2 -translate-x-1/2 rounded-full h-10 w-10 shadow-2xl bg-primary text-primary-foreground animate-bounce z-50 hover:scale-110 transition-transform"
+            className="absolute bottom-24 right-8 rounded-full h-10 w-10 shadow-2xl bg-primary text-primary-foreground z-50 hover:scale-110 transition-transform opacity-80 hover:opacity-100"
           >
             <ArrowDown className="h-5 w-5"/>
           </Button>
