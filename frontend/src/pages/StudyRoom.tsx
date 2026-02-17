@@ -336,15 +336,15 @@ export const StudyRoom: React.FC = () => {
                 <div key={msg.id} className="flex justify-center py-2 animate-in fade-in zoom-in-95 duration-300">
                   <div className={cn("px-6 py-2 rounded-2xl border flex items-center gap-3 shadow-sm", msg.content.includes('💪') || msg.content.includes('开始') ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20" : msg.content.includes('✅') ? "bg-blue-500/10 text-blue-600 border-blue-500/20" : "bg-red-500/10 text-red-600 border-red-500/20")}>
                      {msg.content.includes('💪') || msg.content.includes('开始') ? <Zap className="h-3 w-3 fill-emerald-500 text-emerald-500" /> : msg.content.includes('✅') ? <CheckCircle2 className="h-3 w-3 text-blue-500" /> : <XCircle className="h-3 w-3 text-red-500" />}
-                     <span className="text-[11px] font-bold tracking-tight text-foreground"><span className="opacity-70">{msg.user_detail.username}</span> {msg.content.split(msg.user_detail.username)[1] || msg.content}</span>
+                     <span className="text-[11px] font-bold tracking-tight text-foreground"><span className="opacity-70">{msg.user_detail.nickname || msg.user_detail.username}</span> {msg.content.split(msg.user_detail.username)[1] || msg.content}</span>
                   </div>
                 </div>
               );
               return (
                 <div key={msg.id} className={cn("flex gap-4 group animate-in fade-in slide-in-from-bottom-2 duration-300", isMe ? "flex-row-reverse text-right" : "flex-row text-left")}>
-                  <Avatar className="h-9 w-9 border border-border shadow-sm shrink-0 group-hover:scale-105 transition-transform"><AvatarImage src={msg.user_detail.avatar_url} /><AvatarFallback className="text-[10px] font-bold bg-muted">{msg.user_detail.username[0]}</AvatarFallback></Avatar>
+                  <Avatar className="h-9 w-9 border border-border shadow-sm shrink-0 group-hover:scale-105 transition-transform"><AvatarImage src={msg.user_detail.avatar_url} /><AvatarFallback className="text-[10px] font-bold bg-muted">{(msg.user_detail.nickname || msg.user_detail.username)[0]}</AvatarFallback></Avatar>
                   <div className={cn("flex flex-col gap-1 max-w-[75%]", isMe ? "items-end" : "items-start")}>
-                    <div className="flex items-center gap-2 px-1 text-muted-foreground"><span className="text-[9px] font-bold uppercase tracking-widest">{msg.user_detail.username}</span></div>
+                    <div className="flex items-center gap-2 px-1 text-muted-foreground"><span className="text-[9px] font-bold uppercase tracking-widest">{msg.user_detail.nickname || msg.user_detail.username}</span></div>
                     <div className={cn(
                       "p-3 px-4 text-[13px] leading-relaxed shadow-sm rounded-2xl break-words overflow-hidden text-left", 
                       isMe ? "bg-primary text-primary-foreground rounded-tr-none font-medium" : "bg-rose-50 text-rose-900 rounded-tl-none border border-rose-100 dark:bg-rose-950/30 dark:text-rose-200 dark:border-rose-900/50"
@@ -442,7 +442,7 @@ export const StudyRoom: React.FC = () => {
                         <span className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full bg-emerald-500 border-2 border-background shadow-sm"/>
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-xs font-bold text-foreground truncate">{u.username} {u.username === user?.username && "(你)"}</p>
+                        <p className="text-xs font-bold text-foreground truncate">{u.nickname || u.username} {u.username === user?.username && "(你)"}</p>
                         <p className="text-[9px] text-emerald-600 font-bold truncate mt-0.5 uppercase tracking-tight">{u.current_task || '在线中'}</p>
                       </div>
                     </div>
@@ -451,7 +451,7 @@ export const StudyRoom: React.FC = () => {
                     <div className="flex space-x-4">
                       <Avatar className="h-12 w-12 border border-border shadow-sm"><AvatarImage src={u.avatar_url}/></Avatar>
                       <div className="space-y-3 flex-1 text-left text-foreground">
-                        <div className="flex justify-between items-center"><h4 className="text-sm font-bold">{u.username}</h4><Badge variant="outline" className="text-[10px] border-emerald-500/20 text-emerald-600 rounded-full">ELO {u.elo_score}</Badge></div>
+                        <div className="flex justify-between items-center"><h4 className="text-sm font-bold">{u.nickname || u.username}</h4><Badge variant="outline" className="text-[10px] border-emerald-500/20 text-emerald-600 rounded-full">ELO {u.elo_score}</Badge></div>
                         <div className="space-y-2 pt-2 border-t border-border">
                            <div className="flex items-center gap-2 text-muted-foreground"><Clock className="h-3.5 w-3.5"/><span className="text-[10px] font-bold uppercase tracking-widest">今日专注: {u.today_focused_minutes} min</span></div>
                            <div className="flex items-center gap-2 text-muted-foreground"><CheckCircle2 className="h-3.5 w-3.5"/><span className="text-[10px] font-bold uppercase tracking-widest">今日已完成: {u.today_completed_tasks?.length || 0} tasks</span></div>

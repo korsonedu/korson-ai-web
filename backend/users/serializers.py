@@ -4,8 +4,8 @@ from .models import User, SystemConfig, DailyPlan
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ('id', 'username', 'role', 'elo_score', 'avatar_url', 'avatar_style', 'avatar_seed', 'avatar_options', 'bio', 'is_online', 'current_task', 'current_timer_end', 'today_focused_minutes', 'today_completed_tasks', 'allow_broadcast', 'show_others_broadcast', 'has_completed_initial_assessment', 'elo_reset_count')
-        read_only_fields = ('id', 'role', 'elo_score', 'avatar_url', 'is_online')
+        fields = ('id', 'username', 'nickname', 'role', 'elo_score', 'avatar_url', 'avatar_style', 'avatar_seed', 'avatar_options', 'bio', 'is_online', 'current_task', 'current_timer_end', 'today_focused_minutes', 'today_completed_tasks', 'allow_broadcast', 'show_others_broadcast', 'has_completed_initial_assessment', 'elo_reset_count')
+        read_only_fields = ('id', 'username', 'role', 'elo_score', 'avatar_url', 'is_online')
 
 class DailyPlanSerializer(serializers.ModelSerializer):
     class Meta:
@@ -50,12 +50,14 @@ class RegisterSerializer(serializers.ModelSerializer):
             user = User.objects.create_superuser(
                 username=validated_data["username"],
                 password=validated_data["password"],
+                nickname=validated_data["username"],
                 role="admin"
             )
         else:
             user = User.objects.create_user(
                 username=validated_data["username"],
                 password=validated_data["password"],
+                nickname=validated_data["username"],
                 role="student"
             )
         return user

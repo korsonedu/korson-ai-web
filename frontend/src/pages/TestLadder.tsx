@@ -351,8 +351,8 @@ export const TestLadder: React.FC = () => {
                         </td>
                         <td className="px-8 py-5">
                           <div className="flex items-center gap-4">
-                            <Avatar className="h-10 w-10 border border-black/5 shadow-sm group-hover:ring-2 ring-emerald-500/10 transition-all"><AvatarImage src={u.avatar_url} /><AvatarFallback className="font-bold text-xs">{u.username[0]}</AvatarFallback></Avatar>
-                            <div className="flex flex-col text-left"><span className="font-bold text-sm text-[#1D1D1F]">{u.username}</span><span className="text-[9px] font-bold text-[#86868B] uppercase tracking-tighter">{u.role}</span></div>
+                            <Avatar className="h-10 w-10 border border-black/5 shadow-sm group-hover:ring-2 ring-emerald-500/10 transition-all"><AvatarImage src={u.avatar_url} /><AvatarFallback className="font-bold text-xs">{(u.nickname || u.username)[0]}</AvatarFallback></Avatar>
+                            <div className="flex flex-col text-left"><span className="font-bold text-sm text-[#1D1D1F]">{u.nickname || u.username}</span><span className="text-[9px] font-bold text-[#86868B] uppercase tracking-tighter">{u.role}</span></div>
                           </div>
                         </td>
                         <td className="px-8 py-5 text-sm font-bold text-[#1D1D1F] tabular-nums">{u.elo_score}</td>

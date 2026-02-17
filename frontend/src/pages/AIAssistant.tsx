@@ -214,7 +214,7 @@ export const AIAssistant: React.FC = () => {
                   </div>
                   <div className={cn("flex flex-col gap-1.5 max-w-[85%]", msg.role === 'user' ? "items-end" : "items-start")}>
                     <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground px-1">
-                      {msg.role === 'user' ? user?.username : selectedBot.name}
+                      {msg.role === 'user' ? (user?.nickname || user?.username) : selectedBot.name}
                     </span>
                     <div className={cn(
                       "p-3 px-4 rounded-2xl text-[13px] leading-relaxed shadow-sm transition-all border border-border",

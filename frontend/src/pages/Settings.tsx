@@ -56,7 +56,7 @@ export const Settings: React.FC = () => {
 
   // Profile
   const [profile, setProfile] = useState({
-    username: user?.username || '',
+    nickname: user?.nickname || user?.username || '',
     bio: user?.bio || '',
   });
 
@@ -76,7 +76,7 @@ export const Settings: React.FC = () => {
     setLoading(true);
     try {
       const res = await api.patch('/users/me/update/', {
-        username: profile.username,
+        nickname: profile.nickname,
         bio: profile.bio,
         avatar_style: avatar.style,
         avatar_seed: avatar.seed
@@ -148,8 +148,8 @@ export const Settings: React.FC = () => {
                 </SheetContent>
               </Sheet>
             </div>
-            <h3 className="mt-6 text-xl font-bold text-[#1D1D1F]">{profile.username}</h3>
-            <p className="text-xs text-[#86868B] font-bold mt-1 uppercase tracking-widest leading-none text-emerald-600">Active Academic Rank: {user?.elo_score}</p>
+            <h3 className="mt-6 text-xl font-bold text-foreground">{user?.nickname || user?.username}</h3>
+            <p className="text-xs text-muted-foreground font-bold mt-1 uppercase tracking-widest leading-none text-emerald-600">Active Academic Rank: {user?.elo_score}</p>
           </Card>
 
           <Card className="border-none shadow-sm rounded-3xl bg-white p-8 space-y-6 border border-black/[0.03]">
@@ -179,8 +179,9 @@ export const Settings: React.FC = () => {
           <Card className="border-none shadow-sm rounded-3xl bg-white overflow-hidden p-10 border border-black/[0.03]">
              <div className="space-y-8 text-left">
                <div className="space-y-3">
-                 <Label className="text-xs font-bold uppercase tracking-widest opacity-40 ml-1">学术显示名称</Label>
-                 <Input value={profile.username} onChange={e => setProfile({...profile, username: e.target.value})} className="bg-[#F5F5F7] border-none h-12 rounded-2xl font-bold px-5" />
+                 <Label className="text-xs font-bold uppercase tracking-widest opacity-40 ml-1">我的昵称 (公开显示)</Label>
+                 <Input value={profile.nickname} onChange={e => setProfile({...profile, nickname: e.target.value})} className="bg-[#F5F5F7] border-none h-12 rounded-2xl font-bold px-5" />
+                 <p className="text-[10px] text-muted-foreground font-bold ml-1 uppercase">登录账号: {user?.username} (不可修改)</p>
                </div>
                <div className="space-y-3">
                  <Label className="text-xs font-bold uppercase tracking-widest opacity-40 ml-1">个人履历 / Bio</Label>

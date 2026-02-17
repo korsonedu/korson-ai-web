@@ -8,6 +8,7 @@ class User(AbstractUser):
         ('admin', '管理员'),
     )
     role = models.CharField(max_length=10, choices=ROLE_CHOICES, default='student')
+    nickname = models.CharField(max_length=100, blank=True, verbose_name="昵称")
     elo_score = models.IntegerField(default=1000)
     has_completed_initial_assessment = models.BooleanField(default=False)
     elo_reset_count = models.IntegerField(default=0)

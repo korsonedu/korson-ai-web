@@ -147,7 +147,7 @@ export const MainLayout: React.FC = () => {
                   </Avatar>
                   {!collapsed && (
                     <div className="flex-1 min-w-0 animate-in fade-in">
-                      <p className="text-xs font-bold truncate">{user?.username}</p>
+                      <p className="text-xs font-bold truncate">{user?.nickname || user?.username}</p>
                       <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-tighter">Scholarly Profile</p>
                     </div>
                   )}
