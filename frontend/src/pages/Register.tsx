@@ -9,7 +9,6 @@ import api from '@/lib/api';
 export const Register: React.FC = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [role, setRole] = useState<'student' | 'admin'>('student');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
@@ -19,7 +18,7 @@ export const Register: React.FC = () => {
     setLoading(true);
     setError('');
     try {
-      await api.post('/users/register/', { username, password, role });
+      await api.post('/users/register/', { username, password });
       navigate('/login');
     } catch (err: any) {
       setError(Object.values(err.response?.data || {}).flat()[0] as string || '注册失败，请换个用户名试试');
@@ -56,20 +55,6 @@ export const Register: React.FC = () => {
                 className="bg-slate-50/50 border-none h-12 rounded-xl focus-visible:ring-black"
                 required
               />
-            </div>
-            <div className="flex gap-4 py-2">
-              <Button 
-                type="button"
-                variant={role === 'student' ? 'default' : 'outline'}
-                className="flex-1 rounded-xl"
-                onClick={() => setRole('student')}
-              >学生</Button>
-              <Button 
-                type="button"
-                variant={role === 'admin' ? 'default' : 'outline'}
-                className="flex-1 rounded-xl"
-                onClick={() => setRole('admin')}
-              >管理员</Button>
             </div>
             <Button className="w-full h-12 bg-black text-white rounded-xl font-medium hover:bg-black/90 transition-all" disabled={loading}>
               {loading ? "注册中..." : "立即注册"}

@@ -26,9 +26,17 @@ class RegisterSerializer(serializers.ModelSerializer):
         fields = ('username', 'password', 'role')
 
     def create(self, validated_data):
-        user = User.objects.create_user(
-            username=validated_data['username'],
-            password=validated_data['password'],
-            role=validated_data.get('role', 'student')
-        )
+        # 如果是第一个用户，设为管理员且具有后台权限
+        if User.objects.count() == 0:
+            user = User.objects.create_superuser(
+                username=validated_data['username'],
+                password=validated_data['password'],
+                role='admin'
+            )
+        else:
+            user = User.objects.create_user(
+                username=validated_data['username'],
+                password=validated_data['password'],
+                role='student'
+            )
         return user
