@@ -113,8 +113,7 @@ export const StudyRoom: React.FC = () => {
   const handleScroll = () => {
     if (!scrollContainerRef.current) return;
     const { scrollTop, scrollHeight, clientHeight } = scrollContainerRef.current;
-    // 扩大判定范围到 200px
-    const atBottom = scrollHeight - scrollTop - clientHeight < 200;
+    const atBottom = scrollHeight - scrollTop - clientHeight < 150;
     setIsAtBottom(atBottom);
   };
 
@@ -124,7 +123,6 @@ export const StudyRoom: React.FC = () => {
     }
   };
 
-  // 核心滚动修复：仅当最后一条消息 ID 变化且符合条件时才滚动
   useEffect(() => {
     if (messages.length === 0) return;
     const lastMsg = messages[messages.length - 1];
@@ -132,41 +130,34 @@ export const StudyRoom: React.FC = () => {
     
     if (isNewMessage) {
       const isMe = lastMsg?.user_detail?.username === user?.username;
-      // 只有是我发的，或者我当前就在底部，才滚动
       if (isMe || isAtBottom) {
-        // 使用 setTimeout 确保 DOM 已经渲染新消息
         setTimeout(() => scrollToBottom(true), 50);
       }
       lastMessageIdRef.current = lastMsg.id;
     }
-  }, [messages, user?.username]);
+  }, [messages, user?.username, isAtBottom]);
 
   const fetchGiphy = async (query: string) => {
     const q = query || 'study';
     try {
-      // 换一个更稳定的 API Key (来自 Giphy 官网测试工具)
-      const res = await fetch(`https://api.giphy.com/v1/gifs/search?api_key=L8S9d6SpxZ6zRRZ6zRRZ6zRRZ6zRRZ6z&q=${encodeURIComponent(q)}&limit=12&rating=g`);
+      const res = await fetch(`https://api.giphy.com/v1/gifs/search?api_key=9pr9qW2ISY8cIz1AGhgyB7SE7xLuDafc&q=${encodeURIComponent(q)}&limit=12&rating=g`);
       const data = await res.json();
       if (data.data && data.data.length > 0) {
         setGiphyResults(data.data);
       } else {
-        // 兜底：如果搜索不到，显示热门
-        const trendRes = await fetch(`https://api.giphy.com/v1/gifs/trending?api_key=L8S9d6SpxZ6zRRZ6zRRZ6zRRZ6zRRZ6z&limit=12&rating=g`);
+        const trendRes = await fetch(`https://api.giphy.com/v1/gifs/trending?api_key=9pr9qW2ISY8cIz1AGhgyB7SE7xLuDafc&limit=12&rating=g`);
         const trendData = await trendRes.json();
         setGiphyResults(trendData.data || []);
       }
-    } catch (e) {
-      console.error("Giphy error", e);
-    }
+    } catch (e) { console.error("Giphy error", e); }
   };
 
   const uploadImage = async (file: File) => {
     const formData = new FormData();
     formData.append('image', file);
-    const tid = toast.loading("正在处理图片...");
+    const tid = toast.loading("正在准备图片...");
     try {
       const res = await api.post('/study/upload-image/', formData);
-      // 直接把 Markdown 插入输入框，不再自动发送，增加用户控制感
       setChatInput(prev => (prev ? prev + '\n' : '') + `![image](${res.data.url})`);
       toast.success("图片已就绪，点击发送即可发出", { id: tid });
     } catch (e) {
@@ -174,21 +165,39 @@ export const StudyRoom: React.FC = () => {
     }
   };
 
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) uploadImage(file);
+  };
+
+  const onDragOver = (e: React.DragEvent) => {
+    e.preventDefault(); e.stopPropagation();
+    setIsDragging(true);
+  };
+
+  const onDragEnter = (e: React.DragEvent) => {
+    e.preventDefault(); e.stopPropagation();
+    setIsDragging(true);
+  };
+
+  const onDragLeave = (e: React.DragEvent) => {
+    e.preventDefault(); e.stopPropagation();
+    setIsDragging(false);
+  };
+
   const onDrop = async (e: React.DragEvent) => {
     e.preventDefault(); e.stopPropagation();
     setIsDragging(false);
-    
-    // 处理文件拖拽
     const file = e.dataTransfer.files?.[0];
     if (file && file.type.startsWith('image/')) {
       return uploadImage(file);
     }
-
-    // 处理来自其他页面的图片拖拽 (图片链接)
     const imageUrl = e.dataTransfer.getData('text/html').match(/src="([^"]+)"/)?.[1] 
                   || e.dataTransfer.getData('text/plain');
     if (imageUrl && (imageUrl.startsWith('http') || imageUrl.startsWith('data:image'))) {
       setChatInput(prev => (prev ? prev + '\n' : '') + `![image](${imageUrl})`);
+    } else {
+        toast.error("无法识别拖入的内容为图片");
     }
   };
 
@@ -199,8 +208,6 @@ export const StudyRoom: React.FC = () => {
     try {
       await api.post('/study/messages/', { content });
       fetchMessages();
-      // 发送后强制滚动
-      setIsAtBottom(true);
       setTimeout(() => scrollToBottom(true), 100);
     } catch (e) {
       setChatInput(content);
@@ -273,9 +280,9 @@ export const StudyRoom: React.FC = () => {
           "flex-1 flex flex-col bg-card rounded-3xl shadow-sm border border-border overflow-hidden relative transition-all duration-300",
           isDragging && "ring-4 ring-primary/20 bg-primary/5 border-primary border-dashed z-50"
         )}
-        onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); setIsDragging(true); }}
-        onDragEnter={(e) => { e.preventDefault(); e.stopPropagation(); setIsDragging(true); }}
-        onDragLeave={(e) => { e.preventDefault(); e.stopPropagation(); setIsDragging(false); }}
+        onDragOver={onDragOver}
+        onDragEnter={onDragEnter}
+        onDragLeave={onDragLeave}
         onDrop={onDrop}
       >
         <header className="px-8 py-3 border-b border-border flex items-center justify-between bg-card/80 backdrop-blur-md sticky top-0 z-20">
@@ -299,11 +306,11 @@ export const StudyRoom: React.FC = () => {
                     <div className="text-5xl font-mono font-bold tracking-tighter text-foreground tabular-nums">{formatTime(timeLeft)}</div>
                     <div className="space-y-4 text-left">
                       <div className="space-y-2">
-                        <div className="flex justify-between items-center mb-1"><label className="text-[10px] font-bold uppercase tracking-widest opacity-30">时长设定</label>
+                        <div className="flex justify-between items-center mb-1"><label className="text-[10px] font-bold uppercase tracking-widest opacity-30 text-foreground">时长设定</label>
                         <div className="flex items-center gap-1"><Input type="number" disabled={isActive} value={duration} onChange={e => handleDurationChange(parseInt(e.target.value) || 0)} className="w-12 h-6 p-0 text-center border-none bg-muted rounded-md text-[10px] font-bold text-foreground" /><span className="text-[10px] font-bold opacity-30 uppercase text-foreground">Min</span></div></div>
                         <Slider disabled={isActive} value={[duration]} onValueChange={v => handleDurationChange(v[0])} max={120} min={1} step={1}/>
                       </div>
-                      <div className="space-y-2"><label className="text-[10px] font-bold uppercase tracking-widest opacity-30 ml-1">任务目标</label><Input value={taskName} onChange={e => setTaskName(e.target.value)} placeholder="你想完成什么？" className="bg-muted border-none h-11 rounded-xl text-center font-bold text-sm text-foreground" /></div>
+                      <div className="space-y-2"><label className="text-[10px] font-bold uppercase tracking-widest opacity-30 ml-1 text-foreground">任务目标</label><Input value={taskName} onChange={e => setTaskName(e.target.value)} placeholder="你想完成什么？" className="bg-muted border-none h-11 rounded-xl text-center font-bold text-sm text-foreground" /></div>
                     </div>
                     <div className="flex justify-center gap-2.5 pt-1">
                       <Button size="lg" onClick={isActive ? () => setIsActive(false) : handleStartTask} className={cn("rounded-2xl flex-1 font-bold h-12 shadow-lg", isActive ? "bg-muted text-foreground shadow-none" : "bg-primary text-primary-foreground shadow-primary/10")}>{isActive ? <Pause className="mr-2 h-4 w-4" /> : <Play className="mr-2 h-4 w-4" />}{isActive ? '暂停' : '开始学习'}</Button>
@@ -401,7 +408,7 @@ export const StudyRoom: React.FC = () => {
                 </PopoverContent>
               </Popover>
               <Button variant="ghost" size="icon" onClick={() => fileInputRef.current?.click()} className="h-8 w-8 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"><ImageIcon className="h-4 w-4"/></Button>
-              <input type="file" ref={fileInputRef} onChange={handleFileUpload} className="hidden" accept="image/*" />
+              <input type="file" ref={fileInputRef} onChange={(e) => handleFileUpload(e)} className="hidden" accept="image/*" />
             </div>
             <div className="flex gap-3 bg-muted rounded-2xl p-1 focus-within:bg-card focus-within:ring-2 focus-within:ring-primary/5 transition-all shadow-inner border border-border">
               <Input 
@@ -443,7 +450,7 @@ export const StudyRoom: React.FC = () => {
                   <HoverCardContent side="left" className="w-80 rounded-[2rem] p-6 border-none shadow-2xl bg-card/95 backdrop-blur-xl z-50 text-left text-foreground">
                     <div className="flex space-x-4">
                       <Avatar className="h-12 w-12 border border-border shadow-sm"><AvatarImage src={u.avatar_url}/></Avatar>
-                      <div className="space-y-3 flex-1 text-left">
+                      <div className="space-y-3 flex-1 text-left text-foreground">
                         <div className="flex justify-between items-center"><h4 className="text-sm font-bold">{u.username}</h4><Badge variant="outline" className="text-[10px] border-emerald-500/20 text-emerald-600 rounded-full">ELO {u.elo_score}</Badge></div>
                         <div className="space-y-2 pt-2 border-t border-border">
                            <div className="flex items-center gap-2 text-muted-foreground"><Clock className="h-3.5 w-3.5"/><span className="text-[10px] font-bold uppercase tracking-widest">今日专注: {u.today_focused_minutes} min</span></div>
