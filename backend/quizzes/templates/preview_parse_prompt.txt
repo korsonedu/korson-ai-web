@@ -1,0 +1,18 @@
+请将以下习题文本整理为结构化的 JSON 数组。
+原始文本：{raw_text}
+
+JSON 格式 (数组):
+[
+  {{
+    "text": "题干(含选项描述，公式前后加空格)",
+    "q_type": "objective" 或 "subjective",
+    "subjective_type": "noun", "short" 或 "essay",
+    "options": ["A.xx","B.xx","C.xx","D.xx"],
+    "correct_answer": "答案",
+    "grading_points": "得分点关键词",
+    "analysis": "简明解析",
+    "difficulty": 1000
+  }}
+]
+
+注意：只输出 JSON 数组，严禁包含任何 Markdown 代码块标签或解释。如果内容不是题目请忽略。确保每个字符串正确闭合。

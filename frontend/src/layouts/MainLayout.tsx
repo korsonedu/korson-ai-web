@@ -1,0 +1,209 @@
+import React, { useState, useEffect } from 'react';
+import { Link, useLocation, Outlet, useNavigate } from 'react-router-dom';
+import { 
+  BookOpen, 
+  FileText, 
+  Trophy, 
+  Clock, 
+  User as UserIcon,
+  LogOut,
+  ShieldCheck,
+  ChevronLeft,
+  ChevronRight,
+  Settings as SettingsIcon,
+  Sparkles,
+  Settings2,
+  Bell,
+  BrainCircuit
+} from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useAuthStore } from '@/store/useAuthStore';
+import { useSystemStore } from '@/store/useSystemStore';
+import api from '@/lib/api';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+
+const SidebarItem = ({ to, icon: Icon, label, active, collapsed }: any) => {
+  const content = (
+    <Link to={to} className="block px-1">
+      <Button
+        variant="ghost"
+        className={cn(
+          "w-full justify-start gap-4 h-10 px-3 transition-all duration-200 rounded-xl",
+          active 
+            ? "bg-card text-foreground shadow-sm border border-border" 
+            : "text-muted-foreground hover:bg-muted hover:text-foreground",
+          collapsed && "justify-center px-0"
+        )}
+      >
+        <Icon className={cn("h-4 w-4 shrink-0", active ? "text-foreground" : "text-muted-foreground")} />
+        {!collapsed && <span className="font-bold text-sm">{label}</span>}
+      </Button>
+    </Link>
+  );
+
+  return collapsed ? (
+    <Tooltip>
+      <TooltipTrigger asChild>{content}</TooltipTrigger>
+      <TooltipContent side="right" className="font-bold border-none shadow-xl">{label}</TooltipContent>
+    </Tooltip>
+  ) : content;
+};
+
+export const MainLayout: React.FC = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { user, logout } = useAuthStore();
+  const { primaryColor } = useSystemStore();
+  const [collapsed, setCollapsed] = useState(false);
+  const [showLogoutAlert, setShowLogoutAlert] = useState(false);
+  const [schoolConfig, setSchoolConfig] = useState({ name: '知行网校', desc: 'Knowledge In Action', logo: '' });
+
+  useEffect(() => {
+    // Apply primary color from store
+    document.documentElement.style.setProperty('--primary-override', primaryColor);
+    
+    api.get('/users/config/').then(res => {
+      setSchoolConfig({ 
+        name: res.data.school_name, 
+        desc: res.data.school_description,
+        logo: res.data.school_logo_url
+      });
+    }).catch(() => {});
+  }, [primaryColor]);
+
+  const navItems = [
+    { to: '/', icon: BookOpen, label: '课程中心' },
+    { to: '/articles', icon: FileText, label: '文章中心' },
+    { to: '/tests', icon: Trophy, label: '天梯排行' },
+    { to: '/knowledge-map', icon: BrainCircuit, label: '知识地图' },
+    { to: '/study', icon: Clock, label: '自习室' },
+    { to: '/ai', icon: Sparkles, label: 'AI 助教' },
+  ];
+
+  if (user?.role === 'admin') navItems.push({ to: '/admin', icon: ShieldCheck, label: '维护中心' });
+
+  return (
+    <TooltipProvider delayDuration={0}>
+      <div className="flex h-screen bg-background text-foreground overflow-hidden font-sans selection:bg-primary selection:text-primary-foreground">
+        <aside className={cn(
+          "relative border-r border-border flex flex-col p-3 bg-card/70 backdrop-blur-2xl transition-all duration-500 ease-in-out z-30",
+          collapsed ? "w-16" : "w-64"
+        )}>
+          {/* Logo Section */}
+          <div className={cn("mb-6 mt-2 flex items-center gap-3 transition-all", collapsed ? "justify-center" : "px-3")}>
+            <div className="h-10 w-10 rounded-xl bg-black flex items-center justify-center shrink-0 shadow-xl overflow-hidden text-white font-bold text-lg italic" style={{backgroundColor: primaryColor}}>
+              {schoolConfig.logo ? (
+                <img src={schoolConfig.logo} className="w-full h-full object-cover" />
+              ) : (
+                <span>{schoolConfig.name[0]}</span>
+              )}
+            </div>
+            {!collapsed && (
+              <div className="flex flex-col animate-in fade-in duration-500 min-w-0">
+                <h1 className="text-sm font-bold tracking-tight truncate w-32">{schoolConfig.name}</h1>
+                <p className="text-[9px] text-muted-foreground font-bold uppercase tracking-widest truncate w-32">{schoolConfig.desc}</p>
+              </div>
+            )}
+          </div>
+
+          <nav className="flex-1 space-y-1">{navItems.map(item => <SidebarItem key={item.to} {...item} active={location.pathname === item.to} collapsed={collapsed} />)}</nav>
+
+          <button onClick={() => setCollapsed(!collapsed)} className="absolute -right-3 top-16 h-6 w-6 bg-card border border-border rounded-full flex items-center justify-center shadow-sm hover:shadow-md transition-all z-40 group">
+            {collapsed ? <ChevronRight className="h-3 w-3" /> : <ChevronLeft className="h-3 w-3" />}
+          </button>
+
+          <div className="mt-auto">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <div className={cn("group flex items-center gap-3 p-2 rounded-xl cursor-pointer transition-all duration-300 hover:bg-muted border border-transparent hover:border-border", collapsed && "justify-center")}>
+                  <Avatar className="h-9 w-9 border border-border shadow-sm group-hover:scale-105 transition-transform">
+                    <AvatarImage src={user?.avatar_url} />
+                    <AvatarFallback className="bg-muted text-[10px] font-bold">{user?.username?.[0]}</AvatarFallback>
+                  </Avatar>
+                  {!collapsed && (
+                    <div className="flex-1 min-w-0 animate-in fade-in">
+                      <p className="text-xs font-bold truncate">{user?.username}</p>
+                      <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-tighter">Scholarly Profile</p>
+                    </div>
+                  )}
+                </div>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" side={collapsed ? "right" : "top"} className="w-56 rounded-2xl p-2 bg-card/95 backdrop-blur-xl border-border shadow-2xl">
+                <DropdownMenuLabel className="px-3 py-2 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">账户与偏好</DropdownMenuLabel>
+                <DropdownMenuItem onClick={() => navigate('/settings')} className="rounded-xl px-3 py-2.5 gap-3 cursor-pointer focus:bg-primary focus:text-primary-foreground transition-colors">
+                  <UserIcon className="h-4 w-4" />
+                  <span className="font-bold text-sm">个人设置</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => navigate('/system-settings')} className="rounded-xl px-3 py-2.5 gap-3 cursor-pointer focus:bg-primary focus:text-primary-foreground transition-colors">
+                  <Settings2 className="h-4 w-4" />
+                  <span className="font-bold text-sm">外观与系统</span>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator className="my-2 bg-border" />
+                <DropdownMenuItem onClick={() => setShowLogoutAlert(true)} className="rounded-xl px-3 py-2.5 gap-3 cursor-pointer text-destructive focus:bg-destructive focus:text-destructive-foreground transition-colors">
+                  <LogOut className="h-4 w-4" />
+                  <span className="font-bold text-sm">退出登录</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        </aside>
+
+        <main className="flex-1 overflow-y-auto relative z-10">
+          <header className="sticky top-0 h-14 border-b border-border bg-background/80 backdrop-blur-xl z-20 px-8 flex items-center justify-between">
+             <div className="flex items-center gap-2">
+                <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Network Operational</span>
+             </div>
+             <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2 px-4 py-1.5 bg-card rounded-full shadow-sm border border-border">
+                   <Sparkles className="h-3.5 w-3.5 text-amber-500 fill-amber-500" />
+                   <span className="text-xs font-bold text-foreground">ELO: {user?.elo_score}</span>
+                </div>
+                <div className="h-8 w-px bg-border" />
+                <Avatar className="h-8 w-8 border border-border">
+                   <AvatarImage src={user?.avatar_url} />
+                   <AvatarFallback className="text-[10px] font-bold">{user?.username?.[0]}</AvatarFallback>
+                </Avatar>
+             </div>
+          </header>
+          <div className="p-6 max-w-[1400px] mx-auto"><Outlet /></div>
+        </main>
+
+        <AlertDialog open={showLogoutAlert} onOpenChange={setShowLogoutAlert}>
+          <AlertDialogContent className="rounded-[2.5rem] border-none shadow-2xl">
+            <AlertDialogHeader><AlertDialogTitle className="text-xl font-bold">确认退出登录？</AlertDialogTitle><AlertDialogDescription className="font-medium text-[#86868B]">退出后你将需要重新验证身份以访问网校资源。</AlertDialogDescription></AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel className="rounded-xl font-bold">返回</AlertDialogCancel>
+              <AlertDialogAction onClick={() => { logout(); navigate('/login'); }} className="rounded-xl bg-black text-white font-bold hover:bg-black/90">确认退出</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      </div>
+    </TooltipProvider>
+  );
+};

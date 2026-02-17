@@ -1,0 +1,10 @@
+from rest_framework import serializers
+from .models import ChatMessage, StudyTask
+from users.serializers import UserSerializer
+
+class ChatMessageSerializer(serializers.ModelSerializer):
+    user_detail = UserSerializer(source='user', read_only=True)
+    class Meta:
+        model = ChatMessage
+        fields = ('id', 'user', 'user_detail', 'content', 'timestamp')
+        read_only_fields = ('user',)
