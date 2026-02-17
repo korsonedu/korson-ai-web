@@ -338,7 +338,7 @@ export const StudyRoom: React.FC = () => {
                   <Avatar className="h-9 w-9 border border-border shadow-sm shrink-0 group-hover:scale-105 transition-transform"><AvatarImage src={msg.user_detail.avatar_url} /><AvatarFallback className="text-[10px] font-bold bg-muted">{msg.user_detail.username[0]}</AvatarFallback></Avatar>
                   <div className={cn("flex flex-col gap-1 max-w-[70%]", isMe ? "items-end" : "items-start")}>
                     <div className="flex items-center gap-2 px-1"><span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">{msg.user_detail.username}</span></div>
-                    <div className={cn("p-3 px-4 text-[13px] leading-relaxed shadow-sm rounded-2xl break-words overflow-hidden", isMe ? "bg-primary text-primary-foreground rounded-tr-none font-medium text-left" : "bg-muted text-foreground rounded-tl-none border border-border text-left")}>
+                    <div className={cn("p-3 px-4 text-[13px] leading-relaxed shadow-sm rounded-2xl break-words overflow-hidden", isMe ? "bg-primary text-primary-foreground rounded-tr-none font-medium text-left" : "bg-rose-50 text-rose-900 rounded-tl-none border border-rose-100 dark:bg-rose-950/30 dark:text-rose-200 dark:border-rose-900/50 text-left")}>
                       <ReactMarkdown 
                         remarkPlugins={[remarkMath]} 
                         rehypePlugins={[rehypeKatex]}
