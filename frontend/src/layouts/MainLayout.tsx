@@ -138,7 +138,7 @@ export const MainLayout: React.FC = () => {
           </button>
 
           <div className="mt-auto">
-            <DropdownMenu>
+            <DropdownMenu modal={false}>
               <DropdownMenuTrigger asChild>
                 <div className={cn("group flex items-center gap-3 p-2 rounded-xl cursor-pointer transition-all duration-300 hover:bg-muted border border-transparent hover:border-border", collapsed && "justify-center")}>
                   <Avatar className="h-9 w-9 border border-border shadow-sm group-hover:scale-105 transition-transform">

@@ -63,6 +63,14 @@
   }
 }
 
+/* Fix Radix UI layout shift */
+body {
+  padding-right: 0px !important;
+}
+html {
+  overflow-y: scroll;
+}
+
 /* Sync primary components with override variable */
 .bg-primary, .bg-black {
   background-color: var(--primary-override) !important;
