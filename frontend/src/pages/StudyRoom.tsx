@@ -77,6 +77,7 @@ export const StudyRoom: React.FC = () => {
   const [isComposing, setIsComposing] = useState(false);
   const [giphySearch, setGiphySearch] = useState('');
   const [giphyResults, setGiphyResults] = useState<any[]>([]);
+  const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const [allowBroadcast, setAllowBroadcast] = useState(user?.allow_broadcast ?? true);
@@ -178,12 +179,14 @@ export const StudyRoom: React.FC = () => {
   };
 
   const fetchGiphy = async (query: string) => {
-    if (!query) return;
+    const q = query || 'study';
     try {
-      const res = await fetch(`https://api.giphy.com/v1/gifs/search?api_key=L8S9d6SpxZ6zRRZ6zRRZ6zRRZ6zRRZ6z&q=${query}&limit=10&rating=g`);
+      const res = await fetch(`https://api.giphy.com/v1/gifs/search?api_key=L8S9d6SpxZ6zRRZ6zRRZ6zRRZ6zRRZ6z&q=${encodeURIComponent(q)}&limit=10&rating=g`);
       const data = await res.json();
-      setGiphyResults(data.data);
-    } catch (e) {}
+      if (data.data) setGiphyResults(data.data);
+    } catch (e) {
+      console.error("Giphy fetch error:", e);
+    }
   };
 
   const sendGif = async (url: string) => {
@@ -203,23 +206,33 @@ export const StudyRoom: React.FC = () => {
   const uploadImage = async (file: File) => {
     const formData = new FormData();
     formData.append('image', file);
-    const tid = toast.loading("正在上传图片...");
+    const tid = toast.loading("正在准备图片...");
     try {
       const res = await api.post('/study/upload-image/', formData);
-      await api.post('/study/messages/', { content: `![image](${res.data.url})` });
-      fetchMessages();
-      setIsAtBottom(true);
-      toast.dismiss(tid);
+      setChatInput(prev => (prev ? prev + '\n' : '') + `![image](${res.data.url})`);
+      toast.success("图片已就绪，点击发送即可发出", { id: tid });
     } catch (e) {
-      toast.error("图片上传失败", { id: tid });
+      toast.error("图片处理失败", { id: tid });
     }
+  };
+
+  const onDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const onDragLeave = () => {
+    setIsDragging(false);
   };
 
   const onDrop = async (e: React.DragEvent) => {
     e.preventDefault();
+    setIsDragging(false);
     const file = e.dataTransfer.files?.[0];
     if (file && file.type.startsWith('image/')) {
       uploadImage(file);
+    } else {
+      toast.error("仅支持拖入图片格式");
     }
   };
 
@@ -271,7 +284,15 @@ export const StudyRoom: React.FC = () => {
     <div className="h-[calc(100vh-8.5rem)] flex gap-6 animate-in fade-in duration-300 text-left">
       
       {/* Main Discussion Area */}
-      <div className="flex-1 flex flex-col bg-card rounded-3xl shadow-sm border border-border overflow-hidden relative">
+      <div 
+        className={cn(
+          "flex-1 flex flex-col bg-card rounded-3xl shadow-sm border border-border overflow-hidden relative transition-colors duration-200",
+          isDragging && "bg-primary/5 border-primary border-dashed"
+        )}
+        onDragOver={onDragOver}
+        onDragLeave={onDragLeave}
+        onDrop={onDrop}
+      >
         <header className="px-8 py-3 border-b border-border flex items-center justify-between bg-card/80 backdrop-blur-md sticky top-0 z-20">
           <div className="flex items-center gap-4">
             <div className="h-9 w-9 rounded-xl bg-primary flex items-center justify-center shadow-lg"><MessageSquare className="h-4 w-4 text-primary-foreground" /></div>
@@ -320,7 +341,7 @@ export const StudyRoom: React.FC = () => {
         </header>
 
         <ScrollArea className="flex-1 relative group/scroll" ref={scrollRef} onScroll={handleScroll}>
-          <div className="p-8 space-y-8 max-w-4xl mx-auto" onDragOver={e => e.preventDefault()} onDrop={onDrop}>
+          <div className="p-8 space-y-8 max-w-4xl mx-auto">
             {messages.map((msg) => {
               const isMe = msg.user_detail.username === user?.username;
               const isTask = msg.content.includes('💪') || msg.content.includes('✅') || msg.content.includes('❌') || msg.content.includes('开始了“');
@@ -373,10 +394,15 @@ export const StudyRoom: React.FC = () => {
                   </div>
                 </PopoverContent>
               </Popover>
-              <Popover onOpenChange={(open) => open && giphySearch === '' && fetchGiphy('study')}>
+              <Popover onOpenChange={(open) => open && giphyResults.length === 0 && fetchGiphy('study')}>
                 <PopoverTrigger asChild><Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg text-muted-foreground hover:text-foreground"><FileVideo className="h-4 w-4"/></Button></PopoverTrigger>
                 <PopoverContent side="top" className="w-72 p-3 rounded-2xl border-border shadow-2xl space-y-3 bg-card">
-                  <Input placeholder="搜索 GIPHY..." value={giphySearch} onChange={e => { setGiphySearch(e.target.value); fetchGiphy(e.target.value); }} className="h-8 text-[10px] font-bold rounded-lg bg-muted border-none" />
+                  <Input 
+                    placeholder="搜索 GIPHY..." 
+                    value={giphySearch} 
+                    onChange={e => { setGiphySearch(e.target.value); fetchGiphy(e.target.value); }} 
+                    className="h-8 text-[10px] font-bold rounded-lg bg-muted border-none text-foreground" 
+                  />
                   <div className="grid grid-cols-2 gap-2 h-48 overflow-y-auto pr-1 scrollbar-thin">
                     {giphyResults.map(g => (
                       <img key={g.id} src={g.images.fixed_height_small.url} onClick={() => sendGif(g.images.original.url)} className="rounded-lg cursor-pointer hover:opacity-80 transition-opacity aspect-square object-cover" />
@@ -396,7 +422,7 @@ export const StudyRoom: React.FC = () => {
                 onCompositionEnd={() => setIsComposing(false)}
                 onKeyDown={e => { if (e.key === 'Enter' && !isComposing) { e.preventDefault(); sendMessage(); } }}
                 placeholder="发送消息 (可拖入图片)..." 
-                className="bg-transparent border-none shadow-none focus-visible:ring-0 text-[13px] h-9 px-4 text-foreground" 
+                className="bg-transparent border-none shadow-none focus-visible:ring-0 text-[13px] h-9 px-4 text-foreground placeholder:text-[13px]" 
               />
               <Button onClick={sendMessage} size="icon" className="rounded-xl h-9 w-9 bg-primary text-primary-foreground shadow-xl shrink-0 hover:opacity-90"><Send className="h-3.5 w-3.5" /></Button>
             </div>
