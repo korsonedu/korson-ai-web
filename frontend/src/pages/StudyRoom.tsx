@@ -8,7 +8,7 @@ import {
   RotateCcw, CheckCircle2, MoreHorizontal, 
   Plus, Zap, Timer, XCircle, ListTodo, Circle,
   Trophy, Clock, Radio, Eye, Smile, Image as ImageIcon,
-  Gif, ArrowDown
+  FileVideo, ArrowDown
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
@@ -374,7 +374,7 @@ export const StudyRoom: React.FC = () => {
                 </PopoverContent>
               </Popover>
               <Popover onOpenChange={(open) => open && giphySearch === '' && fetchGiphy('study')}>
-                <PopoverTrigger asChild><Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg text-muted-foreground hover:text-foreground"><Gif className="h-4 w-4"/></Button></PopoverTrigger>
+                <PopoverTrigger asChild><Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg text-muted-foreground hover:text-foreground"><FileVideo className="h-4 w-4"/></Button></PopoverTrigger>
                 <PopoverContent side="top" className="w-72 p-3 rounded-2xl border-border shadow-2xl space-y-3 bg-card">
                   <Input placeholder="搜索 GIPHY..." value={giphySearch} onChange={e => { setGiphySearch(e.target.value); fetchGiphy(e.target.value); }} className="h-8 text-[10px] font-bold rounded-lg bg-muted border-none" />
                   <div className="grid grid-cols-2 gap-2 h-48 overflow-y-auto pr-1 scrollbar-thin">
