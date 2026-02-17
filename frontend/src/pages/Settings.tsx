@@ -124,7 +124,7 @@ export const Settings: React.FC = () => {
             <div className="relative group">
               <Avatar className="h-32 w-32 border-4 border-white shadow-2xl ring-1 ring-black/5">
                 <AvatarImage src={previewUrl} />
-                <AvatarFallback className="text-4xl font-bold">{profile.username[0]}</AvatarFallback>
+                <AvatarFallback className="text-4xl font-bold">{(profile.nickname || user?.username || "?")[0]}</AvatarFallback>
               </Avatar>
               <Sheet>
                 <SheetTrigger asChild><button className="absolute bottom-0 right-0 bg-black text-white p-2.5 rounded-full shadow-xl border-4 border-white transition-transform hover:scale-110"><Camera className="h-4 w-4" /></button></SheetTrigger>
