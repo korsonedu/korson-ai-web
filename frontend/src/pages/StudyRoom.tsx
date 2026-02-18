@@ -292,7 +292,22 @@ export const StudyRoom: React.FC = () => {
               </Popover>
               <Popover onOpenChange={(open) => open && giphyResults.length === 0 && fetchGiphy('study')}>
                 <PopoverTrigger asChild><Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"><FileVideo className="h-4 w-4"/></Button></PopoverTrigger>
-                <PopoverContent side="top" className="w-72 p-3 rounded-2xl border-border shadow-2xl space-y-3 bg-card"><Input placeholder="搜索 GIPHY..." value={giphySearch} onChange={e => { setGiphySearch(e.target.value); fetchGiphy(e.target.value); }} className="h-9 text-xs rounded-xl bg-muted border-none text-foreground placeholder:opacity-50 focus-visible:ring-1 focus-visible:ring-primary/20" /><div className="grid grid-cols-2 gap-2 h-48 overflow-y-auto pr-1 scrollbar-thin">{giphyResults.map(g => (<img key={g.id} src={g.images.fixed_height_small.url} onClick={() => { sendGif(g.images.original.url); }} className="rounded-lg cursor-pointer hover:scale-95 transition-transform aspect-square object-cover bg-muted" />))}</div><p className="text-[8px] text-center text-muted-foreground font-bold opacity-50 uppercase tracking-tighter">Powered by GIPHY</p></PopoverContent>
+                <PopoverContent side="top" className="w-72 p-3 rounded-2xl border-border shadow-2xl space-y-3 bg-card">
+                  <Input placeholder="搜索 GIPHY..." value={giphySearch} onChange={e => { setGiphySearch(e.target.value); fetchGiphy(e.target.value); }} className="h-9 text-xs rounded-xl bg-muted border-none text-foreground placeholder:opacity-50 focus-visible:ring-1 focus-visible:ring-primary/20" />
+                  <div className="grid grid-cols-2 gap-2 h-48 overflow-y-auto pr-1 scrollbar-thin">
+                    {giphyResults.map(g => (
+                      <button 
+                        key={g.id} 
+                        type="button"
+                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); sendGif(g.images.original.url); }}
+                        className="rounded-lg cursor-pointer hover:scale-95 transition-transform overflow-hidden aspect-square object-cover bg-muted"
+                      >
+                        <img src={g.images.fixed_height_small.url} className="w-full h-full object-cover" />
+                      </button>
+                    ))}
+                  </div>
+                  <p className="text-[8px] text-center text-muted-foreground font-bold opacity-50 uppercase tracking-tighter">Powered by GIPHY</p>
+                </PopoverContent>
               </Popover>
               <Button variant="ghost" size="icon" onClick={() => fileInputRef.current?.click()} className="h-8 w-8 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"><ImageIcon className="h-4 w-4"/></Button>
               <input type="file" ref={fileInputRef} onChange={(e) => handleFileUpload(e)} className="hidden" accept="image/*" />

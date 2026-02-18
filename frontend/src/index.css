@@ -47,7 +47,38 @@
     --border: 240 3.7% 15.9%;
     --input: 240 3.7% 15.9%;
     --ring: 240 4.9% 83.9%;
+    --primary-override: #ffffff;
   }
+}
+
+/* Global Dark Mode Style Fixes */
+.dark body {
+  background-color: #000000;
+}
+
+.dark h1, .dark h2, .dark h3, .dark h4, .dark h5, .dark h6, .dark p, .dark span, .dark div {
+  /* Let tailwind handle most, but override stubborn ones */
+}
+
+/* Fix specific components that resist dark mode */
+.dark .bg-white, .dark .bg-card {
+  background-color: hsl(var(--card)) !important;
+  color: hsl(var(--card-foreground)) !important;
+}
+.dark .text-black, .dark .text-\[\#1D1D1F\] {
+  color: hsl(var(--foreground)) !important;
+}
+.dark .text-\[\#86868B\], .dark .text-muted-foreground {
+  color: hsl(var(--muted-foreground)) !important;
+}
+.dark .border-black\/\[0.03\], .dark .border-black\/5, .dark .border-border {
+  border-color: hsl(var(--border)) !important;
+}
+.dark .bg-slate-50, .dark .bg-\[\#F5F5F7\], .dark .bg-muted {
+  background-color: hsl(var(--muted)) !important;
+}
+.dark .lucide {
+  color: currentColor;
 }
 
 @layer base {

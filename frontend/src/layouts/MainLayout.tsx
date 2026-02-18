@@ -81,7 +81,7 @@ export const MainLayout: React.FC = () => {
   const { primaryColor } = useSystemStore();
   const [collapsed, setCollapsed] = useState(false);
   const [showLogoutAlert, setShowLogoutAlert] = useState(false);
-  const [schoolConfig, setSchoolConfig] = useState({ name: '知行网校', desc: 'Knowledge In Action', logo: '' });
+  const [schoolConfig, setSchoolConfig] = useState({ name: '科晟智慧', desc: 'KORSON ACADEMY', logo: '' });
 
   useEffect(() => {
     // Apply primary color from store
