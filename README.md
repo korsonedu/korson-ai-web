@@ -45,5 +45,29 @@
 - **题目入库**：支持批量入库及结构化知识点挂载，AI 将自动为缺失答案的题目生成解析。
 - **资源审计**：全权管理课程媒体与学术文章。
 
+## 开发与同步指南
+
+系统通过 GitHub 进行代码托管与同步。
+
+### 1. 本地推送到服务器 (开发完成)
+在本地执行：
+\`\`\`bash
+git add .
+git commit -m "feat: 新功能描述"
+git push origin main
+\`\`\`
+
+### 2. 服务器更新 (部署更新)
+SSH 登录服务器后执行：
+\`\`\`bash
+cd /opt/korson-ai-web
+git pull origin main
+# 后端有变更时：
+# backend/venv/bin/python backend/manage.py migrate
+# systemctl restart korson-ai-web
+# 前端有变更时：
+# cd frontend && VITE_API_URL=https://www.korsonedu.com/api VITE_GIPHY_API_KEY=9pr9qW2ISY8cIz1AGhgyB7SE7xLuDafc npx vite build
+\`\`\`
+
 ---
 *知行网校 - 让每一分钟的努力都清晰可见*

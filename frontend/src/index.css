@@ -85,6 +85,16 @@ html {
   --tw-ring-color: var(--primary-override) !important;
 }
 
+/* Ensure all Lucide icons and common headers adapt to dark mode */
+.dark h1, .dark h2, .dark h3, .dark h4, .dark h5, .dark h6 {
+  @apply text-foreground !important;
+}
+
+.dark .lucide {
+  /* Icons should generally follow text color, but we force it for clarity where needed */
+  stroke: currentColor;
+}
+
 /* Custom Sonner styling */
 [data-sonner-toast] {
   @apply bg-card text-foreground border border-border shadow-2xl rounded-2xl p-4 font-sans !important;
