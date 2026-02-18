@@ -5,7 +5,7 @@ import {
   Trophy, BookOpen, User, CheckCircle2, 
   ArrowRight, ShieldCheck, Zap, Sparkles, 
   HelpCircle, GraduationCap, Briefcase, Globe,
-  PieChart, BrainCircuit
+  PieChart, BrainCircuit, Activity
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useNavigate } from 'react-router-dom';
