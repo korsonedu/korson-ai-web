@@ -155,9 +155,12 @@ const ArticleCenter = () => {
   );
 };
 
+import { Landing } from './pages/Landing';
+
 const router = createBrowserRouter([
+  { path: "/", element: <Landing /> },
   {
-    path: "/",
+    path: "/dashboard",
     element: <RequireAuth><MainLayout /></RequireAuth>,
     children: [
       { index: true, element: <CourseCenter /> },

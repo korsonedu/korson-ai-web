@@ -22,7 +22,7 @@ export const Login: React.FC = () => {
     try {
       const response = await api.post('/users/login/', { username, password });
       setAuth(response.data.user, response.data.token);
-      navigate('/');
+      navigate('/dashboard');
     } catch (err: any) {
       const errorData = err.response?.data;
       setError(errorData?.error || errorData?.non_field_errors?.[0] || errorData?.detail || '登录失败，请检查用户名或密码');
