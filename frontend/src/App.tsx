@@ -158,9 +158,8 @@ const ArticleCenter = () => {
 import { Landing } from './pages/Landing';
 
 const router = createBrowserRouter([
-  { path: "/", element: <Landing /> },
   {
-    path: "/dashboard",
+    path: "/",
     element: <RequireAuth><MainLayout /></RequireAuth>,
     children: [
       { index: true, element: <CourseCenter /> },
@@ -176,6 +175,7 @@ const router = createBrowserRouter([
       { path: "course/:id", element: <VideoLesson /> },
     ],
   },
+  { path: "/intro", element: <Landing /> },
   { path: "/login", element: <Login /> },
   { path: "/register", element: <Register /> },
 ]);
