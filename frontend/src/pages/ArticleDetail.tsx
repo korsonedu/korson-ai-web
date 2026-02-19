@@ -49,6 +49,25 @@ export const ArticleDetail: React.FC = () => {
 
   return (
     <div className="w-full max-w-4xl mx-auto animate-in fade-in duration-700 text-left p-10 pb-32 relative">
+      <style>{`
+        .article-content h1 { font-size: 2.25rem; font-weight: 900; line-height: 1.1; margin-top: 1.5rem; margin-bottom: 0.75rem; letter-spacing: -0.05em; color: #0f172a; }
+        .article-content h2 { font-size: 1.875rem; font-weight: 900; line-height: 1.2; margin-top: 1.25rem; margin-bottom: 0.5rem; color: #0f172a; }
+        .article-content h3 { font-size: 1.5rem; font-weight: 800; margin-top: 1rem; margin-bottom: 0.4rem; color: #0f172a; }
+        .article-content p { margin-bottom: 1.25rem; line-height: 1.7; font-size: 1rem; color: #374151; }
+        .article-content ul { list-style-type: disc; padding-left: 1.5rem; margin-bottom: 1.25rem; color: #374151; }
+        .article-content ol { list-style-type: decimal; padding-left: 1.5rem; margin-bottom: 1.25rem; color: #374151; }
+        .article-content li { margin-bottom: 0.5rem; }
+        .article-content blockquote { border-left: 4px solid #ec4899; padding: 0.75rem 1.5rem; font-style: italic; background: #f9fafb; margin-bottom: 1.25rem; border-radius: 0 0.75rem 0.75rem 0; color: #4b5563; }
+        .article-content code { background: #f3f4f6; color: #db2777; padding: 0.2rem 0.4rem; border-radius: 0.375rem; font-family: monospace; font-size: 0.875rem; }
+        .article-content pre { background: #1e293b; color: #f8fafc; padding: 1.5rem; border-radius: 1rem; font-family: monospace; margin-bottom: 1.25rem; overflow-x: auto; }
+        .article-content pre code { background: transparent; color: inherit; padding: 0; }
+        .article-content img { border-radius: 1.5rem; box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1); margin: 2rem 0; max-width: 100%; }
+        
+        .dark .article-content h1, .dark .article-content h2, .dark .article-content h3 { color: white; }
+        .dark .article-content p, .dark .article-content ul, .dark .article-content ol { color: #e5e7eb; }
+        .dark .article-content blockquote { background: rgba(255,255,255,0.05); color: #9ca3af; }
+      `}</style>
+
       <div className="fixed top-0 left-0 w-full h-1 z-[110] bg-muted/20">
         <div 
           className="h-full bg-indigo-500 transition-all duration-150 ease-out"
@@ -74,12 +93,7 @@ export const ArticleDetail: React.FC = () => {
         </div>
       </header>
 
-      <div className="prose prose-lg prose-slate dark:prose-invert max-w-none 
-        prose-headings:text-slate-900 dark:prose-headings:text-white prose-headings:font-black
-        prose-p:text-slate-600 dark:prose-p:text-slate-300
-        prose-strong:text-slate-900 dark:prose-strong:text-white
-        prose-img:rounded-3xl prose-img:shadow-2xl
-        ">
+      <div className="article-content max-w-none">
          <ReactMarkdown 
            remarkPlugins={[remarkMath, remarkGfm]} 
            rehypePlugins={[rehypeKatex]}
