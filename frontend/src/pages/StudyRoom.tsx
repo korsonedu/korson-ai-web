@@ -43,7 +43,6 @@ import { toast } from "sonner";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { useBlocker } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
 import ReactMarkdown from 'react-markdown';
 import remarkMath from 'remark-math';
@@ -60,7 +59,7 @@ interface Message {
 interface Plan { id: number; content: string; is_completed: boolean; }
 
 export const StudyRoom: React.FC = () => {
-  const { user } = useAuthStore();
+  const { user, updateUser } = useAuthStore();
   const [timeLeft, setTimeLeft] = useState(25 * 60);
   const [isActive, setIsActive] = useState(false);
   const [duration, setDuration] = useState(25);
@@ -84,6 +83,16 @@ export const StudyRoom: React.FC = () => {
   
   const [allowBroadcast, setAllowBroadcast] = useState(user?.allow_broadcast ?? true);
   const [showOthersBroadcast, setShowOthersBroadcast] = useState(user?.show_others_broadcast ?? true);
+
+  const updateSettings = async (field: string, val: boolean) => {
+    try {
+      await api.patch('/users/me/update/', { [field]: val });
+      if (field === 'allow_broadcast') setAllowBroadcast(val);
+      if (field === 'show_others_broadcast') setShowOthersBroadcast(val);
+      updateUser({ ...user, [field]: val } as any);
+      toast.success("偏好已更新");
+    } catch (e) { toast.error("更新失败"); }
+  };
 
   const fetchOnline = async () => { try { const res = await api.get('/users/online/'); setOnlineUsers(res.data); } catch (e) {} };
   const fetchMessages = async () => { try { const res = await api.get('/study/messages/'); setMessages(res.data); } catch (e) {} };
@@ -217,23 +226,37 @@ export const StudyRoom: React.FC = () => {
     if (!taskName.trim()) return toast.error("请输入任务名称");
     setIsActive(true);
     setIsTimerOpen(false);
-    try {
-      await api.post('/study/messages/', { content: `💪 开始了“${taskName}”任务 (计划 ${duration} 分钟)` });
-      fetchMessages();
-    } catch (e) {}
+    if (allowBroadcast) {
+      try {
+        await api.post('/study/messages/', { content: `💪 开始了“${taskName}”任务 (计划 ${duration} 分钟)` });
+        fetchMessages();
+      } catch (e) {}
+    }
   };
 
   const handleCompleteTask = async (isManual: boolean) => {
     setIsActive(false);
     const focusedMins = Math.floor((duration * 60 - timeLeft) / 60);
-    try {
-      await api.post('/study/messages/', {
-        content: isManual ? `❌ 中止了“${taskName}”任务 (专注 ${focusedMins} 分钟)` : `✅ 完成了“${taskName}”任务 (专注 ${duration} 分钟)`
-      });
-      fetchMessages();
-    } catch (e) {}
+    if (allowBroadcast) {
+      try {
+        await api.post('/study/messages/', {
+          content: isManual ? `❌ 中止了“${taskName}”任务 (专注 ${focusedMins} 分钟)` : `✅ 完成了“${taskName}”任务 (专注 ${duration} 分钟)`
+        });
+        fetchMessages();
+      } catch (e) {}
+    }
     toast.success(isManual ? "任务已终止" : "专注已达成！");
   };
+
+  useEffect(() => {
+    let interval: any = null;
+    if (isActive && timeLeft > 0) {
+      interval = setInterval(() => setTimeLeft(prev => prev - 1), 1000);
+    } else if (timeLeft === 0 && isActive) {
+      handleCompleteTask(false);
+    }
+    return () => clearInterval(interval);
+  }, [isActive, timeLeft]);
 
   return (
     <div className="h-[calc(100vh-8.5rem)] flex gap-6 animate-in fade-in duration-300 text-left text-foreground">
@@ -250,7 +273,6 @@ export const StudyRoom: React.FC = () => {
             <h2 className="text-sm font-bold tracking-tight">讨论区</h2>
           </div>
           <div className="flex items-center gap-2">
-            <Button variant="ghost" size="icon" onClick={() => { fetchOnline(); fetchMessages(); }} className="rounded-xl h-9 w-9 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"><RotateCcw className="h-4 w-4"/></Button>
             <Popover open={isTimerOpen} onOpenChange={setIsTimerOpen}>
               <PopoverTrigger asChild><Button className={cn("rounded-2xl h-10 px-5 gap-3 transition-all duration-500 shadow-xl border border-black/5", isActive ? "bg-emerald-500 text-white" : "bg-primary text-primary-foreground hover:opacity-90")}><Timer className="h-4 w-4" /><span className="font-mono font-bold text-sm tracking-tight tabular-nums">{formatTime(timeLeft)}</span></Button></PopoverTrigger>
               <PopoverContent className="w-80 rounded-[2.5rem] p-8 border-none shadow-2xl bg-card/95 backdrop-blur-xl z-[100]" side="bottom" align="end">
@@ -271,6 +293,28 @@ export const StudyRoom: React.FC = () => {
                  </div>
               </PopoverContent>
             </Popover>
+
+            <DropdownMenu modal={false}>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="rounded-xl h-9 w-9 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"><MoreHorizontal className="h-4 w-4"/></Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-64 rounded-2xl p-4 space-y-4 bg-card border-border shadow-2xl">
+                <div className="space-y-1">
+                  <h4 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">隐私与模式</h4>
+                  <p className="text-[10px] text-muted-foreground/50">控制任务状态在共学区的可见性</p>
+                </div>
+                <div className="space-y-3 pt-2">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-xs font-bold">广播我的任务</Label>
+                    <Switch checked={allowBroadcast} onCheckedChange={(v) => updateSettings('allow_broadcast', v)} />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <Label className="text-xs font-bold">接收他人广播</Label>
+                    <Switch checked={showOthersBroadcast} onCheckedChange={(v) => updateSettings('show_others_broadcast', v)} />
+                  </div>
+                </div>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </header>
 
@@ -306,7 +350,7 @@ export const StudyRoom: React.FC = () => {
                         remarkPlugins={[remarkMath]} 
                         rehypePlugins={[rehypeKatex]} 
                         components={{ 
-                          img: ({node, ...props}) => <img {...props} className="max-w-[130px] md:max-w-[200px] rounded-lg cursor-zoom-in hover:opacity-90 transition-opacity" onClick={() => window.open(props.src || '', '_blank')}/>, 
+                          img: ({node, ...props}) => <img {...props} className="max-w-[130px] md:max-w-[200px] rounded-lg my-0.5 cursor-zoom-in hover:opacity-90 transition-opacity" onClick={() => window.open(props.src || '', '_blank')}/>, 
                           p: ({node, ...props}) => <p {...props} className="m-0 leading-normal w-fit" />,
                           div: ({node, ...props}) => <div {...props} className="w-fit" />
                         }}
@@ -391,8 +435,10 @@ export const StudyRoom: React.FC = () => {
           <AlertDialogFooter><AlertDialogCancel onClick={() => setShowStopAlert(false)} className="rounded-xl border-border text-foreground hover:bg-muted">继续专注</AlertDialogCancel><AlertDialogAction onClick={async () => { 
             setIsActive(false); setShowStopAlert(false);
             const focusedMins = Math.floor((duration * 60 - timeLeft) / 60);
-            await api.post('/study/messages/', { content: `❌ 中止了“${taskName}”任务 (专注 ${focusedMins} 分钟)` });
-            fetchMessages();
+            if (allowBroadcast) {
+              await api.post('/study/messages/', { content: `❌ 中止了“${taskName}”任务 (专注 ${focusedMins} 分钟)` });
+              fetchMessages();
+            }
           }} className="rounded-xl bg-red-500 hover:bg-red-600 text-white font-bold">中止并离开</AlertDialogAction></AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

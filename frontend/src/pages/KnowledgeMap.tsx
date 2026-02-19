@@ -23,7 +23,7 @@ interface KPNode {
 }
 
 const TreeNode: React.FC<{ node: KPNode; level: number; onSelect: (node: KPNode) => void }> = ({ node, level, onSelect }) => {
-  const [isOpen, setIsOpen] = useState(true);
+  const [isOpen, setIsOpen] = useState(level === 0);
   const hasChildren = node.children && node.children.length > 0;
 
   return (
@@ -31,36 +31,36 @@ const TreeNode: React.FC<{ node: KPNode; level: number; onSelect: (node: KPNode)
       <div 
         className={cn(
           "flex items-center gap-4 p-4 rounded-2xl transition-all group cursor-pointer border border-transparent",
-          level === 0 ? "bg-white shadow-sm border-black/[0.03]" : "hover:bg-black/[0.02]"
+          level === 0 ? "bg-card shadow-sm border-border hover:border-primary/20" : "hover:bg-muted/50"
         )}
         style={{ marginLeft: `${level * 2}rem` }}
       >
         <div className={cn(
           "h-8 w-8 rounded-lg flex items-center justify-center shadow-sm shrink-0 transition-transform group-hover:scale-110",
-          level === 0 ? "bg-black text-white" : "bg-slate-100 text-slate-500"
+          level === 0 ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
         )} onClick={(e) => { e.stopPropagation(); setIsOpen(!isOpen); }}>
           {level === 0 ? <Network className="h-4 w-4" /> : <Layers className="h-3.5 w-3.5" />}
         </div>
         
         <div className="flex-1 min-w-0" onClick={() => onSelect(node)}>
-          <div className="flex items-center gap-2">
-            <h4 className={cn("font-bold truncate group-hover:text-emerald-600 transition-colors text-left", level === 0 ? "text-lg" : "text-sm")}>{node.name}</h4>
+          <div className="flex items-center gap-2 text-left">
+            <h4 className={cn("font-bold truncate group-hover:text-primary transition-colors", level === 0 ? "text-base" : "text-sm")}>{node.name}</h4>
             {node.questions_count !== undefined && (
               <Badge variant="secondary" className="text-[9px] rounded-full px-2 py-0 h-4">{node.questions_count} 题</Badge>
             )}
           </div>
-          <p className="text-[10px] text-[#86868B] font-medium truncate mt-0.5 text-left">{node.description}</p>
+          <p className="text-[10px] text-muted-foreground font-medium truncate mt-0.5 text-left">{node.description}</p>
         </div>
 
         {hasChildren && (
-          <div className="h-6 w-6 rounded-full flex items-center justify-center hover:bg-black/5" onClick={(e) => { e.stopPropagation(); setIsOpen(!isOpen); }}>
+          <div className="h-6 w-6 rounded-full flex items-center justify-center hover:bg-muted" onClick={(e) => { e.stopPropagation(); setIsOpen(!isOpen); }}>
             {isOpen ? <ChevronDown className="h-4 w-4 opacity-30" /> : <ChevronRight className="h-4 w-4 opacity-30" />}
           </div>
         )}
       </div>
 
       {isOpen && hasChildren && (
-        <div className="border-l-2 border-black/[0.03] ml-4 pl-2 mb-4 animate-in slide-in-from-left-2 duration-300">
+        <div className="border-l border-border/50 ml-8 pl-4 my-1 animate-in slide-in-from-left-2 duration-300">
           {node.children?.map(child => <TreeNode key={child.id} node={child} level={level + 1} onSelect={onSelect} />)}
         </div>
       )}
@@ -117,20 +117,14 @@ export const KnowledgeMap: React.FC = () => {
 
   return (
     <PageWrapper title="知识地图" subtitle="可视化呈现知识载体间的逻辑脉络与关联结构。">
-      <div className="max-w-5xl mx-auto space-y-8 text-left animate-in fade-in duration-700">
-        <Card className="border-none shadow-sm rounded-3xl bg-white dark:bg-black/20 border border-black/[0.03] dark:border-white/5 p-10">
-           <div className="flex items-center gap-4 mb-10">
-              <div className="h-12 w-12 rounded-2xl bg-purple-50 text-purple-600 flex items-center justify-center shadow-inner"><BrainCircuit className="h-6 w-6" /></div>
-              <div><h3 className="text-xl font-bold tracking-tight text-[#1D1D1F]">学术知识拓扑</h3><p className="text-[#86868B] text-xs font-medium uppercase tracking-widest mt-1">Hierarchical Academic Graph</p></div>
-           </div>
-           {loading ? (
-             <div className="py-20 text-center opacity-20 font-bold uppercase text-[10px] animate-pulse">Mapping connections...</div>
-           ) : (
-             <div className="space-y-4">
-                {nodes.map(root => <TreeNode key={root.id} node={root} level={0} onSelect={handleNodeSelect} />)}
-             </div>
-           )}
-        </Card>
+      <div className="w-full space-y-8 text-left animate-in fade-in duration-700">
+        {loading ? (
+          <div className="py-20 text-center opacity-20 font-bold uppercase text-[10px] animate-pulse">Mapping connections...</div>
+        ) : (
+          <div className="grid grid-cols-1 gap-2">
+            {nodes.map(root => <TreeNode key={root.id} node={root} level={0} onSelect={handleNodeSelect} />)}
+          </div>
+        )}
 
         <Dialog open={!!selectedNode} onOpenChange={open => !open && setSelectedNode(null)}>
            <DialogContent className="sm:max-w-[700px] rounded-[3rem] p-10 border-none shadow-2xl text-left overflow-hidden max-h-[85vh] flex flex-col">

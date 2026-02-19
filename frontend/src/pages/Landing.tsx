@@ -61,11 +61,11 @@ export const Landing: React.FC = () => {
               <span className="text-[11px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-[0.2em] leading-none">Est. 2019 · 金融硕士 (MF) 431 应试辅导专家</span>
             </div>
             <h1 className="text-4xl md:text-6xl lg:text-[72px] font-black tracking-tight text-slate-900 dark:text-white leading-[1.1]">
-              重构金融 431 培训逻辑<br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-b from-pink-500 via-purple-500 to-indigo-600">有效率的金融硕士考研培训</span>
+              重构金融 431 学习逻辑<br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-b from-pink-500 via-purple-500 to-indigo-600">极具效率的金融硕士考研培训</span>
             </h1>
             <p className="text-base md:text-lg text-slate-500 dark:text-slate-400 max-w-4xl mx-auto font-medium leading-relaxed">
-              过去几年里，我们致力于用最短的时间实现学员对专业课的深度掌握，从而预留更多时间应对公共课。通过六年应试数据的深度沉淀，我们将冗余的教材内容降解为结构化的考点点阵，确保每一分钟的投入都能夯实知识地基，并转化为实打实的卷面分数，让辅导卓有成效。
+              过去几年里，我们致力于用最短的时间实现学员对专业课的深度掌握，从而预留更多时间应对公共课。通过六年应试数据的深度沉淀，我们将冗余的教材内容降解为结构化的考点矩阵，确保每一分钟的投入都能夯实知识地基，并转化为实打实的卷面分数，让辅导卓有成效。
             </p>
           </div>
         </div>
@@ -100,10 +100,10 @@ export const Landing: React.FC = () => {
           />
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {[
-              { t: '核心视频课程', d: '模块化战略落地，采用 MES 高效教学法。放弃线性平庸讲授，将书本降解为原子化知识群。', icon: Play, c: 'bg-blue-500' },
-              { t: '专业课本讲义', d: '涵盖黄达、Mishkin等内容。针对性增补 Dornbusch 宏观及 Walsh 政策理论等学术补丁。', icon: BookOpen, c: 'bg-pink-500' },
-              { t: '全域习题系统', d: '从《核心算力》升级。含真题及独家翻译国外教材顶级 Test Bank，高质量全考点覆盖。', icon: ClipboardList, c: 'bg-indigo-500' },
-              { t: '全周期服务', d: '始创六年零纠纷记录。执行公允退款。提供复试指南及终身有效的就业联盟/智库实操席位。', icon: LifeBuoy, c: 'bg-emerald-500' }
+              { t: '核心视频课程', d: 'K2 模块化战略落地，放弃线性讲授，将书本降解为原子化知识群，模块化构建知识网络。', icon: Play, c: 'bg-blue-500' },
+              { t: '专业课本讲义', d: '涵盖黄达、米什金、姜波克、奚君羊、克鲁格曼、罗斯、博迪等内容。针对性增补 Dornbusch 宏观及 Walsh 政策理论等学术补丁。', icon: BookOpen, c: 'bg-pink-500' },
+              { t: '全域习题系统', d: '从自有教材《核心算力》升级，含真题、自编模拟题及独家翻译国外顶级院校 Test Bank，高质量全考点覆盖。', icon: ClipboardList, c: 'bg-indigo-500' },
+              { t: '全周期服务', d: '提供24小时响应答疑、复试指南及终身有效的宇艺智能系统 (UniMind AI OS) 席位。始创七年零经济纠纷，公允定价与退款政策。', icon: LifeBuoy, c: 'bg-emerald-500' }
             ].map(item => (
               <Card key={item.t} className="p-8 border border-slate-100 dark:border-slate-800 bg-white dark:bg-[#0A0A0B] rounded-[2rem] space-y-4 hover:border-pink-500/20 transition-all group">
                  <div className={cn("h-10 w-10 rounded-xl flex items-center justify-center text-white shadow-lg", item.c)}>
@@ -121,19 +121,19 @@ export const Landing: React.FC = () => {
       <section id="section-2" className="py-24 bg-slate-50 dark:bg-[#0A0A0B] border-y border-slate-100 dark:border-white/5 relative">
         <div className="max-w-6xl mx-auto px-6">
           <SectionHeader 
-            title="宇艺 (UniMind) 数字化学习引擎" 
-            subtitle="竞技级算法与人工深度集成，目前唯一实现全流程 AI 的金融辅导机构。通过 ELO 积分系统量化学力，结合 AI 精准判分，我们为每一位学员提供个性化的学术反馈，让备考不再是盲目刷题，而是精准的能力进化。" 
+            title="宇艺（UniMind）智能学习系统" 
+            subtitle="竞技级 ELO 算法与 AI 深度集成，目前唯一实现全流程 AI 的金融辅导机构。通过 ELO 积分系统量化学力，结合 AI 精准判分，我们为每一位学员提供个性化的学术反馈，让备考不再是盲目刷题，而是精准的能力进化。" 
             label="Digital Infrastructure" 
             centered 
           />
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
             {[
-              { t: 'ELO 学力数字化', d: '引入竞技级积分系统，精准量化掌握度，实时刷新学术段位。', icon: Trophy, c: 'text-amber-500' },
-              { t: 'AI 主观题判分', d: '基于 DeepSeek-R1 模型实现精准判分，实时定位逻辑漏洞。', icon: Sparkles, c: 'text-purple-500' },
-              { t: '专属 AI 助理教师', d: '具备“上帝视角”的 SciRise 导师，深度钩稽并透视薄弱点。', icon: BrainCircuit, c: 'text-pink-500' },
-              { t: '艾宾浩斯习题策略', d: '基于记忆曲线智能抽题，确保核心知识点抵达长时记忆。', icon: Target, c: 'text-indigo-500' },
-              { t: '学术知识拓扑地图', d: '可视化溯源知识节点，实现学术资产的秒级检索与定位。', icon: Network, c: 'text-emerald-500' },
-              { t: '毫秒级响应自习室', d: '高并发即时通讯与可视化番茄钟，打造极致沉浸共同体。', icon: Users, c: 'text-orange-500' }
+              { t: 'ELO 系统学力数字化', d: '引入竞技级积分系统，做题更有效率。精准量化掌握度，实时刷新全站天梯排行。', icon: Trophy, c: 'text-amber-500' },
+              { t: 'AI 驱动的题目打分', d: '基于 DeepSeek-Reasoner 模型驱动的智能打分系统，实现答题精准判分，实时定位答案逻辑漏洞。', icon: Sparkles, c: 'text-purple-500' },
+              { t: '专属 AI 助理教师', d: '实时接入用户学习数据，构造具备“上帝视角”的 AI 机器人，深度钩稽并透视薄弱点，打造你一个人的智能助教。', icon: BrainCircuit, c: 'text-pink-500' },
+              { t: '艾宾浩斯习题策略', d: '基于记忆曲线智能抽题，打造基础，时常强化，确保核心知识点抵达长时记忆。', icon: Target, c: 'text-indigo-500' },
+              { t: '学术知识拓扑地图', d: '可视化溯源知识节点，实现学术资产的秒级检索定位，构建知识网络不再困难。', icon: Network, c: 'text-emerald-500' },
+              { t: '毫秒级响应自习室', d: '高并发即时通讯与可视化番茄钟，广播任务进展与专注时间，打造沉浸学习共同体。', icon: Users, c: 'text-orange-500' }
             ].map(item => (
               <Card key={item.t} className="bg-white dark:bg-[#0F1115] p-6 border-slate-100 dark:border-white/5 rounded-[2rem] space-y-3 hover:shadow-xl hover:-translate-y-1 transition-all group text-left shadow-sm">
                  <div className={cn("h-10 w-10 rounded-xl flex items-center justify-center bg-slate-50 dark:bg-white/5 shadow-inner", item.c)}>
@@ -151,7 +151,7 @@ export const Landing: React.FC = () => {
       <section id="section-3" className="py-24 bg-white dark:bg-[#0F1115]">
         <div className="max-w-6xl mx-auto px-6 text-center">
           <SectionHeader 
-            title="2026 课程项目与计划" 
+            title="2026 课程项目计划" 
             subtitle="针对不同基础与目标的学员，我们提供全方位的课程选择。从覆盖全周期的 K2 全程班，到精准突破的单科模块，每一份计划都经过精心雕琢。在这里，你将体验到前所未有的应试效率与专业深度。" 
             centered 
             label="Investment Plans" 
@@ -168,7 +168,7 @@ export const Landing: React.FC = () => {
                   <p className="text-slate-400 text-sm font-medium max-w-md mt-4 leading-relaxed">一站式全周期深度辅导，重构金融 431 应试效率极限。包含 AMR 核心课程体系的所有模块与增值服务。</p>
                 </div>
                 <div className="text-left md:text-right space-y-1">
-                  <span className="text-sm text-slate-500 font-bold line-through opacity-80">¥9500</span>
+                  <span className="text-4xl text-slate-500 font-bold line-through opacity-80">¥9500</span>
                   <div className="flex items-baseline justify-start md:justify-end gap-1">
                     <span className="text-6xl font-black tracking-tighter text-white">¥8150</span>
                   </div>
@@ -179,21 +179,20 @@ export const Landing: React.FC = () => {
               <div className="relative z-10 border-t border-white/10 mt-10 pt-10">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                   {[
-                    { id: 'Module.A', t: '货币经济学单科', d: '覆盖黄达、Mishkin等全书目，增补进阶理论。' },
-                    { id: 'Module.B', t: '金融理论单科', d: '整合理财、投资及衍生品。聚焦计算与框架。' },
-                    { id: 'Module.C', t: '习题训练专项', d: '300+ 核心题库，配合 8 次阶段/模拟考试。' }
+                    { id: 'Module.A', t: '货币经济学模块', d: '含货币银行学与国际金融两门课程，覆盖黄达、Mishkin、姜波克、克鲁格曼等全书目，增补Walsh、Dornbusch等进阶理论。' },
+                    { id: 'Module.B', t: '金融理论单科', d: '整合公司理财、投资及衍生品定价，180道核心习题以练促讲，深度聚焦计算与框架，力争取得满分。' },
+                    { id: 'Module.C', t: '习题训练专项', d: '自建核心题库，含历年高校真题、模拟题与国外顶级高校Text Bank，配合 8 次阶段/模拟考试，随时追踪掌握水平，掌握考试节奏。' }
                   ].map(stat => (
                     <div key={stat.id} className="space-y-2">
                       <p className="text-[9px] font-bold text-pink-500 uppercase tracking-widest">{stat.id}</p>
                       <p className="text-base font-bold text-white leading-none">{stat.t}</p>
-                      <p className="text-[11px] text-slate-400 font-medium leading-relaxed">{stat.d}</p>
+                      <p className="text-[16px] text-slate-400 font-medium leading-relaxed">{stat.d}</p>
                     </div>
                   ))}
                 </div>
               </div>
 
               <div className="relative z-10 flex flex-wrap gap-4 mt-12">
-                <Button className="bg-white text-slate-900 font-bold text-xs h-12 px-10 rounded-xl hover:bg-slate-100 shadow-xl" onClick={() => navigate('/register')}>立即加入</Button>
                 <Button className="bg-transparent border border-white/20 text-white hover:bg-white/10 font-bold text-xs h-12 px-10 rounded-xl transition-colors" onClick={() => navigate('/course-details')}>课程详情</Button>
               </div>
             </Card>

@@ -202,21 +202,21 @@ export const TestLadder: React.FC = () => {
                  <div className="p-7 bg-slate-50 border border-slate-100 rounded-[2.5rem] transition-all hover:bg-white hover:shadow-lg group">
                     <div className="flex items-center gap-3 mb-3">
                        <div className="h-9 w-9 rounded-2xl bg-white shadow-sm flex items-center justify-center text-indigo-500"><Activity className="h-4 w-4"/></div>
-                       <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none">今日复习目标</p>
+                       <p className="text-[16px] font-bold text-slate-400 uppercase tracking-widest leading-none">今日复习目标</p>
                     </div>
                     <div className="flex items-baseline gap-1">
                       <p className="text-3xl font-black text-slate-900 tabular-nums">{goals.review_goal}</p>
-                      <span className="text-[10px] font-bold text-slate-400 uppercase">Items</span>
+                      <span className="text-[16px] font-bold text-slate-400 uppercase">Items</span>
                     </div>
                  </div>
                  <div className="p-7 bg-slate-50 border border-slate-100 rounded-[2.5rem] transition-all hover:bg-white hover:shadow-lg group">
                     <div className="flex items-center gap-3 mb-3">
                        <div className="h-9 w-9 rounded-2xl bg-white shadow-sm flex items-center justify-center text-emerald-500"><BrainCircuit className="h-4 w-4"/></div>
-                       <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none">待攻克新题</p>
+                       <p className="text-[16px] font-bold text-slate-400 uppercase tracking-widest leading-none">待攻克新题</p>
                     </div>
                     <div className="flex items-baseline gap-1">
                       <p className="text-3xl font-black text-slate-900 tabular-nums">{goals.new_questions}</p>
-                      <span className="text-[10px] font-bold text-slate-400 uppercase">Items</span>
+                      <span className="text-[16px] font-bold text-slate-400 uppercase">Items</span>
                     </div>
                  </div>
               </div>
