@@ -110,6 +110,11 @@ export const Maintenance: React.FC = () => {
   const [qFilterType, setQFilterType] = useState('all');
   const [editingItem, setEditingItem] = useState<{type: string, data: any} | null>(null);
   
+  // New KP State for dynamic creation
+  const [showNewKPDialog, setShowNewKPDialog] = useState(false);
+  const [newKPForm, setNewKPForm] = useState({ name: '', description: '', parent: '0' });
+  const [kpCreationTarget, setKPCreationTarget] = useState<'course' | 'article' | 'none'>('course');
+
   // AI Workshop States
   const [showAIWorkstation, setShowAIWorkstation] = useState(false);
   const [aiInputText, setAiInputText] = useState('');
@@ -200,6 +205,20 @@ export const Maintenance: React.FC = () => {
     const fd = new FormData(); fd.append('name', albumForm.name); fd.append('description', albumForm.description); if(albumForm.cover) fd.append('cover_image', albumForm.cover);
     try { await api.post('/courses/albums/', fd); toast.success("专辑已创建"); setAlbumForm({name:'', description:'', cover:null}); fetchLists(); }
     catch (e) { toast.error("失败"); }
+  };
+
+  const handleQuickCreateKP = async () => {
+    if (!newKPForm.name) return toast.error("名称必填");
+    try {
+      const res = await api.post('/quizzes/knowledge-points/', { ...newKPForm, parent: newKPForm.parent === "0" ? null : newKPForm.parent });
+      toast.success("知识点已创建并同步");
+      const newKPId = res.data.id.toString();
+      await fetchLists();
+      if (kpCreationTarget === 'course') setCourseForm(prev => ({ ...prev, knowledge_point: newKPId }));
+      else if (kpCreationTarget === 'article') setArticleForm(prev => ({ ...prev, knowledge_point: newKPId }));
+      setShowNewKPDialog(false);
+      setNewKPForm({ name: '', description: '', parent: '0' });
+    } catch (e) { toast.error("创建失败"); }
   };
 
   const handleSaveEdit = async () => {
@@ -308,7 +327,26 @@ export const Maintenance: React.FC = () => {
                   <div className="space-y-2.5 text-left"><Label className="text-[10px] font-bold uppercase tracking-widest opacity-40 ml-1">课程标题</Label><Input value={courseForm.title} onChange={e => setCourseForm({...courseForm, title: e.target.value})} className="bg-[#F5F5F7] border-none h-12 rounded-xl font-bold px-5 text-base" /></div>
                   <div className="grid grid-cols-2 gap-4 text-left">
                     <div className="space-y-2 text-left"><Label className="text-[10px] font-bold uppercase tracking-widest opacity-40 ml-1">所属专辑</Label><Select value={courseForm.album_obj} onValueChange={v => setCourseForm({...courseForm, album_obj: v})}><SelectTrigger className="h-10 rounded-xl bg-[#F5F5F7] border-none font-bold px-4 text-xs"><SelectValue placeholder="选择专辑" /></SelectTrigger><SelectContent className="rounded-xl">{albumList.map(al => <SelectItem key={al.id} value={al.id.toString()} className="text-xs font-bold">{al.name}</SelectItem>)}</SelectContent></Select></div>
-                    <div className="space-y-2 text-left"><Label className="text-[10px] font-bold uppercase tracking-widest opacity-40 ml-1">关联知识点</Label><Select value={courseForm.knowledge_point} onValueChange={v => setCourseForm({...courseForm, knowledge_point: v})}><SelectTrigger className="h-10 rounded-xl bg-[#F5F5F7] border-none font-bold px-4 text-xs"><SelectValue placeholder="不挂载" /></SelectTrigger><SelectContent className="rounded-xl">{kpList.map(kp => <SelectItem key={kp.id} value={kp.id.toString()} className="text-xs font-bold">{kp.name}</SelectItem>)}</SelectContent></Select></div>
+                    <div className="space-y-2 text-left"><Label className="text-[10px] font-bold uppercase tracking-widest opacity-40 ml-1">关联知识点</Label>
+                      <Select 
+                        value={courseForm.knowledge_point} 
+                        onValueChange={v => {
+                          if (v === 'NEW_KP') {
+                            setKPCreationTarget('course');
+                            setShowNewKPDialog(true);
+                          } else {
+                            setCourseForm({...courseForm, knowledge_point: v})
+                          }
+                        }}
+                      >
+                        <SelectTrigger className="h-10 rounded-xl bg-[#F5F5F7] border-none font-bold px-4 text-xs"><SelectValue placeholder="不挂载" /></SelectTrigger>
+                        <SelectContent className="rounded-xl">
+                          <SelectItem value="0" className="text-xs font-bold text-muted-foreground italic">不挂载</SelectItem>
+                          <SelectItem value="NEW_KP" className="text-xs font-bold text-indigo-600 bg-indigo-50/50">+ 新建知识点</SelectItem>
+                          {kpList.map(kp => <SelectItem key={kp.id} value={kp.id.toString()} className="text-xs font-bold">{kp.name}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
                   <div className="space-y-2 text-left"><Label className="text-[10px] font-bold uppercase tracking-widest opacity-40 ml-1">详细描述</Label>
                     <MarkdownEditor content={courseForm.desc} onChange={v => setCourseForm({...courseForm, desc: v})} />
@@ -332,7 +370,26 @@ export const Maintenance: React.FC = () => {
               <div className="space-y-4 text-left">
                  <div className="space-y-1.5 text-left"><Label className="text-[10px] font-bold uppercase tracking-widest opacity-40 ml-1">文章标题</Label><Input value={articleForm.title} onChange={e => setArticleForm({...articleForm, title: e.target.value})} className="bg-[#F5F5F7] border-none h-14 rounded-xl font-black px-5 text-2xl tracking-tighter" /></div>
                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-left">
-                    <div className="space-y-1.5 text-left"><Label className="text-[10px] font-bold uppercase tracking-widest opacity-40 ml-1">挂载知识点</Label><Select value={articleForm.knowledge_point} onValueChange={v => setArticleForm({...articleForm, knowledge_point: v})}><SelectTrigger className="h-10 rounded-xl bg-[#F5F5F7] border-none font-bold px-4 text-[11px]"><SelectValue placeholder="选择知识点" /></SelectTrigger><SelectContent className="rounded-xl">{kpList.map(kp => <SelectItem key={kp.id} value={kp.id.toString()} className="text-xs font-bold">{kp.name}</SelectItem>)}</SelectContent></Select></div>
+                    <div className="space-y-1.5 text-left"><Label className="text-[10px] font-bold uppercase tracking-widest opacity-40 ml-1">挂载知识点</Label>
+                      <Select 
+                        value={articleForm.knowledge_point} 
+                        onValueChange={v => {
+                          if (v === 'NEW_KP') {
+                            setKPCreationTarget('article');
+                            setShowNewKPDialog(true);
+                          } else {
+                            setArticleForm({...articleForm, knowledge_point: v})
+                          }
+                        }}
+                      >
+                        <SelectTrigger className="h-10 rounded-xl bg-[#F5F5F7] border-none font-bold px-4 text-[11px]"><SelectValue placeholder="选择知识点" /></SelectTrigger>
+                        <SelectContent className="rounded-xl">
+                          <SelectItem value="0" className="text-xs font-bold text-muted-foreground italic">不挂载</SelectItem>
+                          <SelectItem value="NEW_KP" className="text-xs font-bold text-indigo-600 bg-indigo-50/50">+ 新建知识点</SelectItem>
+                          {kpList.map(kp => <SelectItem key={kp.id} value={kp.id.toString()} className="text-xs font-bold">{kp.name}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                    </div>
                     <div className="space-y-1.5 text-left"><Label className="text-[10px] font-bold uppercase tracking-widest opacity-40 ml-1">发布人署名</Label><Input value={articleForm.author_display_name} onChange={e => setArticleForm({...articleForm, author_display_name: e.target.value})} className="bg-[#F5F5F7] border-none h-10 rounded-xl font-bold px-5 text-[11px]" /></div>
                     <div className="space-y-1.5 text-left"><Label className="text-[10px] font-bold uppercase tracking-widest opacity-40 ml-1">标签分类</Label><TagInput tags={articleForm.tags} setTags={(t) => setArticleForm({...articleForm, tags: t})} compact /></div>
                  </div>
@@ -585,6 +642,25 @@ export const Maintenance: React.FC = () => {
       </Dialog>
       
       {isUploading && (<div className="fixed bottom-10 right-10 z-[100] animate-in slide-in-from-bottom-10 duration-500"><Card className="border-none shadow-2xl rounded-3xl bg-white p-6 w-80 flex items-center gap-5 border border-black/5"><div className="relative h-12 w-12 shrink-0"><svg className="h-full w-full -rotate-90"><circle cx="24" cy="24" r="20" stroke="currentColor" strokeWidth="4" fill="transparent" className="text-slate-100" /><circle cx="24" cy="24" r="20" stroke="currentColor" strokeWidth="4" fill="transparent" strokeDasharray="125.6" strokeDashoffset={125.6 - (125.6 * uploadProgress) / 100} className="text-black transition-all duration-500" strokeLinecap="round" /></svg><div className="absolute inset-0 flex items-center justify-center text-[9px] font-bold">{uploadProgress}%</div></div><div className="flex-1 min-w-0"><p className="text-xs font-bold text-[#1D1D1F] truncate text-left">资源同步中...</p></div></Card></div>)}
+
+      {/* --- Dynamic KP Creation Dialog --- */}
+      <Dialog open={showNewKPDialog} onOpenChange={setShowNewKPDialog}>
+        <DialogContent className="sm:max-w-[500px] rounded-[2.5rem] p-10 border-none shadow-2xl text-left bg-white">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-black flex items-center gap-3"><BrainCircuit className="text-indigo-600 w-5 h-5"/> 快速新建知识点</DialogTitle>
+            <DialogDescription className="text-xs font-bold uppercase tracking-widest text-slate-400">建立新的学术节点并立即关联</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-5 pt-6">
+            <div className="space-y-1.5"><Label className="text-[10px] font-bold uppercase tracking-widest opacity-40">节点名称</Label><Input value={newKPForm.name} onChange={e => setNewKPForm({...newKPForm, name: e.target.value})} placeholder="例如：博弈论基础" className="bg-[#F5F5F7] border-none h-11 rounded-xl font-bold px-4 text-sm" /></div>
+            <div className="space-y-1.5"><Label className="text-[10px] font-bold uppercase tracking-widest opacity-40">隶属父级</Label><Select value={newKPForm.parent} onValueChange={v => setNewKPForm({...newKPForm, parent: v})}><SelectTrigger className="h-11 rounded-xl bg-[#F5F5F7] border-none font-bold text-xs px-4"><SelectValue placeholder="顶级节点" /></SelectTrigger><SelectContent className="rounded-xl"><SelectItem value="0" className="text-xs font-bold">顶级节点</SelectItem>{kpList.map(kp => <SelectItem key={kp.id} value={kp.id.toString()} className="text-xs font-bold">{kp.name}</SelectItem>)}</SelectContent></Select></div>
+            <div className="space-y-1.5"><Label className="text-[10px] font-bold uppercase tracking-widest opacity-40">描述</Label><textarea value={newKPForm.description} onChange={e => setNewKPForm({...newKPForm, description: e.target.value})} className="w-full bg-[#F5F5F7] border-none rounded-xl p-4 min-h-[100px] font-bold text-xs" placeholder="该知识点的核心定义或范畴..." /></div>
+            <div className="flex gap-3 pt-2">
+              <Button variant="outline" onClick={() => setShowNewKPDialog(false)} className="flex-1 h-12 rounded-xl font-bold text-xs border-slate-100 hover:bg-slate-50">取消</Button>
+              <Button onClick={handleQuickCreateKP} className="flex-[2] h-12 rounded-xl bg-black text-white font-black shadow-xl text-xs uppercase tracking-widest">确认并保存节点</Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
