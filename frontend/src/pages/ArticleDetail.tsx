@@ -49,30 +49,14 @@ export const ArticleDetail: React.FC = () => {
     .replace(/\\\]/g, '\n$$\n\n')
     // Convert LaTeX inline \( ... \) to $ ... $
     .replace(/\\\(/g, '$')
-    .replace(/\\\)/g, '$')
-    // Ensure common math commands are not treated as escapes by markdown parser
-    // by wrapping things that look like LaTeX commands in $ if they aren't already
-    .replace(/(^|[^\$])\\(\w+)/g, (match, p1, p2) => {
-       // Only wrap if it's a known common Greek letter or math command
-       const mathCommands = [
-         'Delta', 'delta', 'alpha', 'beta', 'gamma', 'Gamma', 'phi', 'Phi', 
-         'theta', 'Theta', 'pi', 'Pi', 'sum', 'int', 'sqrt', 'frac',
-         'epsilon', 'zeta', 'eta', 'iota', 'kappa', 'lambda', 'Lambda',
-         'mu', 'nu', 'xi', 'Xi', 'omicron', 'rho', 'sigma', 'Sigma',
-         'tau', 'upsilon', 'chi', 'psi', 'Psi', 'omega', 'Omega'
-       ];
-       if (mathCommands.includes(p2)) {
-         return `${p1}$ \\${p2} $`;
-       }
-       return match;
-    });
+    .replace(/\\\)/g, '$');
 
   return (
     <div className="w-full max-w-4xl mx-auto animate-in fade-in duration-700 text-left p-10 pb-32 relative">
       <style>{`
-        .article-content h1 { font-size: 2.25rem; font-weight: 900; line-height: 1.1; margin-top: 1.5rem; margin-bottom: 0.75rem; letter-spacing: -0.05em; color: #0f172a; }
-        .article-content h2 { font-size: 1.875rem; font-weight: 900; line-height: 1.2; margin-top: 1.25rem; margin-bottom: 0.5rem; color: #0f172a; }
-        .article-content h3 { font-size: 1.5rem; font-weight: 800; margin-top: 1rem; margin-bottom: 0.4rem; color: #0f172a; }
+        .article-content h1 { font-size: 1.875rem; font-weight: 900; line-height: 1.2; margin-top: 1.5rem; margin-bottom: 0.75rem; letter-spacing: -0.05em; color: #0f172a; }
+        .article-content h2 { font-size: 1.5rem; font-weight: 900; line-height: 1.3; margin-top: 1.25rem; margin-bottom: 0.5rem; color: #0f172a; }
+        .article-content h3 { font-size: 1rem; font-weight: 800; margin-top: 1rem; margin-bottom: 0.4rem; color: #0f172a; }
         .article-content p { margin-bottom: 1.25rem; line-height: 1.7; font-size: 1rem; color: #374151; }
         .article-content ul { list-style-type: disc; padding-left: 1.5rem; margin-bottom: 1.25rem; color: #374151; }
         .article-content ol { list-style-type: decimal; padding-left: 1.5rem; margin-bottom: 1.25rem; color: #374151; }
