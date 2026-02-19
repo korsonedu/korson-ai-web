@@ -102,7 +102,13 @@ export const ArticleDetail: React.FC = () => {
            remarkPlugins={[remarkMath, remarkGfm]} 
            rehypePlugins={[rehypeKatex]}
          >
-           {processedContent}
+           {`这是测试行内公式: $\\alpha + \\beta = \\gamma$.
+           这是测试分数公式: $\\frac{1}{2}$.
+           这是一个块级公式:
+           $$\\sum_{i=1}^n i = \\frac{n(n+1)}{2}$$
+           这是一个希腊字母: $\\Delta$.
+           另一个分数：$\\frac{P}{P^*}$.
+           `}
          </ReactMarkdown>
       </div>
 
