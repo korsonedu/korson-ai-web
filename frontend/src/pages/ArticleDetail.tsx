@@ -56,6 +56,12 @@ export const ArticleDetail: React.FC = () => {
 
   return (
     <div className="w-full max-w-4xl mx-auto animate-in fade-in duration-700 text-left p-10 pb-32 relative">
+      <div style={{ background: '#ffebee', padding: '10px', borderRadius: '5px', margin: '10px 0', fontSize: '12px', wordBreak: 'break-all' }}>
+        <p style={{ fontWeight: 'bold' }}>原始文章内容 (DEBUG):</p>
+        <pre>{article.content}</pre>
+        <p style={{ fontWeight: 'bold' }}>预处理后的内容 (DEBUG):</p>
+        <pre>{processedContent}</pre>
+      </div>
       <style>{`
         .article-content h1 { font-size: 1.875rem; font-weight: 900; line-height: 1.2; margin-top: 1.5rem; margin-bottom: 0.75rem; letter-spacing: -0.05em; color: #0f172a; }
         .article-content h2 { font-size: 1.5rem; font-weight: 900; line-height: 1.3; margin-top: 1.25rem; margin-bottom: 0.5rem; color: #0f172a; }
