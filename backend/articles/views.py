@@ -48,9 +48,12 @@ class ArticleDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = ArticleSerializer
     permission_classes = [IsAdminUserOrReadOnly]
 
-    def retrieve(self, request, *args, **kwargs):
+class ArticleIncrementViewView(generics.GenericAPIView):
+    queryset = Article.objects.all()
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
         instance = self.get_object()
         instance.views += 1
         instance.save(update_fields=['views'])
-        serializer = self.get_serializer(instance)
-        return Response(serializer.data)
+        return Response({'views': instance.views}, status=status.HTTP_200_OK)

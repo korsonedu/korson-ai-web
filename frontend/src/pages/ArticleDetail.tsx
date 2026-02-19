@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, Calendar, Loader2 } from 'lucide-react';
@@ -15,6 +15,7 @@ export const ArticleDetail: React.FC = () => {
   const [article, setArticle] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [scrollProgress, setScrollProgress] = useState(0);
+  const viewCounted = useRef(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -27,9 +28,16 @@ export const ArticleDetail: React.FC = () => {
   }, []);
 
   useEffect(() => {
+    // Fetch article content
     api.get(`/articles/${id}/`).then(res => {
       setArticle(res.data);
     }).finally(() => setLoading(false));
+
+    // Increment view count only once per component mount
+    if (!viewCounted.current) {
+      api.post(`/articles/${id}/view/`).catch(() => {});
+      viewCounted.current = true;
+    }
   }, [id]);
 
   if (loading) return (

@@ -116,7 +116,7 @@ export const KnowledgeMap: React.FC = () => {
   };
 
   return (
-    <PageWrapper title="知识地图" subtitle="可视化呈现学术知识间的脉络关联，助您构建系统化的学科认知体系。">
+    <PageWrapper title="知识地图" subtitle="可视化呈现知识载体间的逻辑脉络与关联结构。">
       <div className="w-full space-y-8 text-left animate-in fade-in duration-700">
         {loading ? (
           <div className="py-20 text-center opacity-20 font-bold uppercase text-[10px] animate-pulse">Mapping connections...</div>

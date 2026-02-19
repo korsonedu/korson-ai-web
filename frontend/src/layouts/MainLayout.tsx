@@ -93,10 +93,16 @@ export const MainLayout: React.FC = () => {
     "“虚怀若谷，求知若渴。” — 斯蒂夫·乔布斯",
     "“我思故我在。” — 笛卡尔",
     "“知之者不如好之者，好之者不如乐之者。” — 孔子",
-    "“知识的价值不在于占有，而在于使用。” — 培根"
+    "“知识的价值不在于占有，而在于使用。” — 培根",
+    "“胜人者有力，自胜者强。” — 老子",
+    "“纸上得来终觉浅，绝知此事要躬行。” — 陆游"
   ];
 
   const getProverb = () => {
+    // Specific proverbs for specific routes to avoid duplication
+    if (location.pathname === '/tests') return "“胜人者有力，自胜者强。” — 老子";
+    if (location.pathname === '/knowledge-map') return "“纸上得来终觉浅，绝知此事要躬行。” — 陆游";
+    
     const hash = location.pathname.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
     return proverbs[hash % proverbs.length];
   };

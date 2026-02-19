@@ -157,7 +157,7 @@ export const TestLadder: React.FC = () => {
   const currentQ = questions[currentIdx];
 
   return (
-    <PageWrapper title="学术天梯" subtitle="量化学术能力边界，通过智能评估算法构建您的个人核心竞争力。">
+    <PageWrapper title="学术天梯" subtitle="基于艾宾浩斯记忆曲线的智能评估，精准量化您的学术成长路径。">
       <div className="flex flex-col gap-12 text-left animate-in fade-in duration-700 pb-20 max-w-6xl mx-auto">
         
         {/* Main Entry Card - Apple Aesthetic */}
