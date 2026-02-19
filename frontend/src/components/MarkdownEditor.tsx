@@ -57,7 +57,7 @@ export const MarkdownEditor = ({ content, onChange, placeholder }: MarkdownEdito
         class: cn(
           "prose prose-slate dark:prose-invert max-w-none focus:outline-none min-h-[400px] p-10",
           "prose-headings:font-black prose-headings:tracking-tighter prose-headings:text-slate-900 dark:prose-headings:text-white",
-          "prose-h1:text-4xl prose-h2:text-3xl prose-h3:text-2xl",
+          "prose-h1:text-3xl prose-h2:text-2xl prose-h3:text-base",
           "prose-p:text-slate-600 dark:prose-p:text-slate-300 prose-p:leading-relaxed",
           "prose-blockquote:border-l-4 prose-blockquote:border-primary prose-blockquote:bg-slate-50 dark:prose-blockquote:bg-white/5 prose-blockquote:py-2 prose-blockquote:px-6 prose-blockquote:rounded-r-xl"
         ),
@@ -74,9 +74,9 @@ export const MarkdownEditor = ({ content, onChange, placeholder }: MarkdownEdito
           outline: none !important;
           min-height: 400px;
         }
-        .ProseMirror h1 { font-size: 2.25rem; font-weight: 900; line-height: 1.1; margin-top: 1.5rem; margin-bottom: 0.75rem; tracking: -0.05em; }
-        .ProseMirror h2 { font-size: 1.875rem; font-weight: 900; line-height: 1.2; margin-top: 1.25rem; margin-bottom: 0.5rem; }
-        .ProseMirror h3 { font-size: 1.5rem; font-weight: 800; margin-top: 1rem; margin-bottom: 0.4rem; }
+        .ProseMirror h1 { font-size: 1.875rem; font-weight: 900; line-height: 1.2; margin-top: 1.5rem; margin-bottom: 0.75rem; tracking: -0.05em; }
+        .ProseMirror h2 { font-size: 1.5rem; font-weight: 900; line-height: 1.3; margin-top: 1.25rem; margin-bottom: 0.5rem; }
+        .ProseMirror h3 { font-size: 1rem; font-weight: 800; margin-top: 1rem; margin-bottom: 0.4rem; }
         .ProseMirror p { margin-bottom: 1.25rem; line-height: 1.7; font-size: 1rem; color: #374151; }
         .ProseMirror ul { list-style-type: disc; padding-left: 1.5rem; margin-bottom: 1.25rem; }
         .ProseMirror ol { list-style-type: decimal; padding-left: 1.5rem; margin-bottom: 1.25rem; }

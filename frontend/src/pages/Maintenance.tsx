@@ -330,7 +330,7 @@ export const Maintenance: React.FC = () => {
            <Card className="border-none shadow-sm rounded-[2rem] p-10 bg-white border border-black/[0.03] space-y-6 max-w-5xl mx-auto text-left">
               <div className="flex items-center gap-3 text-left"><FileText className="h-5 w-5 text-orange-600"/><h3 className="text-lg font-bold tracking-tight text-[#1D1D1F]">撰写深度文章</h3></div>
               <div className="space-y-4 text-left">
-                 <div className="space-y-1.5 text-left"><Label className="text-[10px] font-bold uppercase tracking-widest opacity-40 ml-1">文章标题</Label><Input value={articleForm.title} onChange={e => setArticleForm({...articleForm, title: e.target.value})} className="bg-[#F5F5F7] border-none h-10 rounded-xl font-bold px-5 text-sm" /></div>
+                 <div className="space-y-1.5 text-left"><Label className="text-[10px] font-bold uppercase tracking-widest opacity-40 ml-1">文章标题</Label><Input value={articleForm.title} onChange={e => setArticleForm({...articleForm, title: e.target.value})} className="bg-[#F5F5F7] border-none h-14 rounded-xl font-black px-5 text-4xl tracking-tighter" /></div>
                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-left">
                     <div className="space-y-1.5 text-left"><Label className="text-[10px] font-bold uppercase tracking-widest opacity-40 ml-1">挂载知识点</Label><Select value={articleForm.knowledge_point} onValueChange={v => setArticleForm({...articleForm, knowledge_point: v})}><SelectTrigger className="h-10 rounded-xl bg-[#F5F5F7] border-none font-bold px-4 text-[11px]"><SelectValue placeholder="选择知识点" /></SelectTrigger><SelectContent className="rounded-xl">{kpList.map(kp => <SelectItem key={kp.id} value={kp.id.toString()} className="text-xs font-bold">{kp.name}</SelectItem>)}</SelectContent></Select></div>
                     <div className="space-y-1.5 text-left"><Label className="text-[10px] font-bold uppercase tracking-widest opacity-40 ml-1">发布人署名</Label><Input value={articleForm.author_display_name} onChange={e => setArticleForm({...articleForm, author_display_name: e.target.value})} className="bg-[#F5F5F7] border-none h-10 rounded-xl font-bold px-5 text-[11px]" /></div>
@@ -462,9 +462,18 @@ export const Maintenance: React.FC = () => {
              )}
              {editingItem?.type === 'articles' && (
                <div className="space-y-4 text-left">
+                  <div className="space-y-1.5 text-left"><Label className="text-[10px] font-bold uppercase opacity-40">标题</Label><Input value={editingItem.data.title} onChange={e => setEditingItem({...editingItem, data: {...editingItem.data, title: e.target.value}})} className="rounded-xl bg-[#F5F5F7] border-none h-14 text-4xl font-black px-5 tracking-tighter" /></div>
                   <div className="grid grid-cols-2 gap-4 text-left">
-                    <div className="space-y-1.5 text-left"><Label className="text-[10px] font-bold uppercase opacity-40">标题</Label><Input value={editingItem.data.title} onChange={e => setEditingItem({...editingItem, data: {...editingItem.data, title: e.target.value}})} className="rounded-xl bg-slate-50 border-none h-10 text-xs font-bold" /></div>
                     <div className="space-y-1.5 text-left"><Label className="text-[10px] font-bold uppercase opacity-40">署名</Label><Input value={editingItem.data.author_display_name} onChange={e => setEditingItem({...editingItem, data: {...editingItem.data, author_display_name: e.target.value}})} className="rounded-xl bg-slate-50 border-none h-10 text-xs font-bold" /></div>
+                    <div className="space-y-1.5 text-left"><Label className="text-[10px] font-bold uppercase opacity-40">关联知识点</Label>
+                      <Select value={editingItem.data.knowledge_point || "0"} onValueChange={v => setEditingItem({...editingItem, data: {...editingItem.data, knowledge_point: v}})}>
+                        <SelectTrigger className="h-10 rounded-xl bg-slate-50 border-none font-bold text-xs px-4"><SelectValue /></SelectTrigger>
+                        <SelectContent className="rounded-xl">
+                          <SelectItem value="0" className="text-xs font-bold">不挂载</SelectItem>
+                          {kpList.map(kp => <SelectItem key={kp.id} value={kp.id.toString()} className="text-xs font-bold">{kp.name}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
                   <TagInput tags={editingItem.data.tags || []} setTags={t => setEditingItem({...editingItem, data: {...editingItem.data, tags: t}})} compact />
                   <div className="space-y-1.5 text-left mt-4"><Label className="text-[10px] font-bold uppercase opacity-40">正文内容 (Markdown)</Label>

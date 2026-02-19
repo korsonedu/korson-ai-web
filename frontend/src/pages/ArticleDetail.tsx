@@ -42,10 +42,30 @@ export const ArticleDetail: React.FC = () => {
   if (!article) return <div className="h-screen flex items-center justify-center font-bold">Article Not Found</div>;
 
   const processedContent = article.content
+    // Handle escaped dollar signs from editor
+    .replace(/\\\$/g, '$')
+    // Convert LaTeX blocks \[ ... \] to $$ ... $$
     .replace(/\\\[/g, '\n\n$$\n')
     .replace(/\\\]/g, '\n$$\n\n')
+    // Convert LaTeX inline \( ... \) to $ ... $
     .replace(/\\\(/g, '$')
-    .replace(/\\\)/g, '$');
+    .replace(/\\\)/g, '$')
+    // Ensure common math commands are not treated as escapes by markdown parser
+    // by wrapping things that look like LaTeX commands in $ if they aren't already
+    .replace(/(^|[^\$])\\(\w+)/g, (match, p1, p2) => {
+       // Only wrap if it's a known common Greek letter or math command
+       const mathCommands = [
+         'Delta', 'delta', 'alpha', 'beta', 'gamma', 'Gamma', 'phi', 'Phi', 
+         'theta', 'Theta', 'pi', 'Pi', 'sum', 'int', 'sqrt', 'frac',
+         'epsilon', 'zeta', 'eta', 'iota', 'kappa', 'lambda', 'Lambda',
+         'mu', 'nu', 'xi', 'Xi', 'omicron', 'rho', 'sigma', 'Sigma',
+         'tau', 'upsilon', 'chi', 'psi', 'Psi', 'omega', 'Omega'
+       ];
+       if (mathCommands.includes(p2)) {
+         return `${p1}$ \\${p2} $`;
+       }
+       return match;
+    });
 
   return (
     <div className="w-full max-w-4xl mx-auto animate-in fade-in duration-700 text-left p-10 pb-32 relative">
