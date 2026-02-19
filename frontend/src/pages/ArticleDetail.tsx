@@ -44,22 +44,30 @@ export const ArticleDetail: React.FC = () => {
   const processedContent = article.content
     // 1. Fix double backslashes (e.g., \\frac -> \frac)
     .replace(/\\{2}/g, '\\')
-    // 2. Convert LaTeX block/inline delimiters to standard $$ / $ 
+    // 2. Comprehensive unescape and autocorrect within math blocks ($...$ or $$...$$)
+    .replace(/(\$\$?)([\s\S]*?)(\$\$?)/g, (match, p1, p2, p3) => {
+      return p1 + p2
+        .replace(/\\_/g, '_')
+        .replace(/\\\*/g, '*')
+        .replace(/\\\{/g, '{')
+        .replace(/\\\}/g, '}')
+        .replace(/\\\^/g, '^')
+        // Autocorrect: convert /command to \command (e.g., /frac to \frac)
+        .replace(/\/([a-zA-Z]+)/g, '\\$1')
+        + p3;
+    })
+    // 3. Delimiter Standardization
+    .replace(/\\\$/g, '$')
     .replace(/\\\[/g, '\n\n$$\n')
     .replace(/\\\]/g, '\n$$\n\n')
     .replace(/\\\(/g, '$')
-    .replace(/\\\)/g, '$')
-    // 3. Fix escaped special characters that Tiptap/Backend might escape
-    // We do this globally to ensure subscripts and operators work
-    .replace(/\\_/g, '_')
-    .replace(/\\\*/g, '*')
-    .replace(/\\\$/g, '$');
+    .replace(/\\\)/g, '$');
 
   return (
     <div className="w-full max-w-4xl mx-auto animate-in fade-in duration-700 text-left p-10 pb-32 relative">
       <style>{`
-        .article-content h1 { font-size: 1.875rem; font-weight: 900; line-height: 1.2; margin-top: 1.5rem; margin-bottom: 0.75rem; letter-spacing: -0.05em; color: #0f172a; }
-        .article-content h2 { font-size: 1.5rem; font-weight: 900; line-height: 1.3; margin-top: 1.25rem; margin-bottom: 0.5rem; color: #0f172a; }
+        .article-content h1 { font-size: 1.5rem; font-weight: 900; line-height: 1.2; margin-top: 1.5rem; margin-bottom: 0.75rem; letter-spacing: -0.05em; color: #0f172a; }
+        .article-content h2 { font-size: 1.25rem; font-weight: 900; line-height: 1.3; margin-top: 1.25rem; margin-bottom: 0.5rem; color: #0f172a; }
         .article-content h3 { font-size: 1rem; font-weight: 800; margin-top: 1rem; margin-bottom: 0.4rem; color: #0f172a; }
         .article-content p { margin-bottom: 1.25rem; line-height: 1.7; font-size: 1rem; color: #374151; }
         .article-content ul { list-style-type: disc; padding-left: 1.5rem; margin-bottom: 1.25rem; color: #374151; }
