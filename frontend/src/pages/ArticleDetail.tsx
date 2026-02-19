@@ -101,7 +101,7 @@ export const ArticleDetail: React.FC = () => {
               <span className="text-[10px] font-bold text-indigo-600 bg-indigo-50 dark:bg-indigo-950/30 px-3 py-1 rounded-full uppercase tracking-widest border border-indigo-100 dark:border-indigo-900/50">Academic Paper</span>
               <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-1.5"><Calendar className="w-3 h-3"/> {new Date(article.created_at).toLocaleDateString('zh-CN')}</span>
            </div>
-           <h1 className="text-4xl md:text-5xl lg:text-6xl font-black tracking-tighter text-slate-900 dark:text-white leading-[1.1]">{article.title}</h1>
+           <h1 className="text-2xl md:text-3xl lg:text-4xl font-black tracking-tighter text-slate-900 dark:text-white leading-[1.1]">{article.title}</h1>
            <div className="flex flex-wrap gap-2 pt-2">
               {article.tags?.map((t: string) => (
                 <span key={t} className="text-[9px] font-bold text-muted-foreground bg-muted px-2.5 py-1 rounded-md uppercase tracking-wider">{t}</span>
