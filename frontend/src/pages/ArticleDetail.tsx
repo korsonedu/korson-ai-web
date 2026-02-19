@@ -42,6 +42,9 @@ export const ArticleDetail: React.FC = () => {
   if (!article) return <div className="h-screen flex items-center justify-center font-bold">Article Not Found</div>;
 
   const processedContent = article.content
+    // Fix over-escaped backslashes in LaTeX commands caused by backend/DB
+    // Replace \\command with \command where 'command' starts with a word character or common LaTeX grouping symbol.
+    .replace(/\\{2}([\w({[])/g, '\\$1')
     // Handle escaped dollar signs from editor
     .replace(/\\\$/g, '$')
     // Convert LaTeX blocks \[ ... \] to $$ ... $$
