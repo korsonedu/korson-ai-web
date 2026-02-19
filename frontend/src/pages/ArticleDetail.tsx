@@ -42,26 +42,21 @@ export const ArticleDetail: React.FC = () => {
   if (!article) return <div className="h-screen flex items-center justify-center font-bold">Article Not Found</div>;
 
   const processedContent = article.content
-    // Fix over-escaped backslashes in LaTeX commands caused by backend/DB
-    // Replace \\command with \command where 'command' starts with a word character or common LaTeX grouping symbol.
-    .replace(/\\{2}([\w({[])/g, '\\$1')
-    // Handle escaped dollar signs from editor
-    .replace(/\\\$/g, '$')
-    // Convert LaTeX blocks \[ ... \] to $$ ... $$
+    // 1. Fix double backslashes (e.g., \\frac -> \frac)
+    .replace(/\\{2}/g, '\\')
+    // 2. Convert LaTeX block/inline delimiters to standard $$ / $ 
     .replace(/\\\[/g, '\n\n$$\n')
     .replace(/\\\]/g, '\n$$\n\n')
-    // Convert LaTeX inline \( ... \) to $ ... $
     .replace(/\\\(/g, '$')
-    .replace(/\\\)/g, '$');
+    .replace(/\\\)/g, '$')
+    // 3. Fix escaped special characters that Tiptap/Backend might escape
+    // We do this globally to ensure subscripts and operators work
+    .replace(/\\_/g, '_')
+    .replace(/\\\*/g, '*')
+    .replace(/\\\$/g, '$');
 
   return (
     <div className="w-full max-w-4xl mx-auto animate-in fade-in duration-700 text-left p-10 pb-32 relative">
-      <div style={{ background: '#ffebee', padding: '10px', borderRadius: '5px', margin: '10px 0', fontSize: '12px', wordBreak: 'break-all' }}>
-        <p style={{ fontWeight: 'bold' }}>原始文章内容 (DEBUG):</p>
-        <pre>{article.content}</pre>
-        <p style={{ fontWeight: 'bold' }}>预处理后的内容 (DEBUG):</p>
-        <pre>{processedContent}</pre>
-      </div>
       <style>{`
         .article-content h1 { font-size: 1.875rem; font-weight: 900; line-height: 1.2; margin-top: 1.5rem; margin-bottom: 0.75rem; letter-spacing: -0.05em; color: #0f172a; }
         .article-content h2 { font-size: 1.5rem; font-weight: 900; line-height: 1.3; margin-top: 1.25rem; margin-bottom: 0.5rem; color: #0f172a; }
