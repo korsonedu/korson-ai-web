@@ -143,7 +143,6 @@ export const Settings: React.FC = () => {
                       <div className="space-y-3"><Label className="text-xs font-bold uppercase tracking-widest opacity-40 ml-1">特征种子 (Seed)</Label>
                         <div className="flex gap-3"><Input value={avatar.seed} onChange={e => setAvatar({ ...avatar, seed: e.target.value })} className="bg-slate-50 border-none h-12 rounded-2xl font-bold" /><Button variant="outline" onClick={() => setAvatar({...avatar, seed: Math.random().toString(36).substring(7)})} className="rounded-2xl h-12 w-12 border-black/5"><RefreshCcw className="h-4 w-4" /></Button></div></div>
                     </div>
-                    <Button onClick={handleSaveProfile} className="w-full bg-black text-white h-14 rounded-2xl font-bold shadow-xl shadow-black/10">同步修改</Button>
                   </div>
                 </SheetContent>
               </Sheet>
