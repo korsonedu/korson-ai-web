@@ -60,6 +60,7 @@ export const ArticleDetail: React.FC = () => {
         .article-content p { margin-bottom: 1.25rem; line-height: 1.7; font-size: 1rem; color: #374151; }
         .article-content ul { list-style-type: disc; padding-left: 1.5rem; margin-bottom: 1.25rem; color: #374151; }
         .article-content ol { list-style-type: decimal; padding-left: 1.5rem; margin-bottom: 1.25rem; color: #374151; }
+        .article-content .katex-display { display: block; text-align: center; margin: 1.5em 0; overflow-x: auto; overflow-y: hidden; }
         .article-content li { margin-bottom: 0.5rem; }
         .article-content blockquote { border-left: 4px solid #ec4899; padding: 0.75rem 1.5rem; font-style: italic; background: #f9fafb; margin-bottom: 1.25rem; border-radius: 0 0.75rem 0.75rem 0; color: #4b5563; }
         .article-content code { background: #f3f4f6; color: #db2777; padding: 0.2rem 0.4rem; border-radius: 0.375rem; font-family: monospace; font-size: 0.875rem; }
