@@ -30,6 +30,7 @@ import {
 } from "@/components/ui/dialog";
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
+import { MarkdownEditor } from '@/components/MarkdownEditor';
 
 // --- Sub-Component: TagInput ---
 const TagInput = ({ tags, setTags, compact = false }: { tags: string[], setTags: (t: string[]) => void, compact?: boolean }) => {
@@ -309,7 +310,9 @@ export const Maintenance: React.FC = () => {
                     <div className="space-y-2 text-left"><Label className="text-[10px] font-bold uppercase tracking-widest opacity-40 ml-1">所属专辑</Label><Select value={courseForm.album_obj} onValueChange={v => setCourseForm({...courseForm, album_obj: v})}><SelectTrigger className="h-10 rounded-xl bg-[#F5F5F7] border-none font-bold px-4 text-xs"><SelectValue placeholder="选择专辑" /></SelectTrigger><SelectContent className="rounded-xl">{albumList.map(al => <SelectItem key={al.id} value={al.id.toString()} className="text-xs font-bold">{al.name}</SelectItem>)}</SelectContent></Select></div>
                     <div className="space-y-2 text-left"><Label className="text-[10px] font-bold uppercase tracking-widest opacity-40 ml-1">关联知识点</Label><Select value={courseForm.knowledge_point} onValueChange={v => setCourseForm({...courseForm, knowledge_point: v})}><SelectTrigger className="h-10 rounded-xl bg-[#F5F5F7] border-none font-bold px-4 text-xs"><SelectValue placeholder="不挂载" /></SelectTrigger><SelectContent className="rounded-xl">{kpList.map(kp => <SelectItem key={kp.id} value={kp.id.toString()} className="text-xs font-bold">{kp.name}</SelectItem>)}</SelectContent></Select></div>
                   </div>
-                  <div className="space-y-2 text-left"><Label className="text-[10px] font-bold uppercase tracking-widest opacity-40 ml-1">详细描述</Label><textarea value={courseForm.desc} onChange={e => setCourseForm({...courseForm, desc: e.target.value})} className="w-full bg-[#F5F5F7] border-none rounded-2xl p-6 min-h-[180px] font-medium text-sm" /></div>
+                  <div className="space-y-2 text-left"><Label className="text-[10px] font-bold uppercase tracking-widest opacity-40 ml-1">详细描述</Label>
+                    <MarkdownEditor content={courseForm.desc} onChange={v => setCourseForm({...courseForm, desc: v})} />
+                  </div>
               </Card>
               <Card className="lg:col-span-4 border-none shadow-sm rounded-3xl p-8 bg-white border border-black/[0.03] space-y-6 h-fit text-left">
                 <div className="space-y-3 text-left"><Label className="text-[10px] font-bold uppercase tracking-widest opacity-40">奖励设定</Label><div className="flex items-center gap-3"><Input type="number" value={courseForm.elo_reward} onChange={e => setCourseForm({...courseForm, elo_reward: parseInt(e.target.value) || 0})} className="bg-[#F5F5F7] border-none h-10 rounded-xl font-bold w-20 text-center text-xs" /><span className="text-[9px] font-bold text-black/40 uppercase">ELO Reward</span></div></div>
@@ -333,7 +336,9 @@ export const Maintenance: React.FC = () => {
                     <div className="space-y-1.5 text-left"><Label className="text-[10px] font-bold uppercase tracking-widest opacity-40 ml-1">发布人署名</Label><Input value={articleForm.author_display_name} onChange={e => setArticleForm({...articleForm, author_display_name: e.target.value})} className="bg-[#F5F5F7] border-none h-10 rounded-xl font-bold px-5 text-[11px]" /></div>
                     <div className="space-y-1.5 text-left"><Label className="text-[10px] font-bold uppercase tracking-widest opacity-40 ml-1">标签分类</Label><TagInput tags={articleForm.tags} setTags={(t) => setArticleForm({...articleForm, tags: t})} compact /></div>
                  </div>
-                 <div className="space-y-1.5 text-left"><Label className="text-[10px] font-bold uppercase tracking-widest opacity-40 ml-1">正文内容 (Markdown)</Label><textarea value={articleForm.content} onChange={e => setArticleForm({...articleForm, content: e.target.value})} className="w-full bg-[#F5F5F7] border-none rounded-2xl p-6 min-h-[350px] font-bold text-sm" /></div>
+                 <div className="space-y-1.5 text-left"><Label className="text-[10px] font-bold uppercase tracking-widest opacity-40 ml-1">正文内容 (Markdown)</Label>
+                    <MarkdownEditor content={articleForm.content} onChange={v => setArticleForm({...articleForm, content: v})} />
+                 </div>
                  <Button onClick={async () => { try { await api.post('/articles/', { ...articleForm, knowledge_point: articleForm.knowledge_point === "0" ? null : articleForm.knowledge_point }); toast.success("文章已发布"); setArticleForm({title:'', content:'', author_display_name: '', tags: [], knowledge_point: '0'}); fetchLists(); } catch(e){ toast.error("发布失败"); } }} className="w-full h-12 rounded-xl bg-black text-white font-bold shadow-xl text-[11px] tracking-widest uppercase">Publish Article</Button>
               </div>
            </Card>
@@ -437,7 +442,7 @@ export const Maintenance: React.FC = () => {
 
       {/* --- Unified Dialogs --- */}
       <Dialog open={!!editingItem} onOpenChange={open => !open && setEditingItem(null)}>
-        <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-y-auto rounded-[3rem] p-10 border-none shadow-2xl text-left">
+        <DialogContent className="sm:max-w-[850px] max-h-[90vh] overflow-y-auto rounded-[3rem] p-10 border-none shadow-2xl text-left">
           <DialogHeader className="text-left"><DialogTitle className="text-xl font-bold tracking-tight">资源属性核心配置</DialogTitle></DialogHeader>
           <div className="space-y-6 pt-6 text-left">
              {editingItem?.type === 'courses' && (
@@ -446,7 +451,9 @@ export const Maintenance: React.FC = () => {
                     <div className="space-y-1.5 text-left"><Label className="text-[10px] font-bold uppercase opacity-40">标题</Label><Input value={editingItem.data.title} onChange={e => setEditingItem({...editingItem, data: {...editingItem.data, title: e.target.value}})} className="rounded-xl bg-slate-50 border-none h-10 text-xs font-bold" /></div>
                     <div className="space-y-1.5 text-left"><Label className="text-[10px] font-bold uppercase opacity-40">ELO 奖励</Label><Input type="number" value={editingItem.data.elo_reward} onChange={e => setEditingItem({...editingItem, data: {...editingItem.data, elo_reward: e.target.value}})} className="rounded-xl bg-slate-50 border-none h-10 text-xs font-bold" /></div>
                   </div>
-                  <div className="space-y-1.5 text-left"><Label className="text-[10px] font-bold uppercase opacity-40">详细描述</Label><textarea value={editingItem.data.description} onChange={e => setEditingItem({...editingItem, data: {...editingItem.data, description: e.target.value}})} className="w-full min-h-[120px] p-4 rounded-xl bg-slate-50 border-none text-xs font-medium" /></div>
+                  <div className="space-y-1.5 text-left"><Label className="text-[10px] font-bold uppercase opacity-40">详细描述</Label>
+                    <MarkdownEditor content={editingItem.data.description} onChange={v => setEditingItem({...editingItem, data: {...editingItem.data, description: v}})} />
+                  </div>
                   <div className="grid grid-cols-2 gap-4 text-left">
                     <div className="space-y-1.5 text-left"><Label className="text-[10px] font-bold uppercase opacity-40 text-emerald-600">更新视频</Label><Input type="file" onChange={e => setEditingItem({...editingItem, data: {...editingItem.data, video_file: e.target.files?.[0]}})} className="rounded-xl h-10 bg-slate-50 text-[10px]" /></div>
                     <div className="space-y-1.5 text-left"><Label className="text-[10px] font-bold uppercase opacity-40 text-blue-600">更新封面</Label><Input type="file" onChange={e => setEditingItem({...editingItem, data: {...editingItem.data, cover_image: e.target.files?.[0]}})} className="rounded-xl h-10 bg-slate-50 text-[10px]" /></div>
@@ -460,7 +467,9 @@ export const Maintenance: React.FC = () => {
                     <div className="space-y-1.5 text-left"><Label className="text-[10px] font-bold uppercase opacity-40">署名</Label><Input value={editingItem.data.author_display_name} onChange={e => setEditingItem({...editingItem, data: {...editingItem.data, author_display_name: e.target.value}})} className="rounded-xl bg-slate-50 border-none h-10 text-xs font-bold" /></div>
                   </div>
                   <TagInput tags={editingItem.data.tags || []} setTags={t => setEditingItem({...editingItem, data: {...editingItem.data, tags: t}})} compact />
-                  <textarea value={editingItem.data.content} onChange={e => setEditingItem({...editingItem, data: {...editingItem.data, content: e.target.value}})} className="w-full min-h-[250px] p-4 rounded-xl bg-slate-50 border-none text-xs font-medium" />
+                  <div className="space-y-1.5 text-left mt-4"><Label className="text-[10px] font-bold uppercase opacity-40">正文内容 (Markdown)</Label>
+                    <MarkdownEditor content={editingItem.data.content} onChange={v => setEditingItem({...editingItem, data: {...editingItem.data, content: v}})} />
+                  </div>
                </div>
              )}
              {editingItem?.type === 'albums' && (
@@ -554,7 +563,7 @@ export const Maintenance: React.FC = () => {
                        </div>
                     </ScrollArea>
                     <div className="grid grid-cols-2 gap-4 items-end text-left">
-                       <div className="space-y-2 text-left"><Label className="text-[10px] font-bold uppercase opacity-40 ml-1">批量挂载知识点</Label><Select value={aiTargetKP} onValueChange={setAiTargetKP}><SelectTrigger className="h-12 rounded-2xl bg-[#F5F5F7] border-none font-bold px-5 text-xs"><SelectValue placeholder="选择知识点" /></SelectTrigger><SelectContent className="rounded-xl">{kpList.map(kp => <SelectItem key={kp.id} value={kp.id.toString()} className="text-xs font-bold">{kp.name}</SelectItem>)}</SelectContent></Select></div>
+                       <div className="space-y-2 text-left"><Label className="text-[10px] font-bold uppercase tracking-widest opacity-40 ml-1">批量挂载知识点</Label><Select value={aiTargetKP} onValueChange={setAiTargetKP}><SelectTrigger className="h-12 rounded-2xl bg-[#F5F5F7] border-none font-bold px-5 text-xs"><SelectValue placeholder="选择知识点" /></SelectTrigger><SelectContent className="rounded-xl">{kpList.map(kp => <SelectItem key={kp.id} value={kp.id.toString()} className="text-xs font-bold">{kp.name}</SelectItem>)}</SelectContent></Select></div>
                        <div className="flex gap-2 text-left">
                           <Button variant="outline" onClick={() => setAiPreviewData(null)} className="flex-1 h-12 rounded-xl border-black/5 font-bold text-xs">取消重来</Button>
                           <Button onClick={handleAIImport} className="flex-[2] h-12 rounded-xl bg-emerald-500 text-white font-bold shadow-xl shadow-emerald-500/20 text-xs gap-2"><CheckCircle2 className="w-4 h-4"/> 确认导入题库</Button>

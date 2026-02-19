@@ -78,7 +78,18 @@ export const AIAssistant: React.FC = () => {
     if (selectedBot) {
       sessionStorage.setItem('last_selected_bot_id', selectedBot.id.toString());
       api.get('/ai/history/', { params: { bot_id: selectedBot.id } }).then(res => {
-        if (res.data.length > 0) setMessages(res.data);
+        if (res.data.length > 0) {
+          // Preprocess history
+          const processedHistory = res.data.map((m: any) => ({
+            ...m,
+            content: m.content
+              .replace(/\\\[/g, '\n\n$$\n')
+              .replace(/\\\]/g, '\n$$\n\n')
+              .replace(/\\\(/g, '$')
+              .replace(/\\\)/g, '$')
+          }));
+          setMessages(processedHistory);
+        }
         else setMessages([{ role: 'assistant', content: `你好！我是${selectedBot.name}。开始我们的学术交流吧！` }]);
       }).catch(e => {
         toast.error("加载历史失败");
@@ -106,8 +117,12 @@ export const AIAssistant: React.FC = () => {
         bot_id: selectedBot.id 
       });
       let aiContent = response.data.content;
-      aiContent = aiContent.replace(/\\\[/g, '$$$$').replace(/\\\]/g, '$$$$');
-      aiContent = aiContent.replace(/\\\(/g, '$$').replace(/\\\)/g, '$$');
+      // Preprocess: ensure standard block math is detectable with proper newlines
+      aiContent = aiContent
+        .replace(/\\\[/g, '\n\n$$\n')
+        .replace(/\\\]/g, '\n$$\n\n')
+        .replace(/\\\(/g, '$')
+        .replace(/\\\)/g, '$');
       setMessages(prev => [...prev, { role: 'assistant', content: aiContent }]);
     } catch (error: any) {
       const errorMsg = error.response?.data?.error || "AI 响应失败";
@@ -129,13 +144,13 @@ export const AIAssistant: React.FC = () => {
 
   if (isInitialLoading) return (
     <div className="h-[60vh] flex flex-col items-center justify-center gap-4 opacity-20">
-      <Loader2 className="h-8 w-8 animate-spin" />
+      <Loader2 className="h-8 w-8 animate-spin text-foreground" />
       <p className="text-[10px] font-bold uppercase tracking-widest leading-none text-foreground">Initializing AI Laboratory...</p>
     </div>
   );
 
   return (
-    <div className="h-[calc(100vh-8.5rem)] flex flex-col animate-in fade-in duration-300 max-w-5xl mx-auto text-left relative text-foreground">
+    <div className="h-[calc(100vh-8.5rem)] flex flex-col animate-in fade-in duration-300 max-w-5xl mx-auto text-left relative text-foreground px-4">
       <Card className="flex-1 flex flex-col bg-card rounded-3xl shadow-sm border border-border overflow-hidden relative">
         <header className="px-8 py-3 border-b border-border flex items-center justify-between bg-card/80 backdrop-blur-md sticky top-0 z-10">
           <div className="flex items-center gap-4">
@@ -152,15 +167,15 @@ export const AIAssistant: React.FC = () => {
                     </div>
                     {selectedBot && (
                       <div className="flex items-center gap-2">
-                        <p className="text-[8px] font-bold text-emerald-600 uppercase tracking-widest">由 DeepSeek-reasoner 驱动</p>
+                        <p className="text-[8px] font-bold text-emerald-600 uppercase tracking-widest">Powered by DeepSeek-R1</p>
                         <Dialog>
                           <DialogTrigger asChild>
-                            <Button variant="ghost" className="h-4 px-1.5 text-[8px] font-bold text-muted-foreground hover:text-foreground uppercase tracking-tighter"> 查看指令集 </Button>
+                            <Button variant="ghost" className="h-4 px-1.5 text-[8px] font-bold text-muted-foreground hover:text-foreground uppercase tracking-tighter"> View Directives </Button>
                           </DialogTrigger>
                           <DialogContent className="rounded-[2rem] border-none shadow-2xl p-10 max-w-2xl text-left bg-card">
                             <DialogHeader>
-                              <DialogTitle className="text-xl font-bold text-foreground">{selectedBot.name} 的核心逻辑</DialogTitle>
-                              <DialogDescription className="text-xs font-medium text-muted-foreground">这是当前助教遵循的系统级提示词 (System Prompt)。</DialogDescription>
+                              <DialogTitle className="text-xl font-bold text-foreground">{selectedBot.name} Core Logic</DialogTitle>
+                              <DialogDescription className="text-xs font-medium text-muted-foreground">The system-level prompt guiding this assistant's behavior.</DialogDescription>
                             </DialogHeader>
                             <div className="mt-6 p-6 bg-muted rounded-2xl">
                               <pre className="text-xs leading-relaxed font-medium whitespace-pre-wrap text-foreground">{selectedBot.system_prompt}</pre>
@@ -179,14 +194,14 @@ export const AIAssistant: React.FC = () => {
                       <span className="font-bold text-sm text-foreground">{b.name}</span>
                    </DropdownMenuItem>
                  ))}
-                 {bots.length === 0 && <div className="p-4 text-xs font-bold opacity-30 text-center uppercase text-foreground">暂无自定义机器人</div>}
+                 {bots.length === 0 && <div className="p-4 text-xs font-bold opacity-30 text-center uppercase text-foreground">No Custom Bots Available</div>}
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
           {selectedBot && (
             <Button variant="ghost" size="sm" onClick={handleReset} className="rounded-xl text-muted-foreground hover:text-foreground gap-2 px-3 h-8">
               <Eraser className="w-3.5 h-3.5" />
-              <span className="text-[10px] font-bold uppercase">重置历史</span>
+              <span className="text-[10px] font-bold uppercase">Clear History</span>
             </Button>
           )}
         </header>
@@ -198,14 +213,14 @@ export const AIAssistant: React.FC = () => {
                 <Sparkles className="h-10 w-10 text-primary opacity-20" />
               </div>
               <div className="space-y-2">
-                <h3 className="text-lg font-bold text-foreground">欢迎进入 AI 实验室</h3>
-                <p className="text-sm text-muted-foreground max-w-xs mx-auto font-medium">请点击左上角选择一位 AI 助教，开启您的深度学术对话。</p>
+                <h3 className="text-lg font-bold text-foreground">Welcome to AI Laboratory</h3>
+                <p className="text-sm text-muted-foreground max-w-xs mx-auto font-medium">Please select an AI assistant to begin your scholarly dialogue.</p>
               </div>
             </div>
           ) : (
-            <div className="p-8 space-y-8 max-w-4xl mx-auto">
+            <div className="p-8 space-y-8 max-w-4xl mx-auto w-full">
               {messages.map((msg, i) => (
-                <div key={i} className={cn("flex gap-4 group", msg.role === 'user' ? "flex-row-reverse" : "flex-row animate-in fade-in slide-in-from-bottom-2")}>
+                <div key={i} className={cn("flex gap-4 group w-full", msg.role === 'user' ? "flex-row-reverse text-right" : "flex-row text-left animate-in fade-in slide-in-from-bottom-2")}>
                   <div className={cn(
                     "h-10 w-10 rounded-full flex items-center justify-center shrink-0 shadow-sm border border-border",
                     msg.role === 'user' ? "bg-card" : "bg-primary"
@@ -217,12 +232,12 @@ export const AIAssistant: React.FC = () => {
                       {msg.role === 'user' ? (user?.nickname || user?.username) : selectedBot.name}
                     </span>
                     <div className={cn(
-                      "p-3 px-4 rounded-2xl text-[13px] leading-relaxed shadow-sm transition-all border border-border",
+                      "p-3 px-4 rounded-2xl text-[13px] shadow-sm transition-all border border-border w-fit",
                       msg.role === 'user' 
                         ? "bg-primary text-primary-foreground rounded-tr-none font-medium" 
                         : "bg-slate-100/80 dark:bg-slate-800/80 text-foreground rounded-tl-none font-medium"
                     )}>
-                      <div className={cn("prose prose-xs max-w-none text-left dark:prose-invert")}>
+                      <div className={cn("prose prose-slate dark:prose-invert prose-sm max-w-none text-left prose-headings:font-black prose-headings:tracking-tight prose-p:leading-relaxed prose-p:text-slate-600 dark:prose-p:text-slate-300")}>
                         <ReactMarkdown 
                           remarkPlugins={[remarkMath]} 
                           rehypePlugins={[rehypeKatex]}
@@ -240,8 +255,8 @@ export const AIAssistant: React.FC = () => {
                     {selectedBot.avatar ? <img src={selectedBot.avatar} className="w-full h-full object-cover"/> : <BotIcon className="w-5 h-5 text-primary-foreground" />}
                   </div>
                   <div className="flex flex-col gap-1.5 w-full">
-                    <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground px-1">AI 正在深度推理 (Reasoning)...</span>
-                    <div className="p-3 px-4 rounded-2xl rounded-tl-none bg-muted w-16 flex justify-center"><Loader2 className="h-3.5 w-3.5 animate-spin opacity-20" /></div>
+                    <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground px-1">Reasoning In Progress...</span>
+                    <div className="p-3 px-4 rounded-2xl rounded-tl-none bg-slate-100/80 dark:bg-slate-800/80 w-16 flex justify-center"><Loader2 className="h-3.5 w-3.5 animate-spin opacity-20" /></div>
                   </div>
                 </div>
               )}
@@ -265,7 +280,7 @@ export const AIAssistant: React.FC = () => {
                   handleSend();
                 }
               }}
-              placeholder={selectedBot ? "向助教提问..." : "请先选择助教"} 
+              placeholder={selectedBot ? "Ask a question..." : "Select an assistant first"} 
               className="bg-transparent border-none shadow-none focus-visible:ring-0 text-[13px] h-9 px-4 text-foreground placeholder:text-muted-foreground/50" 
               disabled={loading || !selectedBot}
             />

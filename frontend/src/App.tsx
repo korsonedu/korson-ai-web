@@ -14,7 +14,7 @@ import { SystemSettings } from './pages/SystemSettings';
 import { KnowledgeMap } from './pages/KnowledgeMap';
 import { useAuthStore } from './store/useAuthStore';
 import { useSystemStore } from './store/useSystemStore';
-import { FileText, Loader2, Calendar, ChevronRight, LayoutGrid, List } from 'lucide-react';
+import { FileText, Loader2, ChevronRight } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { PageWrapper } from '@/components/PageWrapper';
 import { useState, useEffect } from 'react';
@@ -65,7 +65,6 @@ const ArticleCenter = () => {
   const [tagStats, setTagStats] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('list');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -86,15 +85,15 @@ const ArticleCenter = () => {
 
   return (
     <PageWrapper title="文章中心" subtitle="沉淀学术思想，探索知识前沿。">
-      <div className="flex flex-col gap-6 max-w-6xl mx-auto text-left">
+      <div className="flex flex-col gap-8 w-full text-left">
         
-        {/* Tags & View Toggle */}
+        {/* Tags */}
         <div className="flex items-center justify-between px-2">
           <div className="flex flex-wrap gap-2">
             <Button 
               onClick={() => setSelectedTag(null)}
               variant={selectedTag === null ? "default" : "outline"}
-              className="rounded-full h-7 px-3 text-[9px] font-bold uppercase tracking-widest transition-all"
+              className="rounded-full h-7 px-4 text-[9px] font-bold uppercase tracking-widest transition-all"
             >
               全部
             </Button>
@@ -103,56 +102,56 @@ const ArticleCenter = () => {
                 key={name}
                 onClick={() => setSelectedTag(name)}
                 variant={selectedTag === name ? "default" : "outline"}
-                className="rounded-full h-7 px-3 text-[9px] font-bold uppercase tracking-widest transition-all border-black/5"
+                className="rounded-full h-7 px-4 text-[9px] font-bold uppercase tracking-widest transition-all border-black/5"
               >
                 {name} · {count}
               </Button>
             ))}
           </div>
-          <div className="flex bg-[#F5F5F7] p-1 rounded-xl gap-1">
-            <Button onClick={() => setViewMode('grid')} variant="ghost" size="icon" className={cn("h-7 w-7 rounded-lg", viewMode === 'grid' && "bg-white shadow-sm")}><LayoutGrid className="w-3.5 h-3.5"/></Button>
-            <Button onClick={() => setViewMode('list')} variant="ghost" size="icon" className={cn("h-7 w-7 rounded-lg", viewMode === 'list' && "bg-white shadow-sm")}><List className="w-3.5 h-3.5"/></Button>
-          </div>
         </div>
 
-        <div className={cn(
-          "grid gap-4 animate-in fade-in duration-500",
-          viewMode === 'grid' ? "grid-cols-2 md:grid-cols-3 lg:grid-cols-4" : "grid-cols-1"
-        )}>
-          {articles.length === 0 ? (
-            <Card className="col-span-full border-none shadow-sm rounded-3xl bg-white p-16 flex flex-col items-center justify-center text-center space-y-6 border border-black/[0.03]">
-              <FileText className="h-12 w-12 text-black/5" />
-              <p className="text-[#86868B] font-bold text-xs uppercase tracking-widest">暂无文章</p>
-            </Card>
-          ) : articles.map(article => (
-            <Card 
-              key={article.id} 
-              onClick={() => navigate(`/article/${article.id}`)}
-              className={cn(
-                "border-none shadow-sm rounded-2xl bg-white group hover:shadow-md transition-all duration-300 border border-black/[0.01] cursor-pointer",
-                viewMode === 'list' ? "p-5" : "p-4"
-              )}
-            >
-              <div className={cn(
-                "flex justify-between gap-4",
-                viewMode === 'list' ? "flex-col md:flex-row md:items-center" : "flex-col h-full"
-              )}>
-                 <div className="space-y-2 flex-1">
-                    <div className="flex items-center gap-3">
-                       <span className="opacity-40 font-bold text-[8px] uppercase tracking-widest">{new Date(article.created_at).toLocaleDateString()}</span>
-                       {article.author_display_name && (
-                         <span className="px-1.5 py-0.5 rounded bg-slate-100 text-[8px] font-bold text-slate-500 uppercase">@{article.author_display_name}</span>
-                       )}
-                    </div>
-                    <h3 className={cn("font-bold text-[#1D1D1F] group-hover:text-emerald-600 transition-colors leading-tight truncate", viewMode === 'list' ? "text-base max-w-2xl" : "text-sm")}>{article.title}</h3>
-                    <p className="text-[#86868B] text-[11px] font-medium line-clamp-1 opacity-60">{article.content}</p>
-                 </div>
-                 <div className="flex items-center gap-1.5 text-[10px] font-bold text-black group-hover:text-emerald-600 transition-all shrink-0 self-end">
-                   READ <ChevronRight className="w-3 h-3"/>
-                 </div>
+        {/* List Content */}
+        <div className="flex flex-col border border-border/50 rounded-[2rem] bg-card overflow-hidden shadow-sm">
+          {/* List Header */}
+          <div className="hidden md:grid grid-cols-12 gap-4 px-8 py-4 bg-muted/30 text-[10px] font-black uppercase tracking-widest border-b border-border/50">
+            <div className="col-span-2">Date</div>
+            <div className="col-span-2">Author</div>
+            <div className="col-span-6">Title</div>
+            <div className="col-span-2 text-right pr-4">Views</div>
+          </div>
+
+          <div className="flex flex-col animate-in fade-in duration-500">
+            {articles.length === 0 ? (
+              <div className="p-20 flex flex-col items-center justify-center text-center space-y-4">
+                <FileText className="h-12 w-12 text-muted-foreground/20" />
+                <p className="text-muted-foreground font-bold text-xs uppercase tracking-widest">No articles found</p>
               </div>
-            </Card>
-          ))}
+            ) : articles.map(article => (
+              <div 
+                key={article.id} 
+                onClick={() => navigate(`/article/${article.id}`)}
+                className="grid grid-cols-4 md:grid-cols-12 gap-4 px-8 py-5 items-center hover:bg-muted/50 transition-all border-b border-border last:border-0 cursor-pointer group"
+              >
+                <div className="col-span-1 md:col-span-2 text-[11px] font-bold text-muted-foreground tabular-nums">
+                  {new Date(article.created_at).toLocaleDateString('zh-CN')}
+                </div>
+                <div className="col-span-1 md:col-span-2">
+                  <span className="inline-flex px-2 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-950/30 text-[9px] font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-tighter truncate max-w-full">
+                    {article.author_display_name || 'KS Academy'}
+                  </span>
+                </div>
+                <div className="col-span-2 md:col-span-6">
+                  <h3 className="font-bold text-foreground group-hover:text-primary transition-colors text-sm truncate pr-4">
+                    {article.title}
+                  </h3>
+                </div>
+                <div className="hidden md:flex col-span-2 justify-end items-center gap-4 text-right">
+                  <span className="tabular-nums text-[11px] font-bold text-muted-foreground/60">{article.views || 0}</span>
+                  <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/20 group-hover:text-primary transition-all group-hover:translate-x-1" />
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </PageWrapper>
