@@ -7,7 +7,7 @@ import {
   RotateCcw, CheckCircle2, MoreHorizontal, 
   Plus, Zap, Timer, XCircle, ListTodo, Circle,
   Trophy, Clock, Radio, Eye, Smile, Image as ImageIcon,
-  FileVideo, ArrowDown
+  FileVideo, ArrowDown, Loader2
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
@@ -76,6 +76,7 @@ export const StudyRoom: React.FC = () => {
   const [isComposing, setIsComposing] = useState(false);
   const [giphySearch, setGiphySearch] = useState('');
   const [giphyResults, setGiphyResults] = useState<any[]>([]);
+  const [isGiphyLoading, setIsGiphyLoading] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -119,18 +120,41 @@ export const StudyRoom: React.FC = () => {
     }
   }, [messages, user?.username, isAtBottom]);
 
-  const fetchGiphy = async (query: string) => {
+  const fetchGiphy = async (query: string, append = false) => {
+    if (isGiphyLoading) return;
     const q = query || 'study';
+    const offset = append ? giphyResults.length : 0;
+    setIsGiphyLoading(true);
     try {
-      const res = await fetch(`https://api.giphy.com/v1/gifs/search?api_key=9pr9qW2ISY8cIz1AGhgyB7SE7xLuDafc&q=${encodeURIComponent(q)}&limit=12&rating=g`);
+      const url = q === 'study' && !query
+        ? `https://api.giphy.com/v1/gifs/trending?api_key=9pr9qW2ISY8cIz1AGhgyB7SE7xLuDafc&limit=20&offset=${offset}&rating=g`
+        : `https://api.giphy.com/v1/gifs/search?api_key=9pr9qW2ISY8cIz1AGhgyB7SE7xLuDafc&q=${encodeURIComponent(q)}&limit=20&offset=${offset}&rating=g`;
+      
+      const res = await fetch(url);
       const data = await res.json();
-      if (data.data && data.data.length > 0) setGiphyResults(data.data);
-      else {
-        const trendRes = await fetch(`https://api.giphy.com/v1/gifs/trending?api_key=9pr9qW2ISY8cIz1AGhgyB7SE7xLuDafc&limit=12&rating=g`);
-        const trendData = await trendRes.json();
-        setGiphyResults(trendData.data || []);
+      if (data.data) {
+        setGiphyResults(prev => append ? [...prev, ...data.data] : data.data);
       }
     } catch (e) { console.error("Giphy error", e); }
+    finally { setIsGiphyLoading(false); }
+  };
+
+  const sendGif = async (url: string) => {
+    try {
+      await api.post('/study/messages/', { content: `![gif](${url})` });
+      fetchMessages();
+      setIsAtBottom(true);
+      setTimeout(() => scrollToBottom(true), 100);
+    } catch (e) {
+      toast.error("发送 GIF 失败");
+    }
+  };
+
+  const handleGiphyScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const { scrollTop, scrollHeight, clientHeight } = e.currentTarget;
+    if (scrollHeight - scrollTop - clientHeight < 50) {
+      fetchGiphy(giphySearch, true);
+    }
   };
 
   const uploadImage = async (file: File) => {
@@ -264,13 +288,31 @@ export const StudyRoom: React.FC = () => {
                   </div>
                 </div>
               );
+              const isMediaOnly = msg.content.trim().startsWith('![') && msg.content.trim().endsWith(')');
+              
               return (
                 <div key={msg.id} className={cn("flex gap-4 group animate-in fade-in slide-in-from-bottom-2 duration-300", isMe ? "flex-row-reverse text-right" : "flex-row text-left")}>
                   <Avatar className="h-9 w-9 border border-border shadow-sm shrink-0 group-hover:scale-105 transition-transform"><AvatarImage src={msg.user_detail.avatar_url} /><AvatarFallback className="text-[10px] font-bold bg-muted">{(msg.user_detail.nickname || msg.user_detail.username)[0]}</AvatarFallback></Avatar>
-                  <div className={cn("flex flex-col gap-1 max-w-[75%]", isMe ? "items-end" : "items-start")}>
+                  <div className={cn("flex flex-col gap-1 max-w-[85%] w-fit", isMe ? "items-end" : "items-start")}>
                     <div className="flex items-center gap-2 px-1 text-muted-foreground"><span className="text-[9px] font-bold uppercase tracking-widest">{msg.user_detail.nickname || msg.user_detail.username}</span></div>
-                    <div className={cn("p-3 px-4 text-[13px] leading-relaxed shadow-sm rounded-2xl break-words overflow-hidden text-left", isMe ? "bg-primary text-primary-foreground rounded-tr-none font-medium" : "bg-rose-50 text-rose-900 rounded-tl-none border border-rose-100 dark:bg-rose-950/30 dark:text-rose-200 dark:border-rose-900/50")}>
-                      <ReactMarkdown remarkPlugins={[remarkMath]} rehypePlugins={[rehypeKatex]} components={{ img: ({node, ...props}) => <img {...props} className="max-w-full rounded-lg my-2 cursor-zoom-in hover:opacity-90 transition-opacity bg-muted" onClick={() => window.open(props.src || '', '_blank')}/>, p: ({node, ...props}) => <p {...props} className="m-0" /> }}>{msg.content}</ReactMarkdown>
+                    <div 
+                      className={cn(
+                        "text-[13px] leading-relaxed break-words overflow-hidden text-left w-fit h-fit", 
+                        !isMediaOnly && (isMe ? "p-2 px-3 bg-slate-900 text-white rounded-2xl rounded-tr-none shadow-sm font-medium" : "p-2 px-3 rounded-2xl rounded-tl-none shadow-sm font-medium")
+                      )}
+                      style={!isMediaOnly && !isMe ? { backgroundColor: '#ffb0b3', color: '#0f172a' } : {}}
+                    >
+                      <ReactMarkdown 
+                        remarkPlugins={[remarkMath]} 
+                        rehypePlugins={[rehypeKatex]} 
+                        components={{ 
+                          img: ({node, ...props}) => <img {...props} className="max-w-[130px] md:max-w-[200px] rounded-lg cursor-zoom-in hover:opacity-90 transition-opacity" onClick={() => window.open(props.src || '', '_blank')}/>, 
+                          p: ({node, ...props}) => <p {...props} className="m-0 leading-normal w-fit" />,
+                          div: ({node, ...props}) => <div {...props} className="w-fit" />
+                        }}
+                      >
+                        {msg.content}
+                      </ReactMarkdown>
                     </div>
                   </div>
                 </div>
@@ -290,23 +332,34 @@ export const StudyRoom: React.FC = () => {
                 <PopoverTrigger asChild><Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"><Smile className="h-4 w-4"/></Button></PopoverTrigger>
                 <PopoverContent side="top" className="w-64 p-2 rounded-2xl border-border shadow-2xl bg-card"><div className="grid grid-cols-8 gap-1">{['😊','😂','🤣','😍','😒','🤔','😭','👍','🙌','🔥','✨','💯','📚','🎓','💪','🎯','❤️','✔️','❌','⚠️','🚀','💡','🌟','🎉'].map(e => (<button key={e} onClick={() => setChatInput(prev => prev + e)} className="h-8 w-8 flex items-center justify-center hover:bg-muted rounded-lg text-lg transition-colors">{e}</button>))}</div></PopoverContent>
               </Popover>
-              <Popover onOpenChange={(open) => open && giphyResults.length === 0 && fetchGiphy('study')}>
+              <Popover onOpenChange={(open) => open && giphyResults.length === 0 && fetchGiphy('')}>
                 <PopoverTrigger asChild><Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"><FileVideo className="h-4 w-4"/></Button></PopoverTrigger>
-                <PopoverContent side="top" className="w-72 p-3 rounded-2xl border-border shadow-2xl space-y-3 bg-card">
+                <PopoverContent side="top" className="w-80 p-3 rounded-2xl border-border shadow-2xl space-y-3 bg-card z-[100]">
                   <Input placeholder="搜索 GIPHY..." value={giphySearch} onChange={e => { setGiphySearch(e.target.value); fetchGiphy(e.target.value); }} className="h-9 text-xs rounded-xl bg-muted border-none text-foreground placeholder:opacity-50 focus-visible:ring-1 focus-visible:ring-primary/20" />
-                  <div className="grid grid-cols-2 gap-2 h-48 overflow-y-auto pr-1 scrollbar-thin">
+                  <div onScroll={handleGiphyScroll} className="grid grid-cols-4 gap-2 h-72 overflow-y-auto pr-1 scrollbar-thin">
                     {giphyResults.map(g => (
-                      <button 
-                        key={g.id} 
-                        type="button"
-                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); sendGif(g.images.original.url); }}
-                        className="rounded-lg cursor-pointer hover:scale-95 transition-transform overflow-hidden aspect-square object-cover bg-muted"
-                      >
-                        <img src={g.images.fixed_height_small.url} className="w-full h-full object-cover" />
-                      </button>
+                      <div key={g.id} className="relative group/gif">
+                        <button 
+                          type="button"
+                          onClick={() => sendGif(g.images.original.url)}
+                          className="w-full aspect-square rounded-lg overflow-hidden bg-muted transition-all hover:ring-2 ring-primary"
+                        >
+                          <img src={g.images.fixed_height_small.url} className="w-full h-full object-cover" />
+                        </button>
+                        <div className="absolute left-1/2 bottom-full mb-2 -translate-x-1/2 scale-0 group-hover/gif:scale-100 transition-all z-[110] pointer-events-none origin-bottom">
+                          <div className="w-32 aspect-square rounded-xl overflow-hidden shadow-2xl border-2 border-primary bg-card">
+                            <img src={g.images.fixed_height_small.url} className="w-full h-full object-cover" />
+                          </div>
+                        </div>
+                      </div>
                     ))}
+                    {isGiphyLoading && (
+                      <div className="col-span-4 py-2 flex justify-center">
+                        <Loader2 className="h-4 w-4 animate-spin text-muted-foreground opacity-30" />
+                      </div>
+                    )}
                   </div>
-                  <p className="text-[8px] text-center text-muted-foreground font-bold opacity-50 uppercase tracking-tighter">Powered by GIPHY</p>
+                  <p className="text-[8px] text-center text-muted-foreground font-bold opacity-50 uppercase tracking-tighter">Powered by GIPHY · 无限下滑</p>
                 </PopoverContent>
               </Popover>
               <Button variant="ghost" size="icon" onClick={() => fileInputRef.current?.click()} className="h-8 w-8 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"><ImageIcon className="h-4 w-4"/></Button>

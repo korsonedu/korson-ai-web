@@ -220,7 +220,7 @@ export const AIAssistant: React.FC = () => {
                       "p-3 px-4 rounded-2xl text-[13px] leading-relaxed shadow-sm transition-all border border-border",
                       msg.role === 'user' 
                         ? "bg-primary text-primary-foreground rounded-tr-none font-medium" 
-                        : "bg-muted text-foreground rounded-tl-none font-medium"
+                        : "bg-slate-100/80 dark:bg-slate-800/80 text-foreground rounded-tl-none font-medium"
                     )}>
                       <div className={cn("prose prose-xs max-w-none text-left dark:prose-invert")}>
                         <ReactMarkdown 

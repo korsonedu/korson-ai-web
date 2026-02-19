@@ -14,7 +14,9 @@ import {
   Sparkles,
   Settings2,
   Bell,
-  BrainCircuit
+  BrainCircuit,
+  Home,
+  Info
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -53,7 +55,7 @@ const SidebarItem = ({ to, icon: Icon, label, active, collapsed }: any) => {
       <Button
         variant="ghost"
         className={cn(
-          "w-full justify-start gap-4 h-10 px-3 transition-all duration-200 rounded-xl",
+          "w-full justify-start gap-3 h-10 px-3 transition-all duration-200 rounded-lg",
           active 
             ? "bg-card text-foreground shadow-sm border border-border" 
             : "text-muted-foreground hover:bg-muted hover:text-foreground",
@@ -61,7 +63,7 @@ const SidebarItem = ({ to, icon: Icon, label, active, collapsed }: any) => {
         )}
       >
         <Icon className={cn("h-4 w-4 shrink-0", active ? "text-foreground" : "text-muted-foreground")} />
-        {!collapsed && <span className="font-bold text-sm">{label}</span>}
+        {!collapsed && <span className="font-bold text-[13px] tracking-tight">{label}</span>}
       </Button>
     </Link>
   );
@@ -82,6 +84,25 @@ export const MainLayout: React.FC = () => {
   const [collapsed, setCollapsed] = useState(false);
   const [showLogoutAlert, setShowLogoutAlert] = useState(false);
   const [schoolConfig, setSchoolConfig] = useState({ name: '科晟智慧', desc: 'KORSON ACADEMY', logo: '' });
+
+  const proverbs = [
+    "“教育不是灌输，而是点燃火焰。” — 苏格拉底",
+    "“博学之，审问之，慎思之，明辨之，笃行之。” — 《礼记》",
+    "“如果说我比别人看得更远些，那是因为我站在巨人的肩膀上。” — 牛顿",
+    "“卓越不是一种行为，而是一种习惯。” — 亚里士多德",
+    "“虚怀若谷，求知若渴。” — 斯蒂夫·乔布斯",
+    "“我思故我在。” — 笛卡尔",
+    "“知之者不如好之者，好之者不如乐之者。” — 孔子",
+    "“知识的价值不在于占有，而在于使用。” — 培根"
+  ];
+
+  const getProverb = () => {
+    const hash = location.pathname.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+    return proverbs[hash % proverbs.length];
+  };
+
+  const isFullPage = ['/intro', '/course-details'].includes(location.pathname);
+  const isNoProverb = ['/admin', '/intro', '/course-details'].includes(location.pathname);
 
   useEffect(() => {
     // Apply primary color from store
@@ -111,12 +132,12 @@ export const MainLayout: React.FC = () => {
     <TooltipProvider delayDuration={0}>
       <div className="flex h-screen bg-background text-foreground overflow-hidden font-sans selection:bg-primary selection:text-primary-foreground">
         <aside className={cn(
-          "relative border-r border-border flex flex-col p-3 bg-card/70 backdrop-blur-2xl transition-all duration-500 ease-in-out z-30",
-          collapsed ? "w-16" : "w-64"
+          "relative border-r border-border flex flex-col p-2 bg-card/70 backdrop-blur-2xl transition-all duration-500 ease-in-out z-30",
+          collapsed ? "w-16" : "w-52"
         )}>
           {/* Logo Section */}
           <div className={cn("mb-6 mt-2 flex items-center gap-3 transition-all", collapsed ? "justify-center" : "px-3")}>
-            <div className="h-10 w-10 rounded-xl bg-black flex items-center justify-center shrink-0 shadow-xl overflow-hidden text-white font-bold text-lg italic" style={{backgroundColor: primaryColor}}>
+            <div className="h-9 w-9 rounded-xl bg-black flex items-center justify-center shrink-0 shadow-xl overflow-hidden text-white font-bold text-lg italic" style={{backgroundColor: primaryColor}}>
               {schoolConfig.logo ? (
                 <img src={schoolConfig.logo} className="w-full h-full object-cover" />
               ) : (
@@ -125,13 +146,24 @@ export const MainLayout: React.FC = () => {
             </div>
             {!collapsed && (
               <div className="flex flex-col animate-in fade-in duration-500 min-w-0">
-                <h1 className="text-sm font-bold tracking-tight truncate w-32">{schoolConfig.name}</h1>
+                <h1 className="text-[14px] font-bold tracking-tight truncate w-32">{schoolConfig.name}</h1>
                 <p className="text-[9px] text-muted-foreground font-bold uppercase tracking-widest truncate w-32">{schoolConfig.desc}</p>
               </div>
             )}
           </div>
 
-          <nav className="flex-1 space-y-1">{navItems.map(item => <SidebarItem key={item.to} {...item} active={location.pathname === item.to} collapsed={collapsed} />)}</nav>
+          <nav className="flex-1 space-y-0.5">
+            {navItems.map(item => <SidebarItem key={item.to} {...item} active={location.pathname === item.to} collapsed={collapsed} />)}
+            
+            {!collapsed && (
+              <div className="my-3 px-2.5">
+                <div className="h-px bg-border w-full opacity-50" />
+              </div>
+            )}
+
+            <SidebarItem to="/intro" icon={Home} label="主页" active={location.pathname === '/intro'} collapsed={collapsed} />
+            <SidebarItem to="/course-details" icon={Info} label="课程介绍" active={location.pathname === '/course-details'} collapsed={collapsed} />
+          </nav>
 
           <button onClick={() => setCollapsed(!collapsed)} className="absolute -right-3 top-16 h-6 w-6 bg-card border border-border rounded-full flex items-center justify-center shadow-sm hover:shadow-md transition-all z-40 group">
             {collapsed ? <ChevronRight className="h-3 w-3" /> : <ChevronLeft className="h-3 w-3" />}
@@ -140,58 +172,68 @@ export const MainLayout: React.FC = () => {
           <div className="mt-auto">
             <DropdownMenu modal={false}>
               <DropdownMenuTrigger asChild>
-                <div className={cn("group flex items-center gap-3 p-2 rounded-xl cursor-pointer transition-all duration-300 hover:bg-muted border border-transparent hover:border-border", collapsed && "justify-center")}>
-                  <Avatar className="h-9 w-9 border border-border shadow-sm group-hover:scale-105 transition-transform">
+                <div className={cn("group flex items-center gap-2.5 p-2 rounded-xl cursor-pointer transition-all duration-300 hover:bg-muted border border-transparent hover:border-border", collapsed && "justify-center")}>
+                  <Avatar className="h-8 w-8 border border-border shadow-sm group-hover:scale-105 transition-transform">
                     <AvatarImage src={user?.avatar_url} />
                     <AvatarFallback className="bg-muted text-[10px] font-bold">{user?.username?.[0]}</AvatarFallback>
                   </Avatar>
                   {!collapsed && (
                     <div className="flex-1 min-w-0 animate-in fade-in">
-                      <p className="text-xs font-bold truncate">{user?.nickname || user?.username}</p>
-                      <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-tighter">Scholarly Profile</p>
+                      <p className="text-[11px] font-bold truncate">{user?.nickname || user?.username}</p>
+                      <p className="text-[8px] font-bold text-muted-foreground uppercase tracking-tighter">Scholarly Profile</p>
                     </div>
                   )}
                 </div>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" side={collapsed ? "right" : "top"} className="w-56 rounded-2xl p-2 bg-card/95 backdrop-blur-xl border-border shadow-2xl">
-                <DropdownMenuLabel className="px-3 py-2 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">账户与偏好</DropdownMenuLabel>
-                <DropdownMenuItem onClick={() => navigate('/settings')} className="rounded-xl px-3 py-2.5 gap-3 cursor-pointer focus:bg-primary focus:text-primary-foreground transition-colors">
-                  <UserIcon className="h-4 w-4" />
-                  <span className="font-bold text-sm">个人设置</span>
+              <DropdownMenuContent align="end" side={collapsed ? "right" : "top"} className="w-52 rounded-2xl p-2 bg-card/95 backdrop-blur-xl border-border shadow-2xl">
+                <DropdownMenuLabel className="px-3 py-2 text-[9px] font-bold text-muted-foreground uppercase tracking-wider">账户与偏好</DropdownMenuLabel>
+                <DropdownMenuItem onClick={() => navigate('/settings')} className="rounded-xl px-3 py-2 gap-3 cursor-pointer focus:bg-primary focus:text-primary-foreground transition-colors">
+                  <UserIcon className="h-3.5 w-3.5" />
+                  <span className="font-bold text-xs">个人设置</span>
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => navigate('/system-settings')} className="rounded-xl px-3 py-2.5 gap-3 cursor-pointer focus:bg-primary focus:text-primary-foreground transition-colors">
-                  <Settings2 className="h-4 w-4" />
-                  <span className="font-bold text-sm">外观与系统</span>
+                <DropdownMenuItem onClick={() => navigate('/system-settings')} className="rounded-xl px-3 py-2 gap-3 cursor-pointer focus:bg-primary focus:text-primary-foreground transition-colors">
+                  <Settings2 className="h-3.5 w-3.5" />
+                  <span className="font-bold text-xs">外观与系统</span>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator className="my-2 bg-border" />
-                <DropdownMenuItem onClick={() => setShowLogoutAlert(true)} className="rounded-xl px-3 py-2.5 gap-3 cursor-pointer text-destructive focus:bg-destructive focus:text-destructive-foreground transition-colors">
-                  <LogOut className="h-4 w-4" />
-                  <span className="font-bold text-sm">退出登录</span>
+                <DropdownMenuItem onClick={() => setShowLogoutAlert(true)} className="rounded-xl px-3 py-2 gap-3 cursor-pointer text-destructive focus:bg-destructive focus:text-destructive-foreground transition-colors">
+                  <LogOut className="h-3.5 w-3.5" />
+                  <span className="font-bold text-xs">退出登录</span>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
         </aside>
 
-        <main className="flex-1 overflow-y-auto relative z-10">
-          <header className="sticky top-0 h-14 border-b border-border bg-background/80 backdrop-blur-xl z-20 px-8 flex items-center justify-between">
-             <div className="flex items-center gap-2">
-                <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-                <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Network Operational</span>
-             </div>
-             <div className="flex items-center gap-4">
-                <div className="flex items-center gap-2 px-4 py-1.5 bg-card rounded-full shadow-sm border border-border">
-                   <Sparkles className="h-3.5 w-3.5 text-amber-500 fill-amber-500" />
-                   <span className="text-xs font-bold text-foreground">ELO: {user?.elo_score}</span>
-                </div>
-                <div className="h-8 w-px bg-border" />
-                <Avatar className="h-8 w-8 border border-border">
-                   <AvatarImage src={user?.avatar_url} />
-                   <AvatarFallback className="text-[10px] font-bold">{user?.username?.[0]}</AvatarFallback>
-                </Avatar>
-             </div>
-          </header>
-          <div className="p-6 max-w-[1400px] mx-auto"><Outlet /></div>
+        <main className="flex-1 h-screen overflow-y-auto relative z-10 flex flex-col bg-background">
+          {!isFullPage && (
+            <header className="sticky top-0 h-14 shrink-0 border-b border-border bg-background/80 backdrop-blur-xl z-20 px-10 flex items-center justify-between">
+               <div className="flex items-center gap-2">
+                  {!isNoProverb ? (
+                    <span className="text-[11px] font-bold text-muted-foreground/60 italic tracking-tight">{getProverb()}</span>
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                      <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">System Operational</span>
+                    </div>
+                  )}
+               </div>
+               <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-2 px-3.5 py-1.5 bg-card rounded-full shadow-sm border border-border">
+                     <Sparkles className="h-3.5 w-3.5 text-amber-500 fill-amber-500" />
+                     <span className="text-xs font-bold text-foreground">ELO: {user?.elo_score}</span>
+                  </div>
+                  <div className="h-6 w-px bg-border mx-2" />
+                  <Avatar className="h-8 w-8 border border-border shadow-sm">
+                     <AvatarImage src={user?.avatar_url} />
+                     <AvatarFallback className="text-xs font-bold">{user?.username?.[0]}</AvatarFallback>
+                  </Avatar>
+               </div>
+            </header>
+          )}
+          <div className={cn("flex-1 w-full relative", !isFullPage && "px-10 py-10")}>
+            <Outlet />
+          </div>
         </main>
 
         <AlertDialog open={showLogoutAlert} onOpenChange={setShowLogoutAlert}>

@@ -125,10 +125,14 @@ const ArticleCenter = () => {
               <p className="text-[#86868B] font-bold text-xs uppercase tracking-widest">暂无文章</p>
             </Card>
           ) : articles.map(article => (
-            <Card key={article.id} className={cn(
-              "border-none shadow-sm rounded-2xl bg-white group hover:shadow-md transition-all duration-300 border border-black/[0.01]",
-              viewMode === 'list' ? "p-5" : "p-4"
-            )}>
+            <Card 
+              key={article.id} 
+              onClick={() => navigate(`/article/${article.id}`)}
+              className={cn(
+                "border-none shadow-sm rounded-2xl bg-white group hover:shadow-md transition-all duration-300 border border-black/[0.01] cursor-pointer",
+                viewMode === 'list' ? "p-5" : "p-4"
+              )}
+            >
               <div className={cn(
                 "flex justify-between gap-4",
                 viewMode === 'list' ? "flex-col md:flex-row md:items-center" : "flex-col h-full"
@@ -143,9 +147,9 @@ const ArticleCenter = () => {
                     <h3 className={cn("font-bold text-[#1D1D1F] group-hover:text-emerald-600 transition-colors leading-tight truncate", viewMode === 'list' ? "text-base max-w-2xl" : "text-sm")}>{article.title}</h3>
                     <p className="text-[#86868B] text-[11px] font-medium line-clamp-1 opacity-60">{article.content}</p>
                  </div>
-                 <Button onClick={() => navigate(`/article/${article.id}`)} variant="ghost" className="rounded-xl font-bold text-[10px] text-black hover:bg-slate-50 transition-all gap-1.5 h-8 px-3 border border-black/[0.03] shadow-sm shrink-0 self-end">
+                 <div className="flex items-center gap-1.5 text-[10px] font-bold text-black group-hover:text-emerald-600 transition-all shrink-0 self-end">
                    READ <ChevronRight className="w-3 h-3"/>
-                 </Button>
+                 </div>
               </div>
             </Card>
           ))}
@@ -156,26 +160,60 @@ const ArticleCenter = () => {
 };
 
 import { Landing } from './pages/Landing';
+import { CourseDetails } from './pages/CourseDetails';
+
+// Root entry handler to manage landing vs app logic
+const RootRedirect = () => {
+  const { token, user, setAuth } = useAuthStore();
+  const [loading, setLoading] = useState(!!token && !user);
+
+  useEffect(() => {
+    if (token && !user) {
+      api.get('/users/me/')
+        .then(res => setAuth(res.data, token))
+        .catch(() => {
+          localStorage.removeItem('token');
+        })
+        .finally(() => setLoading(false));
+    }
+  }, [token, user, setAuth]);
+
+  if (loading) return (
+    <div className="h-screen w-screen flex items-center justify-center bg-[#F5F5F7]">
+      <div className="flex flex-col items-center gap-4 text-center">
+        <Loader2 className="h-10 w-10 animate-spin text-black/10" />
+        <p className="text-[10px] font-bold text-black/20 uppercase tracking-[0.2em]">Authenticating Secure Session...</p>
+      </div>
+    </div>
+  );
+
+  // If logged in, wrap the app content in MainLayout
+  if (token && user) return <MainLayout />;
+  
+  // Otherwise, return the landing page (outside layout)
+  return <Landing />;
+};
 
 const router = createBrowserRouter([
   {
     path: "/",
-    element: <RequireAuth><MainLayout /></RequireAuth>,
+    element: <RootRedirect />,
     children: [
-      { index: true, element: <CourseCenter /> },
-      { path: "articles", element: <ArticleCenter /> },
-      { path: "article/:id", element: <ArticleDetail /> },
-      { path: "tests", element: <TestLadder /> },
-      { path: "study", element: <StudyRoom /> },
-      { path: "ai", element: <AIAssistant /> },
-      { path: "knowledge-map", element: <KnowledgeMap /> },
-      { path: "settings", element: <Settings /> },
-      { path: "system-settings", element: <SystemSettings /> },
-      { path: "admin", element: <Maintenance /> },
-      { path: "course/:id", element: <VideoLesson /> },
+      { index: true, element: <RequireAuth><CourseCenter /></RequireAuth> },
+      { path: "intro", element: <Landing /> },
+      { path: "course-details", element: <CourseDetails /> },
+      { path: "articles", element: <RequireAuth><ArticleCenter /></RequireAuth> },
+      { path: "article/:id", element: <RequireAuth><ArticleDetail /></RequireAuth> },
+      { path: "tests", element: <RequireAuth><TestLadder /></RequireAuth> },
+      { path: "study", element: <RequireAuth><StudyRoom /></RequireAuth> },
+      { path: "ai", element: <RequireAuth><AIAssistant /></RequireAuth> },
+      { path: "knowledge-map", element: <RequireAuth><KnowledgeMap /></RequireAuth> },
+      { path: "settings", element: <RequireAuth><Settings /></RequireAuth> },
+      { path: "system-settings", element: <RequireAuth><SystemSettings /></RequireAuth> },
+      { path: "admin", element: <RequireAuth><Maintenance /></RequireAuth> },
+      { path: "course/:id", element: <RequireAuth><VideoLesson /></RequireAuth> },
     ],
   },
-  { path: "/intro", element: <Landing /> },
   { path: "/login", element: <Login /> },
   { path: "/register", element: <Register /> },
 ]);
