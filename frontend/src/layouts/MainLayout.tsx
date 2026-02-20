@@ -80,35 +80,15 @@ export const MainLayout: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout } = useAuthStore();
-  const { primaryColor } = useSystemStore();
+  const { primaryColor, pageTitle, pageSubtitle } = useSystemStore();
   const [collapsed, setCollapsed] = useState(false);
   const [showLogoutAlert, setShowLogoutAlert] = useState(false);
   const [schoolConfig, setSchoolConfig] = useState({ name: '科晟智慧', desc: 'KORSON ACADEMY', logo: '' });
 
-  const proverbs = [
-    "“教育不是灌输，而是点燃火焰。” — 苏格拉底",
-    "“博学之，审问之，慎思之，明辨之，笃行之。” — 《礼记》",
-    "“如果说我比别人看得更远些，那是因为我站在巨人的肩膀上。” — 牛顿",
-    "“卓越不是一种行为，而是一种习惯。” — 亚里士多德",
-    "“虚怀若谷，求知若渴。” — 斯蒂夫·乔布斯",
-    "“我思故我在。” — 笛卡尔",
-    "“知之者不如好之者，好之者不如乐之者。” — 孔子",
-    "“知识的价值不在于占有，而在于使用。” — 培根",
-    "“胜人者有力，自胜者强。” — 老子",
-    "“纸上得来终觉浅，绝知此事要躬行。” — 陆游"
-  ];
-
-  const getProverb = () => {
-    // Specific proverbs for specific routes to avoid duplication
-    if (location.pathname === '/tests') return "“胜人者有力，自胜者强。” — 老子";
-    if (location.pathname === '/knowledge-map') return "“纸上得来终觉浅，绝知此事要躬行。” — 陆游";
-    
-    const hash = location.pathname.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-    return proverbs[hash % proverbs.length];
-  };
-
   const isFullPage = ['/intro', '/course-details'].includes(location.pathname);
-  const isNoProverb = ['/admin', '/intro', '/course-details'].includes(location.pathname);
+  
+  // Clean header for specific pages
+  const isCleanHeader = ['/intro', '/course-details'].includes(location.pathname);
 
   useEffect(() => {
     // Apply primary color from store
@@ -213,15 +193,19 @@ export const MainLayout: React.FC = () => {
 
         <main className="flex-1 h-screen overflow-y-auto relative z-10 flex flex-col bg-background">
           {!isFullPage && (
-            <header className="sticky top-0 h-14 shrink-0 border-b border-border bg-background/80 backdrop-blur-xl z-20 px-10 flex items-center justify-between">
-               <div className="flex items-center gap-2">
-                  {!isNoProverb ? (
-                    <span className="text-[11px] font-bold text-muted-foreground/60 italic tracking-tight">{getProverb()}</span>
-                  ) : (
-                    <div className="flex items-center gap-2">
-                      <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                      <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">System Operational</span>
+            <header className="sticky top-0 h-14 shrink-0 border-b border-border bg-background/80 backdrop-blur-xl z-20 px-10 flex items-center justify-between transition-all">
+               <div className="flex flex-col justify-center min-w-0">
+                  {pageTitle ? (
+                    <div className="flex flex-col md:flex-row md:items-baseline md:gap-3 animate-in fade-in slide-in-from-top-1 duration-300">
+                      <h2 className="text-sm font-black tracking-tight text-foreground uppercase">{pageTitle}</h2>
+                      <span className="text-[9px] font-bold text-muted-foreground/60 uppercase tracking-widest truncate max-w-[400px]">
+                        {pageSubtitle}
+                      </span>
                     </div>
+                  ) : (
+                    <span className="text-[10px] font-medium text-muted-foreground/40 uppercase tracking-[0.2em] select-none">
+                      Korson Research Terminal • Est. 2026
+                    </span>
                   )}
                </div>
                <div className="flex items-center gap-4">
