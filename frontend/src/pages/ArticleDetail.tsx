@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, Calendar, Loader2 } from 'lucide-react';
 import api from '@/lib/api';
+import { processMathContent } from '@/lib/utils';
 import ReactMarkdown from 'react-markdown';
 import remarkMath from 'remark-math';
 import remarkGfm from 'remark-gfm';
@@ -49,27 +50,7 @@ export const ArticleDetail: React.FC = () => {
 
   if (!article) return <div className="h-screen flex items-center justify-center font-bold">Article Not Found</div>;
 
-  const processedContent = article.content
-    // 1. Fix double backslashes (e.g., \\frac -> \frac)
-    .replace(/\\{2}/g, '\\')
-    // 2. Comprehensive unescape and autocorrect within math blocks ($...$ or $$...$$)
-    .replace(/(\$\$?)([\s\S]*?)(\$\$?)/g, (match, p1, p2, p3) => {
-      return p1 + p2
-        .replace(/\\_/g, '_')
-        .replace(/\\\*/g, '*')
-        .replace(/\\\{/g, '{')
-        .replace(/\\\}/g, '}')
-        .replace(/\\\^/g, '^')
-        // Autocorrect: convert /command to \command (e.g., /frac to \frac)
-        .replace(/\/([a-zA-Z]+)/g, '\\$1')
-        + p3;
-    })
-    // 3. Delimiter Standardization
-    .replace(/\\\$/g, '$')
-    .replace(/\\\[/g, '\n\n$$\n')
-    .replace(/\\\]/g, '\n$$\n\n')
-    .replace(/\\\(/g, '$')
-    .replace(/\\\)/g, '$');
+  const processedContent = processMathContent(article.content);
 
   return (
     <div className="w-full max-w-4xl mx-auto animate-in fade-in duration-700 text-left p-10 pb-32 relative">

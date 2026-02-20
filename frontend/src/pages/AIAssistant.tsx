@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Send, Sparkles, User, Bot as BotIcon, Loader2, Eraser, ChevronDown } from 'lucide-react';
 import api from '@/lib/api';
+import { processMathContent } from '@/lib/utils';
 import ReactMarkdown from 'react-markdown';
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
@@ -82,11 +83,7 @@ export const AIAssistant: React.FC = () => {
           // Preprocess history
           const processedHistory = res.data.map((m: any) => ({
             ...m,
-            content: m.content
-              .replace(/\\\[/g, '\n\n$$\n')
-              .replace(/\\\]/g, '\n$$\n\n')
-              .replace(/\\\(/g, '$')
-              .replace(/\\\)/g, '$')
+            content: processMathContent(m.content)
           }));
           setMessages(processedHistory);
         }
@@ -116,13 +113,7 @@ export const AIAssistant: React.FC = () => {
         message: input, 
         bot_id: selectedBot.id 
       });
-      let aiContent = response.data.content;
-      // Preprocess: ensure standard block math is detectable with proper newlines
-      aiContent = aiContent
-        .replace(/\\\[/g, '\n\n$$\n')
-        .replace(/\\\]/g, '\n$$\n\n')
-        .replace(/\\\(/g, '$')
-        .replace(/\\\)/g, '$');
+      const aiContent = processMathContent(response.data.content);
       setMessages(prev => [...prev, { role: 'assistant', content: aiContent }]);
     } catch (error: any) {
       const errorMsg = error.response?.data?.error || "AI 响应失败";

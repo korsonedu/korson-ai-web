@@ -6,6 +6,11 @@ import api from '@/lib/api';
 import { cn } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
+import { processMathContent } from '@/lib/utils';
+import ReactMarkdown from 'react-markdown';
+import remarkMath from 'remark-math';
+import rehypeKatex from 'rehype-katex';
+import 'katex/dist/katex.min.css';
 import {
   Dialog,
   DialogContent,
@@ -131,13 +136,23 @@ export const KnowledgeMap: React.FC = () => {
               <DialogHeader>
                  <div className="flex items-center gap-3 mb-2"><Badge className="bg-emerald-500 text-white border-none uppercase text-[9px] font-bold">Node Detail</Badge></div>
                  <DialogTitle className="text-3xl font-bold tracking-tight">{selectedNode?.name}</DialogTitle>
-                 <p className="text-sm font-medium text-[#86868B] mt-2 leading-relaxed">{selectedNode?.description}</p>
+                 <div className="text-sm font-medium text-[#86868B] mt-2 leading-relaxed">
+                    <ReactMarkdown remarkPlugins={[remarkMath]} rehypePlugins={[rehypeKatex]}>
+                       {processMathContent(selectedNode?.description || "")}
+                    </ReactMarkdown>
+                 </div>
               </DialogHeader>
               <ScrollArea className="flex-1 mt-8 pr-4">
                  <div className="space-y-8 pb-4 text-left">
                     <div className="space-y-4 text-left">
                        <h5 className="text-[10px] font-bold uppercase tracking-widest text-black/30 flex items-center gap-2"><Target className="w-3.5 h-3.5"/> 关联题目 ({nodeDetails.questions.length})</h5>
-                       <div className="grid gap-2">{nodeDetails.questions.map(q => (<div key={q.id} className="p-4 bg-slate-50 rounded-2xl flex items-center gap-3 border border-black/[0.01]"><Badge variant="outline" className="text-[8px] py-0 h-4 uppercase">{q.q_type}</Badge><p className="text-xs font-bold text-[#1D1D1F] truncate">{q.text}</p></div>))}</div>
+                       <div className="grid gap-2">{nodeDetails.questions.map(q => (<div key={q.id} className="p-4 bg-slate-50 rounded-2xl flex items-center gap-3 border border-black/[0.01]"><Badge variant="outline" className="text-[8px] py-0 h-4 uppercase">{q.q_type}</Badge>
+                          <div className="text-xs font-bold text-[#1D1D1F] truncate">
+                             <ReactMarkdown remarkPlugins={[remarkMath]} rehypePlugins={[rehypeKatex]}>
+                                {processMathContent(q.text)}
+                             </ReactMarkdown>
+                          </div>
+                       </div>))}</div>
                     </div>
                     <div className="space-y-4 text-left">
                        <h5 className="text-[10px] font-bold uppercase tracking-widest text-black/30 flex items-center gap-2"><BookOpen className="w-3.5 h-3.5"/> 课程资源 ({nodeDetails.courses.length})</h5>

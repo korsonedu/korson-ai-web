@@ -44,6 +44,7 @@ import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Badge } from '@/components/ui/badge';
+import { processMathContent } from '@/lib/utils';
 import ReactMarkdown from 'react-markdown';
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
@@ -355,7 +356,7 @@ export const StudyRoom: React.FC = () => {
                           div: ({node, ...props}) => <div {...props} className="w-fit" />
                         }}
                       >
-                        {msg.content}
+                        {processMathContent(msg.content)}
                       </ReactMarkdown>
                     </div>
                   </div>

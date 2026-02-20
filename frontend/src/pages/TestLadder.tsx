@@ -24,6 +24,11 @@ import { toast } from "sonner";
 import api from '@/lib/api';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useSystemStore } from '@/store/useSystemStore';
+import { processMathContent } from '@/lib/utils';
+import ReactMarkdown from 'react-markdown';
+import remarkMath from 'remark-math';
+import rehypeKatex from 'rehype-katex';
+import 'katex/dist/katex.min.css';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
 export const TestLadder: React.FC = () => {
@@ -267,7 +272,11 @@ export const TestLadder: React.FC = () => {
                                       <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">{currentQ.knowledge_point_detail.description}</span>
                                    </div>
                                  )}
-                                 <h3 className="text-lg font-bold text-slate-900 leading-[1.4]">{currentQ.text}</h3>
+                                 <h3 className="text-lg font-bold text-slate-900 leading-[1.4]">
+                                    <ReactMarkdown remarkPlugins={[remarkMath]} rehypePlugins={[rehypeKatex]}>
+                                       {processMathContent(currentQ.text)}
+                                    </ReactMarkdown>
+                                 </h3>
                               </div>
                            </div>
                            <Button variant="ghost" size="icon" onClick={() => toggleFavorite(currentQ.id)} className={cn("rounded-2xl h-10 w-10 shrink-0 border border-slate-100 transition-all", currentQ.is_favorite ? "text-amber-500 fill-amber-500 bg-amber-50" : "text-slate-300 hover:text-slate-400 hover:bg-slate-50")}>
@@ -394,7 +403,11 @@ export const TestLadder: React.FC = () => {
                            <div className="flex justify-between items-start">
                               <div className="flex gap-4 items-start flex-1">
                                  <span className="text-3xl font-black text-slate-100 tabular-nums pt-1">{(i+1).toString().padStart(2, '0')}</span>
-                                 <h4 className="font-bold text-lg text-slate-900 leading-[1.4] pt-2">{res.question.text}</h4>
+                                 <div className="font-bold text-lg text-slate-900 leading-[1.4] pt-2">
+                                    <ReactMarkdown remarkPlugins={[remarkMath]} rehypePlugins={[rehypeKatex]}>
+                                       {processMathContent(res.question.text)}
+                                    </ReactMarkdown>
+                                 </div>
                               </div>
                               <Badge className={cn("rounded-xl px-4 py-1.5 ml-6 font-bold shadow-sm", res.score / res.max_score >= 0.6 ? "bg-emerald-500 text-white" : "bg-rose-500 text-white")}>
                                  {res.score} / {res.max_score} PTS
@@ -404,16 +417,24 @@ export const TestLadder: React.FC = () => {
                            <div className="grid gap-6 pt-4 border-t border-slate-50">
                               <div className="space-y-2">
                                  <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-slate-400 ml-1">My Response</p>
-                                 <div className="p-6 bg-slate-50 rounded-2xl border border-slate-100 text-[13px] font-medium text-slate-700 leading-relaxed">{res.user_answer}</div>
+                                 <div className="p-6 bg-slate-50 rounded-2xl border border-slate-100 text-[13px] font-medium text-slate-700 leading-relaxed whitespace-pre-wrap">{res.user_answer}</div>
                               </div>
                               <div className="space-y-2">
                                  <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-emerald-500 ml-1">AI Feedback</p>
-                                 <div className="p-6 bg-emerald-50/50 rounded-2xl border border-emerald-100/50 text-[13px] font-bold text-emerald-900 leading-relaxed">{res.feedback}</div>
+                                 <div className="p-6 bg-emerald-50/50 rounded-2xl border border-emerald-100/50 text-[13px] font-bold text-emerald-900 leading-relaxed">
+                                    <ReactMarkdown remarkPlugins={[remarkMath]} rehypePlugins={[rehypeKatex]}>
+                                       {processMathContent(res.feedback)}
+                                    </ReactMarkdown>
+                                 </div>
                               </div>
                               <div className="space-y-2">
                                  <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-indigo-500 ml-1">Academic Analysis</p>
                                  <div className="p-8 bg-slate-900 rounded-[2rem] text-[13px] font-medium text-slate-200 leading-relaxed shadow-xl">
-                                    <pre className="whitespace-pre-wrap font-sans leading-relaxed">{res.analysis || res.ai_answer}</pre>
+                                    <div className="prose prose-invert prose-sm max-w-none">
+                                       <ReactMarkdown remarkPlugins={[remarkMath]} rehypePlugins={[rehypeKatex]}>
+                                          {processMathContent(res.analysis || res.ai_answer)}
+                                       </ReactMarkdown>
+                                    </div>
                                  </div>
                               </div>
                            </div>

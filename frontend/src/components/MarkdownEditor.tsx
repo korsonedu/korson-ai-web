@@ -48,9 +48,15 @@ export const MarkdownEditor = ({ content, onChange, placeholder }: MarkdownEdito
         placeholder: placeholder || '在此输入内容，支持 Markdown 快捷键...',
       }),
     ],
-    content: content,
+    content: content ? content.replace(/&gt;/g, '>').replace(/&lt;/g, '<').replace(/&amp;/g, '&') : '',
     onUpdate: ({ editor }) => {
-      onChange(editor.storage.markdown.getMarkdown())
+      const markdown = editor.storage.markdown.getMarkdown();
+      // Unescape common HTML entities that tiptap-markdown might escape
+      const cleaned = markdown
+        .replace(/&gt;/g, '>')
+        .replace(/&lt;/g, '<')
+        .replace(/&amp;/g, '&');
+      onChange(cleaned)
     },
     editorProps: {
       attributes: {
