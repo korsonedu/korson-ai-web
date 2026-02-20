@@ -195,17 +195,13 @@ export const MainLayout: React.FC = () => {
           {!isFullPage && (
             <header className="sticky top-0 h-14 shrink-0 border-b border-border bg-background/80 backdrop-blur-xl z-20 px-10 flex items-center justify-between transition-all">
                <div className="flex flex-col justify-center min-w-0">
-                  {pageTitle ? (
+                  {pageTitle && (
                     <div className="flex flex-col md:flex-row md:items-baseline md:gap-3 animate-in fade-in slide-in-from-top-1 duration-300">
                       <h2 className="text-sm font-black tracking-tight text-foreground uppercase">{pageTitle}</h2>
                       <span className="text-[9px] font-bold text-muted-foreground/60 uppercase tracking-widest truncate max-w-[400px]">
                         {pageSubtitle}
                       </span>
                     </div>
-                  ) : (
-                    <span className="text-[10px] font-medium text-muted-foreground/40 uppercase tracking-[0.2em] select-none">
-                      Korson Research Terminal • Est. 2026
-                    </span>
                   )}
                </div>
                <div className="flex items-center gap-4">
