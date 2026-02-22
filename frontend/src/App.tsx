@@ -12,6 +12,7 @@ import { ArticleDetail } from './pages/ArticleDetail';
 import { AIAssistant } from './pages/AIAssistant';
 import { SystemSettings } from './pages/SystemSettings';
 import { KnowledgeMap } from './pages/KnowledgeMap';
+import { QASystem } from './pages/QASystem';
 import { useAuthStore } from './store/useAuthStore';
 import { useSystemStore } from './store/useSystemStore';
 import { FileText, Loader2, ChevronRight } from 'lucide-react';
@@ -208,6 +209,7 @@ const router = createBrowserRouter([
       { path: "course-details", element: <CourseDetails /> },
       { path: "startup-materials", element: <StartupMaterials /> },
       { path: "articles", element: <RequireAuth><ArticleCenter /></RequireAuth> },
+      { path: "qa", element: <RequireAuth><QASystem /></RequireAuth> },
       { path: "article/:id", element: <RequireAuth><ArticleDetail /></RequireAuth> },
       { path: "tests", element: <RequireAuth><TestLadder /></RequireAuth> },
       { path: "study", element: <RequireAuth><StudyRoom /></RequireAuth> },

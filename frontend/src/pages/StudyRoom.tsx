@@ -7,7 +7,7 @@ import {
   RotateCcw, CheckCircle2, MoreHorizontal, 
   Plus, Zap, Timer, XCircle, ListTodo, Circle,
   Trophy, Clock, Radio, Eye, Smile, Image as ImageIcon,
-  FileVideo, ArrowDown, Loader2, Calendar
+  FileVideo, ArrowDown, Loader2, Calendar, Trash2
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
@@ -64,6 +64,7 @@ export const StudyRoom: React.FC = () => {
   const { user, updateUser } = useAuthStore();
   const [timeLeft, setTimeLeft] = useState(25 * 60);
   const [isActive, setIsActive] = useState(false);
+  const [activePlanId, setActivePlanId] = useState<number | null>(null);
   const [duration, setDuration] = useState(25);
   const [taskName, setTaskName] = useState('深度专注学习');
   const [onlineUsers, setOnlineUsers] = useState<any[]>([]);
@@ -239,15 +240,43 @@ export const StudyRoom: React.FC = () => {
   const handleCompleteTask = async (isManual: boolean) => {
     setIsActive(false);
     const focusedMins = Math.floor((duration * 60 - timeLeft) / 60);
-    if (allowBroadcast) {
-      try {
-        await api.post('/study/messages/', {
-          content: isManual ? `❌ 中止了“${taskName}”任务 (专注 ${focusedMins} 分钟)` : `✅ 完成了“${taskName}”任务 (专注 ${duration} 分钟)`
-        });
-        fetchMessages();
-      } catch (e) {}
+    
+    if (isManual) {
+      if (allowBroadcast) {
+        try {
+          await api.post('/study/messages/', { content: `❌ 中止了“${taskName}”任务 (专注 ${focusedMins} 分钟)` });
+          fetchMessages();
+        } catch (e) {}
+      }
+    } else {
+      // Completed successfully
+      if (activePlanId) {
+        // It was a plan task
+        try {
+          await api.patch(`/users/plans/${activePlanId}/`, { is_completed: true });
+          fetchPlans();
+          if (allowBroadcast) {
+            await api.post('/study/messages/', { 
+              content: `✅ 完成了计划：${taskName}`,
+              related_plan_id: activePlanId
+            });
+            fetchMessages();
+          }
+        } catch (e) {}
+        setActivePlanId(null); // Reset
+      } else {
+        // Normal task
+        if (allowBroadcast) {
+          try {
+            await api.post('/study/messages/', {
+              content: `✅ 完成了“${taskName}”任务 (专注 ${duration} 分钟)`
+            });
+            fetchMessages();
+          } catch (e) {}
+        }
+      }
+      toast.success("专注已达成！");
     }
-    toast.success(isManual ? "任务已终止" : "专注已达成！");
   };
 
   useEffect(() => {
@@ -259,6 +288,13 @@ export const StudyRoom: React.FC = () => {
     }
     return () => clearInterval(interval);
   }, [isActive, timeLeft]);
+
+  // Calculate the last system message ID for the current user to restrict Undo
+  const mySystemMessages = messages.filter(m => 
+    m.user_detail.username === user?.username && 
+    (m.content.includes('💪') || m.content.includes('✅') || m.content.includes('❌') || m.content.includes('开始了“') || m.content.includes('📅') || m.content.includes('制定'))
+  );
+  const lastSystemMsgId = mySystemMessages.length > 0 ? mySystemMessages[mySystemMessages.length - 1].id : null;
 
   return (
     <div className="h-[calc(100vh-8.5rem)] flex gap-6 animate-in fade-in duration-300 text-left text-foreground">
@@ -320,14 +356,14 @@ export const StudyRoom: React.FC = () => {
           </div>
         </header>
 
-        <div ref={scrollContainerRef} onScroll={handleScroll} className="flex-1 overflow-y-auto p-8 space-y-5 scrollbar-thin scrollbar-thumb-primary/10 relative">
-          <div className="max-w-4xl mx-auto space-y-5 pb-4">
+        <div ref={scrollContainerRef} onScroll={handleScroll} className="flex-1 overflow-y-auto p-8 space-y-4 scrollbar-thin scrollbar-thumb-primary/10 relative">
+          <div className="max-w-4xl mx-auto space-y-4 pb-4">
             {messages.map((msg) => {
               const isMe = msg.user_detail.username === user?.username;
               const isTask = msg.content.includes('💪') || msg.content.includes('✅') || msg.content.includes('❌') || msg.content.includes('开始了“') || msg.content.includes('📅') || msg.content.includes('制定');
               if (isTask && !showOthersBroadcast && !isMe) return null;
               if (isTask) return (
-                <div key={msg.id} className="flex justify-center py-1 animate-in fade-in zoom-in-95 duration-300">
+                <div key={msg.id} className="flex flex-col items-center py-0.5 animate-in fade-in zoom-in-95 duration-300">
                   <div className={cn("px-6 py-1.5 rounded-2xl border flex items-center gap-3 shadow-sm relative group/task", 
                     msg.content.includes('💪') || msg.content.includes('开始') ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20" : 
                     msg.content.includes('✅') ? "bg-blue-500/10 text-blue-600 border-blue-500/20" : 
@@ -341,8 +377,8 @@ export const StudyRoom: React.FC = () => {
                      }
                      <span className="text-[11px] font-bold tracking-tight text-foreground"><span className="opacity-70">{msg.user_detail.nickname || msg.user_detail.username}</span> {msg.content.split(msg.user_detail.username)[1] || msg.content}</span>
                      
-                     {/* Undo Button for Plan Completion */}
-                     {isMe && msg.related_plan && (
+                     {/* Undo Button - Restricted to Last Message Only */}
+                     {isMe && msg.related_plan && msg.id === lastSystemMsgId && (
                         <button 
                           onClick={async () => {
                             try {
@@ -386,6 +422,10 @@ export const StudyRoom: React.FC = () => {
                         {processMathContent(msg.content)}
                       </ReactMarkdown>
                     </div>
+                    {/* User Message Timestamp - Outside */}
+                    <span className="text-[9px] text-muted-foreground/40 mt-1.5 block px-1 font-medium">
+                      {new Date(msg.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                    </span>
                   </div>
                 </div>
               );
@@ -475,7 +515,22 @@ export const StudyRoom: React.FC = () => {
                 >
                   {p.is_completed ? <CheckCircle2 className="h-4 w-4 text-emerald-500" /> : <Circle className="h-4 w-4 text-muted-foreground/20 group-hover:text-emerald-500" />}
                 </button>
-                <span onClick={() => { if(!p.is_completed) { setTaskName(p.content); setIsTimerOpen(true); } }} className={cn("text-xs font-bold truncate flex-1", p.is_completed ? "line-through text-muted-foreground cursor-default" : "text-foreground cursor-pointer")}>{p.content}</span>
+                <span onClick={() => { if(!p.is_completed) { setTaskName(p.content); setActivePlanId(p.id); setIsTimerOpen(true); } }} className={cn("text-xs font-bold truncate flex-1", p.is_completed ? "line-through text-muted-foreground cursor-default" : "text-foreground cursor-pointer")}>{p.content}</span>
+                
+                <button
+                  onClick={async (e) => {
+                    e.stopPropagation();
+                    try {
+                      await api.delete(`/users/plans/${p.id}/`);
+                      fetchPlans();
+                      toast.success("计划已删除");
+                    } catch (e) { toast.error("删除失败"); }
+                  }}
+                  className="opacity-0 group-hover:opacity-100 transition-all p-1.5 hover:bg-red-100 rounded-lg text-muted-foreground/50 hover:text-red-500 cursor-pointer"
+                  title="删除计划"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </button>
               </div>
             ))}
           </div>
@@ -484,11 +539,14 @@ export const StudyRoom: React.FC = () => {
               value={newPlan} 
               onChange={e => setNewPlan(e.target.value)} 
               onKeyDown={async (e) => { 
-                if (e.key === 'Enter') {
+                if (e.key === 'Enter' && !(e.nativeEvent as any).isComposing) {
                   if (!newPlan.trim()) return;
-                  await api.post('/users/plans/', { content: newPlan });
+                  const res = await api.post('/users/plans/', { content: newPlan });
                   if (allowBroadcast) {
-                    await api.post('/study/messages/', { content: `📅 制定了计划：${newPlan}` });
+                    await api.post('/study/messages/', { 
+                      content: `📅 制定了计划：${newPlan}`,
+                      related_plan_id: res.data.id
+                    });
                     fetchMessages();
                   }
                   fetchPlans();
@@ -496,23 +554,26 @@ export const StudyRoom: React.FC = () => {
                 }
               }} 
               placeholder="ADD TARGET..." 
-              className="bg-muted border-none h-10 rounded-xl text-[10px] font-bold px-4 text-foreground focus-visible:ring-1 focus-visible:ring-primary/20" 
+              className="bg-muted border-none h-8 rounded-lg text-[9px] font-bold px-3 text-foreground focus-visible:ring-1 focus-visible:ring-primary/20" 
             />
             <Button 
               onClick={async () => { 
                 if (!newPlan.trim()) return; 
-                await api.post('/users/plans/', { content: newPlan }); 
+                const res = await api.post('/users/plans/', { content: newPlan }); 
                 if (allowBroadcast) {
-                  await api.post('/study/messages/', { content: `📅 制定了计划：${newPlan}` });
+                  await api.post('/study/messages/', { 
+                    content: `📅 制定了计划：${newPlan}`,
+                    related_plan_id: res.data.id
+                  });
                   fetchMessages();
                 }
                 fetchPlans(); 
                 setNewPlan(''); 
               }} 
               size="icon" 
-              className="h-10 w-10 bg-primary text-primary-foreground rounded-xl shrink-0 hover:opacity-90 active:scale-95 transition-all"
+              className="h-8 w-8 bg-primary text-primary-foreground rounded-lg shrink-0 hover:opacity-90 active:scale-95 transition-all"
             >
-              <Plus className="h-4 w-4"/>
+              <Plus className="h-3.5 w-3.5"/>
             </Button>
           </div>
         </Card>
