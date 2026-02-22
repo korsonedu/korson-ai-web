@@ -1,4 +1,4 @@
-import { createBrowserRouter, RouterProvider, Navigate, useNavigate } from 'react-router-dom';
+import { createBrowserRouter, RouterProvider, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { MainLayout } from './layouts/MainLayout';
 import { CourseCenter } from './pages/CourseCenter';
 import { TestLadder } from './pages/TestLadder';
@@ -160,11 +160,13 @@ const ArticleCenter = () => {
 
 import { Landing } from './pages/Landing';
 import { CourseDetails } from './pages/CourseDetails';
+import StartupMaterials from './pages/StartupMaterials';
 
 // Root entry handler to manage landing vs app logic
 const RootRedirect = () => {
   const { token, user, setAuth } = useAuthStore();
   const [loading, setLoading] = useState(!!token && !user);
+  const location = useLocation();
 
   useEffect(() => {
     if (token && !user) {
@@ -186,6 +188,9 @@ const RootRedirect = () => {
     </div>
   );
 
+  // Allow access to startup materials even if not logged in (using MainLayout)
+  if (location.pathname === '/startup-materials') return <MainLayout />;
+
   // If logged in, wrap the app content in MainLayout
   if (token && user) return <MainLayout />;
   
@@ -201,6 +206,7 @@ const router = createBrowserRouter([
       { index: true, element: <RequireAuth><CourseCenter /></RequireAuth> },
       { path: "intro", element: <Landing /> },
       { path: "course-details", element: <CourseDetails /> },
+      { path: "startup-materials", element: <StartupMaterials /> },
       { path: "articles", element: <RequireAuth><ArticleCenter /></RequireAuth> },
       { path: "article/:id", element: <RequireAuth><ArticleDetail /></RequireAuth> },
       { path: "tests", element: <RequireAuth><TestLadder /></RequireAuth> },

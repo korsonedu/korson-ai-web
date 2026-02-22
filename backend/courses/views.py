@@ -1,8 +1,22 @@
 from rest_framework import generics, permissions, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from .models import Course, Album
-from .serializers import CourseSerializer, AlbumSerializer
+from .models import Course, Album, StartupMaterial
+from .serializers import CourseSerializer, AlbumSerializer, StartupMaterialSerializer
+
+class StartupMaterialListCreateView(generics.ListCreateAPIView):
+    queryset = StartupMaterial.objects.all().order_by('-created_at')
+    serializer_class = StartupMaterialSerializer
+    def get_permissions(self):
+        if self.request.method == 'POST': return [permissions.IsAdminUser()]
+        return [permissions.AllowAny()]
+
+class StartupMaterialDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = StartupMaterial.objects.all()
+    serializer_class = StartupMaterialSerializer
+    def get_permissions(self):
+        if self.request.method in ['PATCH', 'PUT', 'DELETE']: return [permissions.IsAdminUser()]
+        return [permissions.AllowAny()]
 
 class AlbumListCreateView(generics.ListCreateAPIView):
     queryset = Album.objects.all().order_by('-created_at')

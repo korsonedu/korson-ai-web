@@ -8,7 +8,7 @@ import {
   BookOpen, FileText, Target, Video, Image as ImageIcon, 
   Upload, Trash2, Edit3, Settings2, Bot, Sparkles, 
   RefreshCcw, BrainCircuit, Wand2, Search, X, 
-  Layers, Plus, FileUp, ClipboardPaste, ChevronRight, ChevronDown, CheckCircle2
+  Layers, Plus, FileUp, ClipboardPaste, ChevronRight, ChevronDown, CheckCircle2, Rocket
 } from 'lucide-react';
 import api from '@/lib/api';
 import { toast } from 'sonner';
@@ -104,8 +104,9 @@ export const Maintenance: React.FC = () => {
   const [botList, setBotList] = useState<any[]>([]);
   const [kpList, setKpList] = useState<any[]>([]);
   const [albumList, setAlbumList] = useState<any[]>([]);
+  const [smList, setSmList] = useState<any[]>([]);
 
-  const [auditMode, setAuditMode] = useState<'hub' | 'courses' | 'articles' | 'quizzes' | 'albums' | 'kp'>('hub');
+  const [auditMode, setAuditMode] = useState<'hub' | 'courses' | 'articles' | 'quizzes' | 'albums' | 'kp' | 'sm'>('hub');
   const [qSearch, setQSearch] = useState('');
   const [qFilterType, setQFilterType] = useState('all');
   const [editingItem, setEditingItem] = useState<{type: string, data: any} | null>(null);
@@ -128,13 +129,14 @@ export const Maintenance: React.FC = () => {
   useEffect(() => { fetchLists(); }, []);
   const fetchLists = async () => {
     try {
-      const [c, a, q, b, k, al] = await Promise.all([
+      const [c, a, q, b, k, al, sm] = await Promise.all([
         api.get('/courses/'),
         api.get('/articles/'),
         api.get('/quizzes/questions/', { params: { search: qSearch, type: qFilterType === 'all' ? undefined : qFilterType } }),
         api.get('/ai/bots/'),
         api.get('/quizzes/knowledge-points/'),
-        api.get('/courses/albums/')
+        api.get('/courses/albums/'),
+        api.get('/courses/startup-materials/')
       ]);
       setCourseList(c.data);
       setArticleList(a.data.articles || []);
@@ -142,6 +144,7 @@ export const Maintenance: React.FC = () => {
       setBotList(b.data);
       setKpList(k.data);
       setAlbumList(al.data);
+      setSmList(sm.data);
     } catch (e) {}
   };
 
@@ -153,12 +156,14 @@ export const Maintenance: React.FC = () => {
   const [albumForm, setAlbumForm] = useState({ name: '', description: '', cover: null as File | null });
   const [quizForm, setQuizForm] = useState({ text: '', q_type: 'objective', subjective_type: 'noun', grading_points: '', knowledge_point: '0', options: ['', '', '', ''], answer: '', difficulty: 1000 });
   const [kpForm, setKpForm] = useState({ name: '', description: '', parent: '0' });
+  const [smForm, setSmForm] = useState({ name: '', description: '', file: null as File | null });
 
   const handleDelete = async (type: string, id: number) => {
     try {
       let endpoint = `/${type}/${id}/`;
       if (type === 'kp') endpoint = `/quizzes/knowledge-points/${id}/`;
       if (type === 'quizzes') endpoint = `/quizzes/questions/${id}/`;
+      if (type === 'sm') endpoint = `/courses/startup-materials/${id}/`;
       await api.delete(endpoint);
       toast.success("已移除"); fetchLists();
     } catch (e) { toast.error("删除失败"); }
@@ -207,6 +212,17 @@ export const Maintenance: React.FC = () => {
     catch (e) { toast.error("失败"); }
   };
 
+  const handleCreateSM = async () => {
+    if (!smForm.name || !smForm.file) return toast.error("名称和文件必填");
+    setIsSubmitting(true); setUploadProgress(10);
+    const fd = new FormData();
+    fd.append('name', smForm.name);
+    fd.append('description', smForm.description);
+    fd.append('file', smForm.file);
+    try { await api.post('/courses/startup-materials/', fd, { onUploadProgress: p => p.total && setUploadProgress(Math.round((p.loaded/p.total)*100)) }); toast.success("资料已上传"); setSmForm({name:'', description:'', file:null}); fetchLists(); } 
+    catch (e) { toast.error("上传失败"); } finally { setIsSubmitting(false); setUploadProgress(0); }
+  };
+
   const handleQuickCreateKP = async () => {
     if (!newKPForm.name) return toast.error("名称必填");
     try {
@@ -231,15 +247,16 @@ export const Maintenance: React.FC = () => {
     else if (type === 'bots') endpoint = `/ai/bots/${data.id}/`;
     else if (type === 'quizzes') endpoint = `/quizzes/questions/${data.id}/`;
     else if (type === 'kp') endpoint = `/quizzes/knowledge-points/${data.id}/`;
+    else if (type === 'sm') endpoint = `/courses/startup-materials/${data.id}/`;
 
     try {
-      if (['courses', 'albums', 'bots'].includes(type)) {
+      if (['courses', 'albums', 'bots', 'sm'].includes(type)) {
         const fd = new FormData();
         Object.keys(data).forEach(key => {
           if (data[key] instanceof File) {
             fd.append(key, data[key]);
           } else if (data[key] !== null) {
-            if (['video_file', 'cover_image', 'avatar', 'courseware'].includes(key) && typeof data[key] === 'string') return;
+            if (['video_file', 'cover_image', 'avatar', 'courseware', 'file'].includes(key) && typeof data[key] === 'string') return;
             fd.append(key, String(data[key]));
           }
         });
@@ -318,8 +335,16 @@ export const Maintenance: React.FC = () => {
           <TabsTrigger value="kp" className="rounded-xl px-5 py-2 data-[state=active]:bg-black data-[state=active]:text-white transition-all text-[11px] font-bold uppercase tracking-widest leading-none"><BrainCircuit className="w-3.5 h-3.5 mr-2"/>知识体系</TabsTrigger>
           <TabsTrigger value="albums" className="rounded-xl px-5 py-2 data-[state=active]:bg-black data-[state=active]:text-white transition-all text-[11px] font-bold uppercase tracking-widest leading-none"><Layers className="w-3.5 h-3.5 mr-2"/>专辑管理</TabsTrigger>
           <TabsTrigger value="bots" className="rounded-xl px-5 py-2 data-[state=active]:bg-black data-[state=active]:text-white transition-all text-[11px] font-bold uppercase tracking-widest leading-none"><Bot className="w-3.5 h-3.5 mr-2"/>AI 机器人</TabsTrigger>
+          <TabsTrigger value="sm" className="rounded-xl px-5 py-2 data-[state=active]:bg-black data-[state=active]:text-white transition-all text-[11px] font-bold uppercase tracking-widest leading-none"><Rocket className="w-3.5 h-3.5 mr-2"/>启动资料</TabsTrigger>
           <TabsTrigger value="manage" className="rounded-xl px-5 py-2 data-[state=active]:bg-black data-[state=active]:text-white transition-all text-[11px] font-bold uppercase tracking-widest leading-none"><Settings2 className="w-3.5 h-3.5 mr-2"/>资源审计</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="sm" className="outline-none m-0 text-left">
+           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start text-left">
+              <Card className="border-none shadow-sm rounded-3xl p-10 bg-white border border-black/[0.03] space-y-8 text-left"><div className="flex items-center gap-3 text-left"><Rocket className="h-6 w-6 text-red-600"/><h3 className="text-xl font-bold tracking-tight text-[#1D1D1F]">上传启动资料</h3></div><div className="space-y-6 text-left"><div className="space-y-2.5 text-left"><Label className="text-[10px] font-bold uppercase tracking-widest opacity-40 ml-1">文件名称 (必填)</Label><Input value={smForm.name} onChange={e => setSmForm({...smForm, name: e.target.value})} className="bg-[#F5F5F7] border-none h-12 rounded-xl font-bold px-5" /></div><div className="space-y-2.5 text-left"><Label className="text-[10px] font-bold uppercase tracking-widest opacity-40 ml-1">简介 (可选)</Label><textarea value={smForm.description} onChange={e => setSmForm({...smForm, description: e.target.value})} className="w-full bg-[#F5F5F7] border-none rounded-2xl p-6 min-h-[100px] font-bold text-sm" /></div><div className="space-y-2.5 text-left"><Label className="text-[10px] font-bold uppercase tracking-widest opacity-40 ml-1">资料文件</Label><div className="relative group text-left"><Button variant="outline" className="w-full h-16 rounded-2xl border-dashed border-2 border-black/10 flex justify-between px-6 font-bold"><span>{smForm.file ? smForm.file.name : '上传文件'}</span><Upload className="w-4 h-4 opacity-20"/></Button><input type="file" onChange={e => setSmForm({...smForm, file: e.target.files?.[0] || null})} className="absolute inset-0 opacity-0 cursor-pointer" /></div></div><Button onClick={handleCreateSM} disabled={isUploading} className="w-full bg-black text-white h-14 rounded-2xl font-bold shadow-xl uppercase text-xs tracking-widest">Upload Material</Button></div></Card>
+              <Card className="border-none shadow-sm rounded-3xl p-10 bg-[#F5F5F7]/50 border border-black/[0.03] space-y-6 text-left"><div className="flex items-center justify-between text-left"><h3 className="text-sm font-bold uppercase tracking-widest text-black/40">已存资料</h3><Button variant="ghost" size="icon" onClick={fetchLists} className="rounded-full"><RefreshCcw className="w-4 h-4 opacity-40"/></Button></div><ScrollArea className="h-[520px] text-left"><div className="grid gap-3 pr-4 text-left">{smList.map(sm => (<div key={sm.id} className="p-5 bg-white rounded-2xl border border-black/[0.02] shadow-sm flex items-center justify-between group text-left"><p className="text-sm font-bold text-[#1D1D1F]">{sm.name}</p><div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0 text-left"><Button onClick={() => setEditingItem({type: 'sm', data: {...sm}})} variant="ghost" size="icon" className="h-8 w-8 rounded-xl text-blue-600"><Edit3 className="w-3.5 h-3.5"/></Button><Button onClick={() => handleDelete('sm', sm.id)} variant="ghost" size="icon" className="h-8 w-8 rounded-xl text-red-500"><Trash2 className="w-3.5 h-3.5"/></Button></div></div>))}</div></ScrollArea></Card>
+           </div>
+        </TabsContent>
 
         <TabsContent value="courses" className="outline-none m-0">
            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 text-left">
@@ -468,6 +493,7 @@ export const Maintenance: React.FC = () => {
                   { id: 'articles', label: '文章管理', icon: FileText, color: 'text-orange-600', bg: 'bg-orange-50' },
                   { id: 'quizzes', label: '智能题库', icon: Target, color: 'text-blue-600', bg: 'bg-blue-50' },
                   { id: 'kp', label: '知识节点', icon: BrainCircuit, color: 'text-purple-600', bg: 'bg-purple-50' },
+                  { id: 'sm', label: '启动资料', icon: Rocket, color: 'text-red-600', bg: 'bg-red-50' },
                 ].map(item => (
                   <Card key={item.id} onClick={() => setAuditMode(item.id as any)} className="p-8 rounded-[2rem] bg-white border border-black/5 flex flex-col items-center gap-4 cursor-pointer hover:shadow-xl hover:-translate-y-1 transition-all group text-left">
                     <div className={cn("h-16 w-16 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform", item.bg, item.color)}><item.icon className="w-8 h-8"/></div>
@@ -490,6 +516,7 @@ export const Maintenance: React.FC = () => {
                       {auditMode === 'articles' && articleList.map(a => (<div key={a.id} className="p-4 bg-[#F5F5F7]/50 rounded-2xl flex items-center justify-between group border border-transparent hover:border-black/5 transition-all text-left"><p className="text-sm font-bold text-[#1D1D1F]">{a.title}</p><div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity text-left"><Button onClick={() => setEditingItem({type: 'articles', data: {...a}})} variant="ghost" size="icon" className="rounded-xl h-8 w-8 hover:bg-white text-blue-600 shadow-sm"><Edit3 className="w-4 h-4"/></Button><Button onClick={() => handleDelete('articles', a.id)} variant="ghost" size="icon" className="rounded-xl h-8 w-8 hover:bg-white text-red-500 shadow-sm"><Trash2 className="w-4 h-4"/></Button></div></div>))}
                       {auditMode === 'quizzes' && questionList.map(q => (<div key={q.id} className="p-4 bg-[#F5F5F7]/50 rounded-2xl flex items-center justify-between group border border-transparent hover:border-black/5 transition-all text-left"><div className="flex gap-3 items-center text-left"><Badge variant="outline" className="text-[8px] py-0 h-4">{q.q_type}</Badge><p className="text-sm font-bold text-[#1D1D1F] truncate max-w-xl text-left">{q.text}</p></div><div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0 text-left"><Button onClick={() => setEditingItem({type: 'quizzes', data: {...q}})} variant="ghost" size="icon" className="rounded-xl h-8 w-8 hover:bg-white text-blue-600 shadow-sm"><Edit3 className="w-4 h-4"/></Button><Button onClick={() => handleDelete('quizzes/questions', q.id)} variant="ghost" size="icon" className="rounded-xl h-8 w-8 hover:bg-white text-red-500 shadow-sm"><Trash2 className="w-4 h-4"/></Button></div></div>))}
                       {auditMode === 'kp' && kpList.map(kp => (<div key={kp.id} className="p-4 bg-[#F5F5F7]/50 rounded-2xl flex items-center justify-between group border border-transparent hover:border-black/5 transition-all text-left"><p className="text-sm font-bold text-[#1D1D1F] text-left">{kp.name}</p><div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0 text-left"><Button onClick={() => setEditingItem({type: 'kp', data: {...kp}})} variant="ghost" size="icon" className="rounded-xl h-8 w-8 hover:bg-white text-blue-600 shadow-sm"><Edit3 className="w-4 h-4"/></Button><Button onClick={() => handleDelete('quizzes/knowledge-points', kp.id)} variant="ghost" size="icon" className="rounded-xl h-8 w-8 hover:bg-white text-red-500 shadow-sm"><Trash2 className="w-4 h-4"/></Button></div></div>))}
+                      {auditMode === 'sm' && smList.map(sm => (<div key={sm.id} className="p-4 bg-[#F5F5F7]/50 rounded-2xl flex items-center justify-between group border border-transparent hover:border-black/5 transition-all text-left"><p className="text-sm font-bold text-[#1D1D1F] text-left">{sm.name}</p><div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0 text-left"><Button onClick={() => setEditingItem({type: 'sm', data: {...sm}})} variant="ghost" size="icon" className="rounded-xl h-8 w-8 hover:bg-white text-blue-600 shadow-sm"><Edit3 className="w-4 h-4"/></Button><Button onClick={() => handleDelete('sm', sm.id)} variant="ghost" size="icon" className="rounded-xl h-8 w-8 hover:bg-white text-red-500 shadow-sm"><Trash2 className="w-4 h-4"/></Button></div></div>))}
                    </div>
                 </ScrollArea>
              </Card>
@@ -570,6 +597,13 @@ export const Maintenance: React.FC = () => {
                     <div className="space-y-1.5 text-left"><Label className="text-[10px] font-bold uppercase opacity-40">判分点</Label><textarea value={editingItem.data.grading_points} onChange={e => setEditingItem({...editingItem, data: {...editingItem.data, grading_points: e.target.value}})} className="w-full p-4 rounded-xl bg-slate-50 border-none text-[10px] h-24" /></div>
                     <div className="space-y-1.5 text-left"><Label className="text-[10px] font-bold uppercase opacity-40">答案</Label><textarea value={editingItem.data.correct_answer} onChange={e => setEditingItem({...editingItem, data: {...editingItem.data, correct_answer: e.target.value}})} className="w-full p-4 rounded-xl bg-slate-50 border-none text-[10px] h-24" /></div>
                   </div>
+               </div>
+             )}
+             {editingItem?.type === 'sm' && (
+               <div className="space-y-4 text-left">
+                  <Input value={editingItem.data.name} onChange={e => setEditingItem({...editingItem, data: {...editingItem.data, name: e.target.value}})} className="rounded-xl bg-slate-50 border-none h-10 text-xs font-bold" />
+                  <textarea value={editingItem.data.description} onChange={e => setEditingItem({...editingItem, data: {...editingItem.data, description: e.target.value}})} className="w-full min-h-[100px] p-4 rounded-xl bg-slate-50 border-none text-xs" />
+                  <div className="space-y-1.5 text-left"><Label className="text-[10px] font-bold uppercase opacity-40">更新文件</Label><Input type="file" onChange={e => setEditingItem({...editingItem, data: {...editingItem.data, file: e.target.files?.[0]}})} className="rounded-xl h-10 bg-slate-50 text-[10px]" /></div>
                </div>
              )}
              <Button onClick={handleSaveEdit} className="w-full h-12 bg-black text-white rounded-xl font-bold shadow-xl text-xs uppercase tracking-widest text-left">Update & Sync</Button>

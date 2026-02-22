@@ -23,15 +23,21 @@ class UpdateProfileView(generics.UpdateAPIView):
         user.avatar_url = f"https://api.dicebear.com/7.x/{user.avatar_style}/svg?seed={user.avatar_seed}"
         user.save()
 
+from django.db.models import Q
+
 class DailyPlanListView(generics.ListCreateAPIView):
     serializer_class = DailyPlanSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        # 仅返回今日计划 (北京时间)
+        # Return incomplete plans OR plans completed today (Beijing Time)
         now = timezone.now().astimezone(datetime.timezone(datetime.timedelta(hours=8)))
         today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
-        return DailyPlan.objects.filter(user=self.request.user, created_at__gte=today_start)
+        
+        return DailyPlan.objects.filter(
+            Q(user=self.request.user) & 
+            (Q(is_completed=False) | Q(is_completed=True, completed_at__gte=today_start))
+        ).order_by('-created_at')
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
@@ -41,6 +47,17 @@ class DailyPlanDetailView(generics.UpdateAPIView, generics.DestroyAPIView):
     permission_classes = [permissions.IsAuthenticated]
     def get_queryset(self):
         return DailyPlan.objects.filter(user=self.request.user)
+
+    def perform_update(self, serializer):
+        is_completed = self.request.data.get('is_completed')
+        if is_completed is not None:
+            # If marking as completed, set timestamp
+            if is_completed:
+                serializer.save(completed_at=timezone.now())
+            else:
+                serializer.save(completed_at=None)
+        else:
+            serializer.save()
 
 class OnlineUserListView(generics.ListAPIView):
     serializer_class = UserSerializer

@@ -4,6 +4,7 @@ from rest_framework.response import Response
 from django.core.files.storage import default_storage
 from django.conf import settings
 from .models import ChatMessage
+from users.models import DailyPlan
 from .serializers import ChatMessageSerializer
 
 class ChatMessageListView(generics.ListCreateAPIView):
@@ -12,7 +13,34 @@ class ChatMessageListView(generics.ListCreateAPIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
+        related_plan_id = self.request.data.get('related_plan_id')
+        related_plan = None
+        if related_plan_id:
+            try:
+                related_plan = DailyPlan.objects.get(id=related_plan_id, user=self.request.user)
+            except DailyPlan.DoesNotExist:
+                pass
+        
+        serializer.save(user=self.request.user, related_plan=related_plan)
+
+class UndoBroadcastView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, pk):
+        try:
+            message = ChatMessage.objects.get(pk=pk, user=request.user)
+            if message.related_plan:
+                # Revert plan status
+                plan = message.related_plan
+                plan.is_completed = False
+                plan.completed_at = None
+                plan.save()
+            
+            # Delete message
+            message.delete()
+            return Response({'status': 'success'})
+        except ChatMessage.DoesNotExist:
+            return Response({'error': 'Message not found'}, status=404)
 
 class ImageUploadView(APIView):
     permission_classes = [permissions.IsAuthenticated]

@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Course, Album
+from .models import Course, Album, StartupMaterial
 
 class AlbumSerializer(serializers.ModelSerializer):
     class Meta:
@@ -11,3 +11,8 @@ class CourseSerializer(serializers.ModelSerializer):
         model = Course
         fields = '__all__'
         read_only_fields = ('author',)
+
+class StartupMaterialSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = StartupMaterial
+        fields = '__all__'

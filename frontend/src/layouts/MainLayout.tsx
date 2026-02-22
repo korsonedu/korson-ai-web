@@ -16,7 +16,8 @@ import {
   Bell,
   BrainCircuit,
   Home,
-  Info
+  Info,
+  Rocket
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -121,73 +122,88 @@ export const MainLayout: React.FC = () => {
           "relative border-r border-border flex flex-col p-2 bg-card/70 backdrop-blur-2xl transition-all duration-500 ease-in-out z-30",
           collapsed ? "w-16" : "w-52"
         )}>
-          {/* Logo Section */}
-          <div className={cn("mb-6 mt-2 flex items-center gap-3 transition-all", collapsed ? "justify-center" : "px-3")}>
-            <div className="h-9 w-9 rounded-xl bg-black flex items-center justify-center shrink-0 shadow-xl overflow-hidden text-white font-bold text-lg italic" style={{backgroundColor: primaryColor}}>
-              {schoolConfig.logo ? (
-                <img src={schoolConfig.logo} className="w-full h-full object-cover" />
-              ) : (
-                <span>{schoolConfig.name[0]}</span>
-              )}
-            </div>
-            {!collapsed && (
-              <div className="flex flex-col animate-in fade-in duration-500 min-w-0">
-                <h1 className="text-[14px] font-bold tracking-tight truncate w-32">{schoolConfig.name}</h1>
-                <p className="text-[9px] text-muted-foreground font-bold uppercase tracking-widest truncate w-32">{schoolConfig.desc}</p>
-              </div>
+          {/* Header Section */}
+          <div className={cn("mb-6 mt-2 flex items-center transition-all h-10", collapsed ? "justify-center" : "justify-between px-2")}>
+            {!collapsed ? (
+              <>
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="h-9 w-9 rounded-xl bg-black flex items-center justify-center shrink-0 shadow-xl overflow-hidden text-white font-bold text-lg italic" style={{backgroundColor: primaryColor}}>
+                    {schoolConfig.logo ? (
+                      <img src={schoolConfig.logo} className="w-full h-full object-cover" />
+                    ) : (
+                      <span>{schoolConfig.name[0]}</span>
+                    )}
+                  </div>
+                  <div className="flex flex-col animate-in fade-in duration-500 min-w-0">
+                    <h1 className="text-[14px] font-bold tracking-tight truncate w-24">{schoolConfig.name}</h1>
+                    <p className="text-[9px] text-muted-foreground font-bold uppercase tracking-widest truncate w-24">{schoolConfig.desc}</p>
+                  </div>
+                </div>
+                <Button variant="ghost" size="icon" onClick={() => setCollapsed(true)} className="h-6 w-6 text-muted-foreground hover:bg-muted rounded-full">
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+              </>
+            ) : (
+              <Button variant="ghost" size="icon" onClick={() => setCollapsed(false)} className="h-10 w-10 text-muted-foreground hover:text-foreground rounded-xl">
+                <ChevronRight className="h-5 w-5" />
+              </Button>
             )}
           </div>
 
           <nav className="flex-1 space-y-0.5">
             {navItems.map(item => <SidebarItem key={item.to} {...item} active={location.pathname === item.to} collapsed={collapsed} />)}
             
-            {!collapsed && (
-              <div className="my-3 px-2.5">
-                <div className="h-px bg-border w-full opacity-50" />
-              </div>
-            )}
+            <div className="my-3 px-2.5">
+              <div className="h-px bg-border w-full opacity-80" />
+            </div>
 
+            <SidebarItem to="/startup-materials" icon={Rocket} label="启动资料" active={location.pathname === '/startup-materials'} collapsed={collapsed} />
             <SidebarItem to="/intro" icon={Home} label="主页" active={location.pathname === '/intro'} collapsed={collapsed} />
             <SidebarItem to="/course-details" icon={Info} label="课程介绍" active={location.pathname === '/course-details'} collapsed={collapsed} />
           </nav>
 
-          <button onClick={() => setCollapsed(!collapsed)} className="absolute -right-3 top-16 h-6 w-6 bg-card border border-border rounded-full flex items-center justify-center shadow-sm hover:shadow-md transition-all z-40 group">
-            {collapsed ? <ChevronRight className="h-3 w-3" /> : <ChevronLeft className="h-3 w-3" />}
-          </button>
-
           <div className="mt-auto">
-            <DropdownMenu modal={false}>
-              <DropdownMenuTrigger asChild>
-                <div className={cn("group flex items-center gap-2.5 p-2 rounded-xl cursor-pointer transition-all duration-300 hover:bg-muted border border-transparent hover:border-border", collapsed && "justify-center")}>
-                  <Avatar className="h-8 w-8 border border-border shadow-sm group-hover:scale-105 transition-transform">
-                    <AvatarImage src={user?.avatar_url} />
-                    <AvatarFallback className="bg-muted text-[10px] font-bold">{user?.username?.[0]}</AvatarFallback>
-                  </Avatar>
-                  {!collapsed && (
-                    <div className="flex-1 min-w-0 animate-in fade-in">
-                      <p className="text-[11px] font-bold truncate">{user?.nickname || user?.username}</p>
-                      <p className="text-[8px] font-bold text-muted-foreground uppercase tracking-tighter">Scholarly Profile</p>
-                    </div>
-                  )}
-                </div>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" side={collapsed ? "right" : "top"} className="w-52 rounded-2xl p-2 bg-card/95 backdrop-blur-xl border-border shadow-2xl">
-                <DropdownMenuLabel className="px-3 py-2 text-[9px] font-bold text-muted-foreground uppercase tracking-wider">账户与偏好</DropdownMenuLabel>
-                <DropdownMenuItem onClick={() => navigate('/settings')} className="rounded-xl px-3 py-2 gap-3 cursor-pointer focus:bg-primary focus:text-primary-foreground transition-colors">
-                  <UserIcon className="h-3.5 w-3.5" />
-                  <span className="font-bold text-xs">个人设置</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => navigate('/system-settings')} className="rounded-xl px-3 py-2 gap-3 cursor-pointer focus:bg-primary focus:text-primary-foreground transition-colors">
-                  <Settings2 className="h-3.5 w-3.5" />
-                  <span className="font-bold text-xs">外观与系统</span>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator className="my-2 bg-border" />
-                <DropdownMenuItem onClick={() => setShowLogoutAlert(true)} className="rounded-xl px-3 py-2 gap-3 cursor-pointer text-destructive focus:bg-destructive focus:text-destructive-foreground transition-colors">
-                  <LogOut className="h-3.5 w-3.5" />
-                  <span className="font-bold text-xs">退出登录</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            {user ? (
+              <DropdownMenu modal={false}>
+                <DropdownMenuTrigger asChild>
+                  <div className={cn("group flex items-center gap-2.5 p-2 rounded-xl cursor-pointer transition-all duration-300 hover:bg-muted border border-transparent hover:border-border", collapsed && "justify-center")}>
+                    <Avatar className="h-8 w-8 border border-border shadow-sm group-hover:scale-105 transition-transform">
+                      <AvatarImage src={user?.avatar_url} />
+                      <AvatarFallback className="bg-muted text-[10px] font-bold">{user?.username?.[0]}</AvatarFallback>
+                    </Avatar>
+                    {!collapsed && (
+                      <div className="flex-1 min-w-0 animate-in fade-in">
+                        <p className="text-[11px] font-bold truncate">{user?.nickname || user?.username}</p>
+                        <p className="text-[8px] font-bold text-muted-foreground uppercase tracking-tighter">Scholarly Profile</p>
+                      </div>
+                    )}
+                  </div>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" side={collapsed ? "right" : "top"} className="w-52 rounded-2xl p-2 bg-card/95 backdrop-blur-xl border-border shadow-2xl">
+                  <DropdownMenuLabel className="px-3 py-2 text-[9px] font-bold text-muted-foreground uppercase tracking-wider">账户与偏好</DropdownMenuLabel>
+                  <DropdownMenuItem onClick={() => navigate('/settings')} className="rounded-xl px-3 py-2 gap-3 cursor-pointer focus:bg-primary focus:text-primary-foreground transition-colors">
+                    <UserIcon className="h-3.5 w-3.5" />
+                    <span className="font-bold text-xs">个人设置</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate('/system-settings')} className="rounded-xl px-3 py-2 gap-3 cursor-pointer focus:bg-primary focus:text-primary-foreground transition-colors">
+                    <Settings2 className="h-3.5 w-3.5" />
+                    <span className="font-bold text-xs">外观与系统</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator className="my-2 bg-border" />
+                  <DropdownMenuItem onClick={() => setShowLogoutAlert(true)} className="rounded-xl px-3 py-2 gap-3 cursor-pointer text-destructive focus:bg-destructive focus:text-destructive-foreground transition-colors">
+                    <LogOut className="h-3.5 w-3.5" />
+                    <span className="font-bold text-xs">退出登录</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <Link to="/login">
+                <Button variant="outline" className={cn("w-full gap-2", collapsed ? "px-0 justify-center" : "justify-start")}>
+                  <LogOut className="h-4 w-4" />
+                  {!collapsed && <span>登录</span>}
+                </Button>
+              </Link>
+            )}
           </div>
         </aside>
 

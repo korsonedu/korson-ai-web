@@ -7,7 +7,7 @@ import {
   RotateCcw, CheckCircle2, MoreHorizontal, 
   Plus, Zap, Timer, XCircle, ListTodo, Circle,
   Trophy, Clock, Radio, Eye, Smile, Image as ImageIcon,
-  FileVideo, ArrowDown, Loader2
+  FileVideo, ArrowDown, Loader2, Calendar
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
@@ -55,6 +55,7 @@ interface Message {
   user_detail: { username: string; nickname: string; avatar_url: string; role: string; };
   content: string;
   timestamp: string;
+  related_plan?: number;
 }
 
 interface Plan { id: number; content: string; is_completed: boolean; }
@@ -319,17 +320,43 @@ export const StudyRoom: React.FC = () => {
           </div>
         </header>
 
-        <div ref={scrollContainerRef} onScroll={handleScroll} className="flex-1 overflow-y-auto p-8 space-y-8 scrollbar-thin scrollbar-thumb-primary/10 relative">
-          <div className="max-w-4xl mx-auto space-y-8 pb-4">
+        <div ref={scrollContainerRef} onScroll={handleScroll} className="flex-1 overflow-y-auto p-8 space-y-5 scrollbar-thin scrollbar-thumb-primary/10 relative">
+          <div className="max-w-4xl mx-auto space-y-5 pb-4">
             {messages.map((msg) => {
               const isMe = msg.user_detail.username === user?.username;
-              const isTask = msg.content.includes('💪') || msg.content.includes('✅') || msg.content.includes('❌') || msg.content.includes('开始了“');
+              const isTask = msg.content.includes('💪') || msg.content.includes('✅') || msg.content.includes('❌') || msg.content.includes('开始了“') || msg.content.includes('📅') || msg.content.includes('制定');
               if (isTask && !showOthersBroadcast && !isMe) return null;
               if (isTask) return (
-                <div key={msg.id} className="flex justify-center py-2 animate-in fade-in zoom-in-95 duration-300">
-                  <div className={cn("px-6 py-2 rounded-2xl border flex items-center gap-3 shadow-sm", msg.content.includes('💪') || msg.content.includes('开始') ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20" : msg.content.includes('✅') ? "bg-blue-500/10 text-blue-600 border-blue-500/20" : "bg-red-500/10 text-red-600 border-red-500/20")}>
-                     {msg.content.includes('💪') || msg.content.includes('开始') ? <Zap className="h-3 w-3 fill-emerald-500 text-emerald-500" /> : msg.content.includes('✅') ? <CheckCircle2 className="h-3 w-3 text-blue-500" /> : <XCircle className="h-3 w-3 text-red-500" />}
+                <div key={msg.id} className="flex justify-center py-1 animate-in fade-in zoom-in-95 duration-300">
+                  <div className={cn("px-6 py-1.5 rounded-2xl border flex items-center gap-3 shadow-sm relative group/task", 
+                    msg.content.includes('💪') || msg.content.includes('开始') ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20" : 
+                    msg.content.includes('✅') ? "bg-blue-500/10 text-blue-600 border-blue-500/20" : 
+                    (msg.content.includes('📅') || msg.content.includes('制定')) ? "bg-orange-500/10 text-orange-600 border-orange-500/20" :
+                    "bg-red-500/10 text-red-600 border-red-500/20"
+                  )}>
+                     {msg.content.includes('💪') || msg.content.includes('开始') ? <Zap className="h-3 w-3 fill-emerald-500 text-emerald-500" /> : 
+                      msg.content.includes('✅') ? <CheckCircle2 className="h-3 w-3 text-blue-500" /> : 
+                      (msg.content.includes('📅') || msg.content.includes('制定')) ? <Calendar className="h-3 w-3 text-orange-500" /> :
+                      <XCircle className="h-3 w-3 text-red-500" />
+                     }
                      <span className="text-[11px] font-bold tracking-tight text-foreground"><span className="opacity-70">{msg.user_detail.nickname || msg.user_detail.username}</span> {msg.content.split(msg.user_detail.username)[1] || msg.content}</span>
+                     
+                     {/* Undo Button for Plan Completion */}
+                     {isMe && msg.related_plan && (
+                        <button 
+                          onClick={async () => {
+                            try {
+                              await api.post(`/study/messages/${msg.id}/undo/`);
+                              toast.success("已撤销");
+                              fetchMessages();
+                              fetchPlans();
+                            } catch (e) { toast.error("撤销失败"); }
+                          }}
+                          className="ml-3 text-[9px] font-bold text-muted-foreground/50 hover:text-red-500 underline decoration-dotted underline-offset-2 transition-colors cursor-pointer"
+                        >
+                          撤销
+                        </button>
+                     )}
                   </div>
                 </div>
               );
@@ -419,14 +446,75 @@ export const StudyRoom: React.FC = () => {
       </div>
 
       <div className="w-72 flex flex-col gap-6 shrink-0 text-foreground">
-        <Card className="border-none shadow-sm rounded-3xl bg-card overflow-hidden p-6 flex-1 flex flex-col border border-border">
+        <Card className="border-none shadow-sm rounded-3xl bg-card overflow-hidden p-6 flex-1 min-h-0 flex flex-col border border-border">
           <header className="mb-4 flex items-center justify-between"><CardTitle className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">实时共学</CardTitle><Users className="h-4 w-4 text-muted-foreground opacity-20" /></header>
           <div className="flex-1 overflow-y-auto space-y-3 pr-2 scrollbar-none">{onlineUsers.map((u, i) => (<HoverCard key={i}><HoverCardTrigger asChild><div className="flex items-center gap-3 p-2.5 rounded-2xl hover:bg-muted transition-all cursor-pointer border border-transparent hover:border-border group"><div className="relative shrink-0"><Avatar className="h-9 w-9 border border-border shadow-sm group-hover:ring-2 ring-emerald-500/20 transition-all"><AvatarImage src={u.avatar_url}/></Avatar><span className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full bg-emerald-500 border-2 border-background shadow-sm"/></div><div className="flex-1 min-w-0"><p className="text-xs font-bold text-foreground truncate">{u.nickname || u.username} {u.username === user?.username && "(你)"}</p><p className="text-[9px] text-emerald-600 font-bold truncate mt-0.5 uppercase tracking-tight">{u.current_task || '在线中'}</p></div></div></HoverCardTrigger><HoverCardContent side="left" className="w-80 rounded-[2rem] p-6 border-none shadow-2xl bg-card/95 backdrop-blur-xl z-50 text-left text-foreground"><div className="flex space-x-4"><Avatar className="h-12 w-12 border border-border shadow-sm"><AvatarImage src={u.avatar_url}/></Avatar><div className="space-y-3 flex-1 text-left"><div className="flex justify-between items-center"><h4 className="text-sm font-bold">{u.nickname || u.username}</h4><Badge variant="outline" className="text-[10px] border-emerald-500/20 text-emerald-600 rounded-full">ELO {u.elo_score}</Badge></div><div className="space-y-2 pt-2 border-t border-border"><div className="flex items-center gap-2 text-muted-foreground"><Clock className="h-3.5 w-3.5"/><span className="text-[10px] font-bold uppercase tracking-widest">今日专注: {u.today_focused_minutes} min</span></div><div className="flex items-center gap-2 text-muted-foreground"><CheckCircle2 className="h-3.5 w-3.5"/><span className="text-[10px] font-bold uppercase tracking-widest">今日已完成: {u.today_completed_tasks?.length || 0} tasks</span></div></div></div></div></HoverCardContent></HoverCard>))}</div>
         </Card>
-        <Card className="border-none shadow-sm rounded-3xl bg-card overflow-hidden p-6 flex-1 flex flex-col border border-border">
-          <header className="mb-4 flex items-center justify-between border-b border-border pb-4"><CardTitle className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">当日计划</CardTitle><ListTodo className="h-4 w-4 text-muted-foreground opacity-20" /></header>
-          <div className="flex-1 overflow-y-auto space-y-3 pr-2 scrollbar-none">{plans.map(p => (<div key={p.id} className="group flex items-center gap-3 p-3 rounded-2xl hover:bg-muted transition-all border border-transparent hover:border-border"><button onClick={() => { api.patch(`/users/plans/${p.id}/`, { is_completed: !p.is_completed }).then(() => fetchPlans()); }}>{p.is_completed ? <CheckCircle2 className="h-5 w-5 text-emerald-500" /> : <Circle className="h-5 w-5 text-muted-foreground/20" />}</button><span onClick={() => { setTaskName(p.content); setIsTimerOpen(true); }} className={cn("text-xs font-bold truncate flex-1 cursor-pointer", p.is_completed ? "line-through opacity-30 text-muted-foreground" : "text-foreground")}>{p.content}</span></div>))}</div>
-          <div className="mt-4 flex gap-2"><Input value={newPlan} onChange={e => setNewPlan(e.target.value)} onKeyDown={e => e.key === 'Enter' && (async () => { if (!newPlan.trim()) return; await api.post('/users/plans/', { content: newPlan }); fetchPlans(); setNewPlan(''); })()} placeholder="ADD TARGET..." className="bg-muted border-none h-10 rounded-xl text-[10px] font-bold px-4 text-foreground focus-visible:ring-1 focus-visible:ring-primary/20" /><Button onClick={async () => { if (!newPlan.trim()) return; await api.post('/users/plans/', { content: newPlan }); fetchPlans(); setNewPlan(''); }} size="icon" className="h-10 w-10 bg-primary text-primary-foreground rounded-xl shrink-0 hover:opacity-90 active:scale-95 transition-all"><Plus className="h-4 w-4"/></Button></div>
+        <Card className="border-none shadow-sm rounded-3xl bg-card overflow-hidden p-6 flex-1 min-h-0 flex flex-col border border-border">
+          <header className="mb-4 flex items-center justify-between border-b border-border pb-4"><CardTitle className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">计划清单</CardTitle><ListTodo className="h-4 w-4 text-muted-foreground opacity-20" /></header>
+          <div className="flex-1 overflow-y-auto space-y-1.5 pr-2 scrollbar-none">
+            {plans.map(p => (
+              <div key={p.id} className={cn("group flex items-center gap-3 p-2 rounded-2xl transition-all border border-transparent", p.is_completed ? "bg-muted/30 opacity-60" : "hover:bg-muted hover:border-border")}>
+                <button 
+                  disabled={p.is_completed}
+                  className={cn("transition-colors", p.is_completed ? "cursor-not-allowed" : "cursor-pointer")}
+                  onClick={async () => { 
+                    if (p.is_completed) return;
+                    try {
+                      await api.patch(`/users/plans/${p.id}/`, { is_completed: true });
+                      fetchPlans();
+                      if (allowBroadcast) {
+                        await api.post('/study/messages/', { 
+                          content: `✅ 完成了计划：${p.content}`,
+                          related_plan_id: p.id
+                        });
+                        fetchMessages();
+                      }
+                    } catch (e) {}
+                  }}
+                >
+                  {p.is_completed ? <CheckCircle2 className="h-4 w-4 text-emerald-500" /> : <Circle className="h-4 w-4 text-muted-foreground/20 group-hover:text-emerald-500" />}
+                </button>
+                <span onClick={() => { if(!p.is_completed) { setTaskName(p.content); setIsTimerOpen(true); } }} className={cn("text-xs font-bold truncate flex-1", p.is_completed ? "line-through text-muted-foreground cursor-default" : "text-foreground cursor-pointer")}>{p.content}</span>
+              </div>
+            ))}
+          </div>
+          <div className="mt-4 flex gap-2">
+            <Input 
+              value={newPlan} 
+              onChange={e => setNewPlan(e.target.value)} 
+              onKeyDown={async (e) => { 
+                if (e.key === 'Enter') {
+                  if (!newPlan.trim()) return;
+                  await api.post('/users/plans/', { content: newPlan });
+                  if (allowBroadcast) {
+                    await api.post('/study/messages/', { content: `📅 制定了计划：${newPlan}` });
+                    fetchMessages();
+                  }
+                  fetchPlans();
+                  setNewPlan('');
+                }
+              }} 
+              placeholder="ADD TARGET..." 
+              className="bg-muted border-none h-10 rounded-xl text-[10px] font-bold px-4 text-foreground focus-visible:ring-1 focus-visible:ring-primary/20" 
+            />
+            <Button 
+              onClick={async () => { 
+                if (!newPlan.trim()) return; 
+                await api.post('/users/plans/', { content: newPlan }); 
+                if (allowBroadcast) {
+                  await api.post('/study/messages/', { content: `📅 制定了计划：${newPlan}` });
+                  fetchMessages();
+                }
+                fetchPlans(); 
+                setNewPlan(''); 
+              }} 
+              size="icon" 
+              className="h-10 w-10 bg-primary text-primary-foreground rounded-xl shrink-0 hover:opacity-90 active:scale-95 transition-all"
+            >
+              <Plus className="h-4 w-4"/>
+            </Button>
+          </div>
         </Card>
       </div>
 

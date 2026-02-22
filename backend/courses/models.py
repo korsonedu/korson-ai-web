@@ -29,3 +29,12 @@ class Course(models.Model):
 
     def __str__(self):
         return self.title
+
+class StartupMaterial(models.Model):
+    name = models.CharField(max_length=200, verbose_name="资料名称")
+    description = models.TextField(blank=True, verbose_name="资料简介")
+    file = models.FileField(upload_to='startup_materials/', verbose_name="文件")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.name
