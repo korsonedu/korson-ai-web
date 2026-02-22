@@ -67,7 +67,10 @@ def seed_data():
     error_count = 0
 
     for i, q in enumerate(q_data):
-        text = q.get("text", "").strip()
+        # 兼容两种格式：text 或 question_text
+        text = q.get("text") or q.get("question_text", "")
+        text = text.strip()
+        
         if not text:
             continue
 
@@ -95,13 +98,13 @@ def seed_data():
 
         try:
             defaults = {
-                "q_type": q.get("q_type", "subjective"),
+                "q_type": q.get("question_type") or q.get("q_type", "subjective"),
                 "subjective_type": q.get("subjective_type"),
                 "options": q.get("options"),
                 "correct_answer": q.get("correct_answer", ""),
                 "grading_points": q.get("grading_points", ""),
-                "ai_answer": q.get("ai_answer", ""),
-                "difficulty": q.get("difficulty", 1200),
+                "ai_answer": q.get("ai_explanation") or q.get("ai_answer", ""),
+                "difficulty": q.get("difficulty_elo") or q.get("difficulty", 1200),
                 "knowledge_point": kp_obj,
             }
 

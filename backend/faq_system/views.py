@@ -23,19 +23,44 @@ class QuestionListCreateView(generics.ListCreateAPIView):
         elif filter_type == 'starred':
             # Assuming regular users can see starred questions too
             qs = qs.filter(is_starred=True)
+        elif filter_type == 'followed':
+            qs = qs.filter(followers=self.request.user)
             
         return qs
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
 
-class QuestionDetailView(generics.RetrieveDestroyAPIView):
+class QuestionDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Question.objects.all()
     serializer_class = QuestionSerializer
     permission_classes = [permissions.IsAuthenticated]
 
+    def perform_update(self, serializer):
+        if self.request.user == serializer.instance.user or self.request.user.role == 'admin':
+            serializer.save()
+        else:
+            raise permissions.PermissionDenied("无权修改")
+
     def perform_destroy(self, instance):
         # Allow owner or admin to delete
+        if instance.user == self.request.user or self.request.user.role == 'admin':
+            instance.delete()
+        else:
+            raise permissions.PermissionDenied("无权删除")
+
+class AnswerDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Answer.objects.all()
+    serializer_class = AnswerSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def perform_update(self, serializer):
+        if self.request.user == serializer.instance.user or self.request.user.role == 'admin':
+            serializer.save()
+        else:
+            raise permissions.PermissionDenied("无权修改")
+
+    def perform_destroy(self, instance):
         if instance.user == self.request.user or self.request.user.role == 'admin':
             instance.delete()
         else:
@@ -80,6 +105,30 @@ class QuestionActionView(APIView):
         except Question.DoesNotExist:
             return Response({'error': 'Not found'}, status=404)
 
+        # Like Logic (Any User)
+        if 'toggle_like' in request.data:
+            if question.likes.filter(id=request.user.id).exists():
+                question.likes.remove(request.user)
+                is_liked = False
+            else:
+                question.likes.add(request.user)
+                is_liked = True
+            return Response({
+                'status': 'ok',
+                'is_liked': is_liked,
+                'likes_count': question.likes.count()
+            })
+
+        # Follow Logic
+        if 'toggle_follow' in request.data:
+            if question.followers.filter(id=request.user.id).exists():
+                question.followers.remove(request.user)
+                is_followed = False
+            else:
+                question.followers.add(request.user)
+                is_followed = True
+            return Response({'status': 'ok', 'is_followed': is_followed})
+
         # Star Logic (Only Admin)
         if 'toggle_star' in request.data:
             if request.user.role != 'admin':
@@ -95,5 +144,30 @@ class QuestionActionView(APIView):
             question.is_solved = not question.is_solved
             question.save()
             return Response({'status': 'ok', 'is_solved': question.is_solved})
+
+        return Response({'error': 'Invalid action'}, status=400)
+
+class AnswerActionView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def patch(self, request, pk):
+        try:
+            answer = Answer.objects.get(pk=pk)
+        except Answer.DoesNotExist:
+            return Response({'error': 'Not found'}, status=404)
+
+        # Like Logic (Any User)
+        if 'toggle_like' in request.data:
+            if answer.likes.filter(id=request.user.id).exists():
+                answer.likes.remove(request.user)
+                is_liked = False
+            else:
+                answer.likes.add(request.user)
+                is_liked = True
+            return Response({
+                'status': 'ok',
+                'is_liked': is_liked,
+                'likes_count': answer.likes.count()
+            })
 
         return Response({'error': 'Invalid action'}, status=400)

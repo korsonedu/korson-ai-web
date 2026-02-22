@@ -20,7 +20,10 @@ import {
   FileText,
   MessageCircle,
   X,
-  Image as ImageIcon
+  Image as ImageIcon,
+  Edit,
+  ThumbsUp,
+  Eye
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -46,55 +49,144 @@ import 'katex/dist/katex.min.css';
 
 // --- Sub-Components ---
 
-const AnswerItem = ({ answer, isFirst, onReplyClick }: { answer: any, isFirst: boolean, onReplyClick: () => void }) => (
-  <div className={cn("flex gap-3 text-left group/answer relative", isFirst ? "mb-2" : "mt-3 ml-4")}>
-    <Avatar className={cn("border border-border shadow-sm", isFirst ? "h-8 w-8" : "h-7 w-7")}>
-      <AvatarImage src={answer.user_detail.avatar_url} />
-      <AvatarFallback className={cn("font-bold", answer.is_teacher ? "bg-indigo-100 text-indigo-700" : "bg-muted")}>
-        {answer.user_detail.username[0]}
-      </AvatarFallback>
-    </Avatar>
-    <div className="flex-1 min-w-0">
-      <div className="flex items-center gap-2 mb-1">
-        <span className={cn("text-[11px] font-bold", answer.is_teacher ? "text-indigo-600" : "text-foreground")}>
-          {answer.user_detail.nickname || answer.user_detail.username}
-        </span>
-        {answer.is_teacher && <Badge variant="secondary" className="h-4 px-1 text-[8px] bg-indigo-50 text-indigo-600 border-indigo-100">TEACHER</Badge>}
-        <span className="text-[9px] text-muted-foreground tabular-nums">
-          {new Date(answer.created_at).toLocaleString('zh-CN', {month: '2-digit', day: '2-digit', hour: '2-digit', minute:'2-digit'})}
-        </span>
-      </div>
-      <div 
-        onClick={onReplyClick}
-        className={cn(
-          "text-xs leading-relaxed break-words rounded-2xl px-4 py-2.5 relative cursor-pointer hover:ring-2 hover:ring-indigo-100 transition-all", 
-          isFirst ? "bg-indigo-50/50 text-indigo-950 font-medium border border-indigo-100/50" : "bg-muted/30 text-foreground"
-        )}
-      >
-        <ReactMarkdown 
-          remarkPlugins={[remarkMath]} 
-          rehypePlugins={[rehypeKatex]}
-          components={{
-            p: ({node, ...props}) => <p {...props} className="m-0 inline" />,
-          }}
-        >
-          {processMathContent(answer.content)}
-        </ReactMarkdown>
-        
-        {/* Reply Icon - Permanent but subtle */}
-        {answer.is_teacher && (
-          <button 
-            onClick={(e) => { e.stopPropagation(); onReplyClick(); }}
-            className="absolute -bottom-2 -right-2 h-6 w-6 rounded-full bg-white shadow-sm border border-border flex items-center justify-center text-muted-foreground hover:text-indigo-600 hover:border-indigo-200 transition-all cursor-pointer z-10"
-            title="回复老师"
-          >
-            <MessageCircle className="h-3 w-3" />
-          </button>
+const AnswerItem = ({ answer, isFirst, onReplyClick, onRefresh }: { answer: any, isFirst: boolean, onReplyClick: () => void, onRefresh: () => void }) => {
+  const { user } = useAuthStore();
+  const [isEditing, setIsEditing] = useState(false);
+  const [editContent, setEditContent] = useState(answer.content);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // Like State
+  const [likesCount, setLikesCount] = useState(answer.likes_count || 0);
+  const [isLiked, setIsLiked] = useState(answer.is_liked || false);
+
+  useEffect(() => {
+    if (!isEditing) setEditContent(answer.content);
+  }, [answer.content, isEditing]);
+
+  const handleEdit = async () => {
+    if (!editContent.trim()) return;
+    setIsSubmitting(true);
+    try {
+      await api.patch(`/qa/answers/${answer.id}/`, { content: editContent });
+      toast.success("回复已更新");
+      setIsEditing(false);
+      onRefresh();
+    } catch (e) { toast.error("更新失败"); }
+    finally { setIsSubmitting(false); }
+  };
+
+  const handleDelete = async () => {
+    if (!confirm("确认删除这条回复？")) return;
+    try {
+      await api.delete(`/qa/answers/${answer.id}/`);
+      toast.success("回复已删除");
+      onRefresh();
+    } catch (e) { toast.error("删除失败"); }
+  };
+
+  const handleLike = async (e: React.MouseEvent) => {
+      e.stopPropagation();
+      try {
+          const res = await api.patch(`/qa/answers/${answer.id}/action/`, { toggle_like: true });
+          setIsLiked(res.data.is_liked);
+          setLikesCount(res.data.likes_count);
+      } catch(e) { toast.error("操作失败"); }
+  };
+
+  return (
+    <div className={cn("flex gap-3 text-left group/answer relative", isFirst ? "mb-2" : "mt-3 ml-4")}>
+      <Avatar className={cn("border border-border shadow-sm", isFirst ? "h-8 w-8" : "h-7 w-7")}>
+        <AvatarImage src={answer.user_detail.avatar_url} />
+        <AvatarFallback className={cn("font-bold", answer.is_teacher ? "bg-indigo-100 text-indigo-700" : "bg-muted")}>
+          {answer.user_detail.username[0]}
+        </AvatarFallback>
+      </Avatar>
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center justify-between mb-1">
+          <div className="flex items-center gap-2">
+            <span className={cn("text-[11px] font-bold", answer.is_teacher ? "text-indigo-600" : "text-foreground")}>
+              {answer.user_detail.nickname || answer.user_detail.username}
+            </span>
+            {answer.is_teacher && <Badge variant="secondary" className="h-4 px-1 text-[8px] bg-indigo-50 text-indigo-600 border-indigo-100">TEACHER</Badge>}
+            <span className="text-[9px] text-muted-foreground tabular-nums">
+              {new Date(answer.created_at).toLocaleString('zh-CN', {month: '2-digit', day: '2-digit', hour: '2-digit', minute:'2-digit'})}
+            </span>
+          </div>
+
+          {/* Action Menu (Only visible on hover for owner/admin) */}
+          {(user?.username === answer.user_detail.username || user?.role === 'admin') && !isEditing && (
+            <DropdownMenu modal={false}>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-5 w-5 opacity-0 group-hover/answer:opacity-100 transition-opacity">
+                  <MoreHorizontal className="h-3 w-3 text-muted-foreground" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => setIsEditing(true)} className="gap-2 text-xs">
+                  <Edit className="h-3 w-3" /> 编辑
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleDelete} className="gap-2 text-xs text-red-600 focus:text-red-700 focus:bg-red-50">
+                  <Trash2 className="h-3 w-3" /> 删除
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
+        </div>
+
+        {isEditing ? (
+          <div className="space-y-2 animate-in fade-in zoom-in-95 duration-200">
+            <textarea
+              value={editContent}
+              onChange={e => setEditContent(e.target.value)}
+              className="w-full text-xs p-3 rounded-xl border border-input bg-muted/30 focus:bg-white min-h-[80px] transition-colors resize-none"
+            />
+            <div className="flex justify-end gap-2">
+              <Button size="sm" variant="ghost" onClick={() => setIsEditing(false)} className="h-7 text-xs rounded-lg hover:bg-muted">取消</Button>
+              <Button size="sm" onClick={handleEdit} disabled={isSubmitting} className="h-7 text-xs bg-black text-white rounded-lg hover:bg-black/90">保存</Button>
+            </div>
+          </div>
+        ) : (
+          <div>
+            <div 
+                onClick={onReplyClick}
+                className={cn(
+                "text-xs leading-relaxed break-words rounded-2xl px-4 py-2.5 relative cursor-pointer hover:ring-2 hover:ring-indigo-100 transition-all", 
+                isFirst ? "bg-indigo-50/50 text-indigo-950 font-medium border border-indigo-100/50" : "bg-muted/30 text-foreground"
+                )}
+            >
+                <ReactMarkdown 
+                remarkPlugins={[remarkMath]} 
+                rehypePlugins={[rehypeKatex]}
+                components={{
+                    p: ({node, ...props}) => <p {...props} className="m-0 inline" />,
+                }}
+                >
+                {processMathContent(answer.content)}
+                </ReactMarkdown>
+                
+                {answer.is_teacher && (
+                <button 
+                    onClick={(e) => { e.stopPropagation(); onReplyClick(); }}
+                    className="absolute -bottom-2 -right-2 h-6 w-6 rounded-full bg-white shadow-sm border border-border flex items-center justify-center text-muted-foreground hover:text-indigo-600 hover:border-indigo-200 transition-all cursor-pointer z-10"
+                    title="回复老师"
+                >
+                    <MessageCircle className="h-3 w-3" />
+                </button>
+                )}
+            </div>
+            {/* Like Button */}
+            <div className="flex items-center gap-2 mt-1 ml-1">
+                <button onClick={handleLike} className={cn("flex items-center gap-1.5 text-[10px] font-bold transition-all px-2 py-0.5 rounded-full hover:bg-muted/50", isLiked ? "text-pink-500" : "text-muted-foreground/40 hover:text-pink-500/70")}>
+                    <ThumbsUp className={cn("h-3 w-3", isLiked && "fill-current")} />
+                    {likesCount > 0 && <span>{likesCount}</span>}
+                </button>
+            </div>
+          </div>
         )}
       </div>
     </div>
-  </div>
-);
+  );
+};
 
 const ThreadCard = ({ question, onRefresh, isAdmin }: { question: any, onRefresh: () => void, isAdmin: boolean }) => {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -104,6 +196,20 @@ const ThreadCard = ({ question, onRefresh, isAdmin }: { question: any, onRefresh
   const { user } = useAuthStore();
   const inputRef = useRef<HTMLInputElement>(null);
 
+  // Editing state
+  const [isEditing, setIsEditing] = useState(false);
+  const [editContent, setEditContent] = useState(question.content);
+
+  // Like State
+  const [likesCount, setLikesCount] = useState(question.likes_count || 0);
+  const [isLiked, setIsLiked] = useState(question.is_liked || false);
+  // Follow State
+  const [isFollowed, setIsFollowed] = useState(question.is_followed || false);
+
+  useEffect(() => {
+    if (!isEditing) setEditContent(question.content);
+  }, [question.content, isEditing]);
+
   const firstAnswer = question.first_answer;
   const otherAnswers = question.answers.slice(1);
   const hasOthers = otherAnswers.length > 0;
@@ -111,9 +217,37 @@ const ThreadCard = ({ question, onRefresh, isAdmin }: { question: any, onRefresh
   // Auto-detect image attachment
   const isImageAttachment = question.attachment?.match(/\.(jpeg|jpg|gif|png|webp)$/i);
 
+  const handleFollow = async () => {
+    try {
+        const { data } = await api.patch(`/qa/questions/${question.id}/action/`, { toggle_follow: true });
+        setIsFollowed(data.is_followed);
+        toast.success(data.is_followed ? "已关注" : "已取消关注");
+    } catch(e) { toast.error("操作失败"); }
+  };
+
+  const handleLike = async (e: React.MouseEvent) => {
+      e.stopPropagation();
+      try {
+          const res = await api.patch(`/qa/questions/${question.id}/action/`, { toggle_like: true });
+          setIsLiked(res.data.is_liked);
+          setLikesCount(res.data.likes_count);
+      } catch(e) { toast.error("操作失败"); }
+  };
+
+  const handleUpdate = async () => {
+     if (!editContent.trim()) return;
+     try {
+        await api.patch(`/qa/questions/${question.id}/`, { content: editContent });
+        toast.success("已更新");
+        setIsEditing(false);
+        onRefresh();
+     } catch(e) { toast.error("更新失败"); }
+  };
+
   const handleAction = async (action: string) => {
     try {
       if (action === 'delete') {
+        if (!confirm("确认删除这个提问？")) return;
         await api.delete(`/qa/questions/${question.id}/`);
         toast.success("提问已删除");
       } else {
@@ -172,47 +306,74 @@ const ThreadCard = ({ question, onRefresh, isAdmin }: { question: any, onRefresh
           </div>
         </div>
         
-        <DropdownMenu modal={false}>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full text-muted-foreground/50 hover:text-foreground">
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="rounded-xl">
-            {isAdmin && (
-              <>
-                <DropdownMenuItem onClick={() => handleAction('toggle_star')} className="gap-2 text-xs font-bold">
-                  <Star className="h-3.5 w-3.5" /> {question.is_starred ? "取消星标" : "设为精选"}
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleAction('toggle_solved')} className="gap-2 text-xs font-bold">
-                  {question.is_solved ? <Circle className="h-3.5 w-3.5"/> : <CheckCircle2 className="h-3.5 w-3.5"/>} 
-                  {question.is_solved ? "标记未解决" : "标记已解决"}
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-              </>
-            )}
-            {(isAdmin || user?.username === question.user_detail.username) && (
-              <DropdownMenuItem onClick={() => handleAction('delete')} className="gap-2 text-xs font-bold text-red-600 focus:text-red-700 focus:bg-red-50">
-                <Trash2 className="h-3.5 w-3.5" /> 删除提问
+        {!isEditing && (
+          <DropdownMenu modal={false}>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full text-muted-foreground/50 hover:text-foreground">
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="rounded-xl">
+              <DropdownMenuItem onClick={handleFollow} className="gap-2 text-xs font-bold">
+                 <Eye className="h-3.5 w-3.5" /> {isFollowed ? "取消关注" : "关注问题"}
               </DropdownMenuItem>
-            )}
-          </DropdownMenuContent>
-        </DropdownMenu>
+              
+              {(isAdmin || user?.username === question.user_detail.username) && <DropdownMenuSeparator />}
+
+              {isAdmin && (
+                <>
+                  <DropdownMenuItem onClick={() => handleAction('toggle_star')} className="gap-2 text-xs font-bold">
+                    <Star className="h-3.5 w-3.5" /> {question.is_starred ? "取消星标" : "设为精选"}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleAction('toggle_solved')} className="gap-2 text-xs font-bold">
+                    {question.is_solved ? <Circle className="h-3.5 w-3.5"/> : <CheckCircle2 className="h-3.5 w-3.5"/>} 
+                    {question.is_solved ? "标记未解决" : "标记已解决"}
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                </>
+              )}
+              {(isAdmin || user?.username === question.user_detail.username) && (
+                <>
+                  <DropdownMenuItem onClick={() => setIsEditing(true)} className="gap-2 text-xs font-bold">
+                    <Edit className="h-3.5 w-3.5" /> 编辑内容
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleAction('delete')} className="gap-2 text-xs font-bold text-red-600 focus:text-red-700 focus:bg-red-50">
+                    <Trash2 className="h-3.5 w-3.5" /> 删除提问
+                  </DropdownMenuItem>
+                </>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
       </div>
 
       {/* Question Content */}
       <div className="pl-13 mb-6">
-        <div 
-          onClick={triggerReply}
-          className="text-sm font-medium text-foreground leading-relaxed whitespace-pre-wrap cursor-pointer hover:bg-muted/20 rounded-xl transition-colors -m-2 p-2"
-        >
-          <ReactMarkdown 
-            remarkPlugins={[remarkMath]} 
-            rehypePlugins={[rehypeKatex]}
+        {isEditing ? (
+             <div className="space-y-2 animate-in fade-in zoom-in-95 duration-200">
+             <textarea
+               value={editContent}
+               onChange={e => setEditContent(e.target.value)}
+               className="w-full text-sm p-4 rounded-xl border border-input bg-muted/30 focus:bg-white min-h-[120px] transition-colors resize-none leading-relaxed"
+             />
+             <div className="flex justify-end gap-2">
+               <Button size="sm" variant="ghost" onClick={() => setIsEditing(false)} className="rounded-lg">取消</Button>
+               <Button size="sm" onClick={handleUpdate} className="bg-black text-white rounded-lg hover:bg-black/90">保存修改</Button>
+             </div>
+           </div>
+        ) : (
+          <div 
+            onClick={triggerReply}
+            className="text-sm font-medium text-foreground leading-relaxed whitespace-pre-wrap cursor-pointer hover:bg-muted/20 rounded-xl transition-colors -m-2 p-2"
           >
-            {processMathContent(question.content)}
-          </ReactMarkdown>
-        </div>
+            <ReactMarkdown 
+              remarkPlugins={[remarkMath]} 
+              rehypePlugins={[rehypeKatex]}
+            >
+              {processMathContent(question.content)}
+            </ReactMarkdown>
+          </div>
+        )}
         
         {/* Attachment Display */}
         {question.attachment && (
@@ -231,9 +392,19 @@ const ThreadCard = ({ question, onRefresh, isAdmin }: { question: any, onRefresh
             )}
           </div>
         )}
+
+        {/* Like Button */}
+        {!isEditing && (
+            <div className="flex items-center gap-2 mt-4">
+                <button onClick={handleLike} className={cn("flex items-center gap-1.5 text-[10px] font-bold transition-all px-2 py-0.5 rounded-full hover:bg-muted/50 border border-transparent hover:border-border/50", isLiked ? "text-pink-500 bg-pink-50 hover:bg-pink-100 border-pink-100" : "text-muted-foreground hover:text-pink-500/70")}>
+                    <ThumbsUp className={cn("h-3 w-3", isLiked && "fill-current")} />
+                    {likesCount > 0 && <span>{likesCount}</span>}
+                </button>
+            </div>
+        )}
         
         {/* Admin Reply Trigger Button */}
-        {isAdmin && !firstAnswer && !showInput && (
+        {isAdmin && !firstAnswer && !showInput && !isEditing && (
           <Button onClick={() => setShowInput(true)} size="sm" className="mt-4 rounded-xl bg-indigo-50 text-indigo-600 hover:bg-indigo-100 font-bold text-xs h-8">
             <MessageCircle className="w-3.5 h-3.5 mr-2" />
             回答学员
@@ -245,7 +416,7 @@ const ThreadCard = ({ question, onRefresh, isAdmin }: { question: any, onRefresh
       {firstAnswer && (
         <div className="pl-4 border-l-2 border-indigo-100 ml-4 mb-2">
           <div className="relative">
-            <AnswerItem answer={firstAnswer} isFirst={true} onReplyClick={triggerReply} />
+            <AnswerItem answer={firstAnswer} isFirst={true} onReplyClick={triggerReply} onRefresh={onRefresh} />
           </div>
         </div>
       )}
@@ -256,7 +427,7 @@ const ThreadCard = ({ question, onRefresh, isAdmin }: { question: any, onRefresh
           {isExpanded && (
             <div className="space-y-4 mb-4 border-l-2 border-muted ml-4 pb-2 animate-in slide-in-from-top-2 duration-300">
               {otherAnswers.map((ans: any) => (
-                <AnswerItem key={ans.id} answer={ans} isFirst={false} onReplyClick={triggerReply} />
+                <AnswerItem key={ans.id} answer={ans} isFirst={false} onReplyClick={triggerReply} onRefresh={onRefresh} />
               ))}
             </div>
           )}
@@ -281,7 +452,7 @@ const ThreadCard = ({ question, onRefresh, isAdmin }: { question: any, onRefresh
             onChange={e => setReplyContent(e.target.value)} 
             placeholder={isAdmin ? "教师回复..." : "回复..."}
             className="h-10 rounded-xl bg-muted/30 border-transparent focus:bg-white transition-all text-xs font-medium"
-            onKeyDown={e => e.key === 'Enter' && !e.shiftKey && handleReply()}
+            onKeyDown={e => e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing && handleReply()}
             onBlur={(e) => {
               // Only close if we are not clicking the Send button
               if (!e.relatedTarget || !(e.relatedTarget as HTMLElement).closest('.send-button')) {
@@ -393,6 +564,7 @@ export const QASystem: React.FC = () => {
           <div className="flex bg-muted/30 p-1 rounded-2xl border border-border/50">
             {[
               { id: 'all', label: '全部' },
+              { id: 'followed', label: '关注' },
               { id: 'unsolved', label: '待解答' },
               { id: 'solved', label: '已解决' },
               { id: 'starred', label: '精选' },

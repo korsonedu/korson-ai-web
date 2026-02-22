@@ -423,7 +423,7 @@ export const StudyRoom: React.FC = () => {
                       </ReactMarkdown>
                     </div>
                     {/* User Message Timestamp - Outside */}
-                    <span className="text-[9px] text-muted-foreground/40 mt-1.5 block px-1 font-medium">
+                    <span className="text-[9px] text-muted-foreground/40 mt-0.3 block px-1 font-medium">
                       {new Date(msg.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
                     </span>
                   </div>
