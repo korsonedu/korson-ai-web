@@ -4,7 +4,8 @@ from .views import (
     LeaderboardView, GradeSubjectiveView, ToggleFavoriteView, QuizStatsView,
     WrongQuestionListView, FavoriteQuestionListView,
     KnowledgePointListView, KnowledgePointDetailView, GenerateBulkQuestionsView,
-    GenerateFromTextView, AIPreviewParseView, BulkImportQuestionsView
+    GenerateFromTextView, AIPreviewParseView, BulkImportQuestionsView,
+    AdminQuestionListView, ExportStructuredQuestionsView,
 )
 
 urlpatterns = [
@@ -23,4 +24,8 @@ urlpatterns = [
     path('ai-generate-from-text/', GenerateFromTextView.as_view(), name='ai-generate-from-text'),
     path('ai-parse-raw-text/', AIPreviewParseView.as_view(), name='ai-parse-raw-text'),
     path('ai-bulk-import/', BulkImportQuestionsView.as_view(), name='ai-bulk-import'),
+    # 管理员专用：分页题目列表
+    path('admin/questions/', AdminQuestionListView.as_view(), name='admin-question-list'),
+    # 管理员专用：导出结构化 AI 可读格式
+    path('admin/export-structured/', ExportStructuredQuestionsView.as_view(), name='export-structured'),
 ]

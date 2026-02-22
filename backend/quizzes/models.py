@@ -20,6 +20,7 @@ class Question(models.Model):
         ('noun', '名词解释'),
         ('short', '简答题'),
         ('essay', '论述题'),
+        ('calculate', '计算题'),
     )
     knowledge_point = models.ForeignKey(KnowledgePoint, on_delete=models.SET_NULL, null=True, blank=True, related_name='questions')
     text = models.TextField(verbose_name="题目内容")

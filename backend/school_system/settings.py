@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     "quizzes",
     "study_room",
     "ai_assistant",
+    "faq_system",
 ]
 
 MIDDLEWARE = [

@@ -48,14 +48,20 @@ class QuestionListView(generics.ListCreateAPIView):
         user = self.request.user
         qs = Question.objects.all().order_by('-created_at')
         
-        if user.is_staff:
-            q = self.request.query_params.get('search')
-            kp_id = self.request.query_params.get('kp')
-            q_type = self.request.query_params.get('type')
-            
-            if q: qs = qs.filter(text__icontains=q)
-            if kp_id: qs = qs.filter(knowledge_point_id=kp_id)
-            if q_type: qs = qs.filter(q_type=q_type)
+        # Shared filters
+        q = self.request.query_params.get('search')
+        kp_id = self.request.query_params.get('kp')
+        q_type = self.request.query_params.get('type')
+        
+        if q: qs = qs.filter(text__icontains=q)
+        if kp_id: qs = qs.filter(knowledge_point_id=kp_id)
+        if q_type: qs = qs.filter(q_type=q_type)
+
+        if user.is_staff and not self.request.query_params.get('limit'):
+            return qs
+
+        # If kp_id is provided, return all questions for that KP (for Knowledge Map)
+        if kp_id:
             return qs
 
         now = timezone.now()
@@ -65,9 +71,19 @@ class QuestionListView(generics.ListCreateAPIView):
 
         review_ids = UserQuestionStatus.objects.filter(user=user, next_review_at__lte=now).values_list('question_id', flat=True)
         attempted_ids = UserQuestionStatus.objects.filter(user=user).values_list('question_id', flat=True)
-        due_questions = Question.objects.filter(id__in=review_ids)
-        new_questions = Question.objects.exclude(id__in=attempted_ids)
-        return (due_questions | new_questions).distinct()[:limit]
+        
+        # 1. 优先获取艾宾浩斯记忆曲线中已到期需要复习的题目
+        due_ids = list(Question.objects.filter(id__in=review_ids).values_list('id', flat=True)[:limit])
+        
+        # 2. 如果复习的题不够本次抽题数量，用没做过的新题补足即可
+        needed = limit - len(due_ids)
+        new_ids = []
+        if needed > 0:
+            new_ids = list(Question.objects.exclude(id__in=attempted_ids).values_list('id', flat=True)[:needed])
+            
+        final_ids = due_ids + new_ids
+        # 返回最终整合好的指定数量的 QuerySet
+        return Question.objects.filter(id__in=final_ids)
 
     def perform_create(self, serializer):
         question = serializer.save()
@@ -428,3 +444,102 @@ class BulkImportQuestionsView(APIView):
                 Question.objects.create(**clean_q)
                 created_count += 1
         return Response({'status': 'success', 'count': created_count})
+
+
+class AdminQuestionListView(APIView):
+    """
+    管理员专用分页题目列表接口，支持搜索、知识点筛选和题型筛选。
+    用于前端题库管理面板，性能优化版本，面向5000题以上的大规模题库。
+    """
+    permission_classes = [permissions.IsAdminUser]
+
+    def get(self, request):
+        qs = Question.objects.select_related('knowledge_point').order_by('-created_at')
+
+        # 过滤条件
+        search = request.query_params.get('search', '').strip()
+        kp_id = request.query_params.get('kp_id')
+        q_type = request.query_params.get('q_type')
+
+        if search:
+            qs = qs.filter(text__icontains=search)
+        if kp_id and kp_id != '0':
+            qs = qs.filter(knowledge_point_id=kp_id)
+        if q_type and q_type != 'all':
+            qs = qs.filter(q_type=q_type)
+
+        # 分页
+        total = qs.count()
+        page = int(request.query_params.get('page', 1))
+        page_size = int(request.query_params.get('page_size', 50))
+        offset = (page - 1) * page_size
+        questions = qs[offset:offset + page_size]
+
+        data = []
+        for q in questions:
+            data.append({
+                'id': q.id,
+                'text': q.text,
+                'q_type': q.q_type,
+                'subjective_type': q.subjective_type,
+                'correct_answer': q.correct_answer or '',
+                'grading_points': q.grading_points or '',
+                'ai_answer': q.ai_answer or '',
+                'difficulty': q.difficulty,
+                'options': q.options,
+                'knowledge_point': q.knowledge_point.id if q.knowledge_point else None,
+                'knowledge_point_name': q.knowledge_point.name if q.knowledge_point else '无',
+            })
+
+        return Response({
+            'total': total,
+            'page': page,
+            'page_size': page_size,
+            'total_pages': (total + page_size - 1) // page_size,
+            'results': data
+        })
+
+
+class ExportStructuredQuestionsView(APIView):
+    """
+    导出结构化题目数据（AI 可读格式）。
+    每道题都包含完整字段，可直接作为 AI 生成新题的参考模板。
+    """
+    permission_classes = [permissions.IsAdminUser]
+
+    def get(self, request):
+        kp_id = request.query_params.get('kp_id')
+        qs = Question.objects.select_related('knowledge_point').all()
+        if kp_id and kp_id != '0':
+            qs = qs.filter(knowledge_point_id=kp_id)
+
+        structured = []
+        for q in qs:
+            structured.append({
+                "id": q.id,
+                "knowledge_point": q.knowledge_point.name if q.knowledge_point else None,
+                "question_type": q.q_type,
+                "subjective_type": q.subjective_type,
+                "difficulty_elo": q.difficulty,
+                "question_text": q.text,
+                "options": q.options,
+                "correct_answer": q.correct_answer,
+                "grading_points": q.grading_points,
+                "ai_explanation": q.ai_answer,
+                # AI 生成新题时的模板提示
+                "_schema_hint": {
+                    "question_type": "objective | subjective",
+                    "subjective_type": "noun | short | essay | calculate",
+                    "difficulty_elo": "800-1800 integer (harder = higher)",
+                    "options": "list of 4 strings for objective, null for subjective",
+                    "correct_answer": "option text for objective, reference answer for subjective",
+                    "grading_points": "scoring rubric, required for subjective questions"
+                }
+            })
+
+        return Response({
+            "total": len(structured),
+            "format_version": "1.0",
+            "description": "Korson Academy Question Bank - Structured Export for AI Generation",
+            "questions": structured
+        })

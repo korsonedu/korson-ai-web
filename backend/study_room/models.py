@@ -14,7 +14,7 @@ class ChatMessage(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     content = models.TextField()
     timestamp = models.DateTimeField(auto_now_add=True)
-    related_plan = models.ForeignKey(DailyPlan, on_delete=models.SET_NULL, null=True, blank=True, related_name='broadcast_messages')
+    related_plan = models.ForeignKey(DailyPlan, on_delete=models.CASCADE, null=True, blank=True, related_name='broadcast_messages')
 
     class Meta:
         ordering = ['timestamp']
