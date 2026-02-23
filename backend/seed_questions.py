@@ -76,8 +76,13 @@ def seed_data():
 
         # ====== 核心优化：动态处理知识点 ======
         # AI 出题时不需要维护 ID 和数组，只需要在题目中写明知识点的名称！
-        kp_name = q.get("knowledge_point_name")
-        parent_kp_name = q.get("parent_knowledge_point") 
+        # 兼容多种键名：knowledge_point_name, knowledge_point, kp_name
+        kp_raw = q.get("knowledge_point_name") or q.get("knowledge_point") or q.get("kp_name")
+        
+        # 如果是字典（导出格式可能带详情），提取名称
+        kp_name = kp_raw.get("name") if isinstance(kp_raw, dict) else kp_raw
+        
+        parent_kp_name = q.get("parent_knowledge_point") or q.get("parent_kp")
 
         kp_obj = None
         if kp_name:

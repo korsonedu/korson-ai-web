@@ -3,6 +3,7 @@ from .models import Question, QuizAttempt, KnowledgePoint, UserQuestionStatus
 from users.serializers import UserSerializer
 
 class KnowledgePointSerializer(serializers.ModelSerializer):
+    questions_count = serializers.IntegerField(source='questions.count', read_only=True)
     class Meta:
         model = KnowledgePoint
         fields = '__all__'

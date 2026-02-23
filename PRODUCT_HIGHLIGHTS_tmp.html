@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>PRODUCT_HIGHLIGHTS.md</title>
+<meta http-equiv="Content-type" content="text/html;charset=UTF-8">
+
+<style>
+/* https://github.com/microsoft/vscode/blob/master/extensions/markdown-language-features/media/markdown.css */
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+body {
+	font-family: var(--vscode-markdown-font-family, -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif);
+	font-size: var(--vscode-markdown-font-size, 14px);
+	padding: 0 26px;
+	line-height: var(--vscode-markdown-line-height, 22px);
+	word-wrap: break-word;
+}
+
+#code-csp-warning {
+	position: fixed;
+	top: 0;
+	right: 0;
+	color: white;
+	margin: 16px;
+	text-align: center;
+	font-size: 12px;
+	font-family: sans-serif;
+	background-color:#444444;
+	cursor: pointer;
+	padding: 6px;
+	box-shadow: 1px 1px 1px rgba(0,0,0,.25);
+}
+
+#code-csp-warning:hover {
+	text-decoration: none;
+	background-color:#007acc;
+	box-shadow: 2px 2px 2px rgba(0,0,0,.25);
+}
+
+body.scrollBeyondLastLine {
+	margin-bottom: calc(100vh - 22px);
+}
+
+body.showEditorSelection .code-line {
+	position: relative;
+}
+
+body.showEditorSelection .code-active-line:before,
+body.showEditorSelection .code-line:hover:before {
+	content: "";
+	display: block;
+	position: absolute;
+	top: 0;
+	left: -12px;
+	height: 100%;
+}
+
+body.showEditorSelection li.code-active-line:before,
+body.showEditorSelection li.code-line:hover:before {
+	left: -30px;
+}
+
+.vscode-light.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.15);
+}
+
+.vscode-light.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.40);
+}
+
+.vscode-light.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+.vscode-dark.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.4);
+}
+
+.vscode-dark.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.60);
+}
+
+.vscode-dark.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+.vscode-high-contrast.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 160, 0, 0.7);
+}
+
+.vscode-high-contrast.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 160, 0, 1);
+}
+
+.vscode-high-contrast.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+img {
+	max-width: 100%;
+	max-height: 100%;
+}
+
+a {
+	text-decoration: none;
+}
+
+a:hover {
+	text-decoration: underline;
+}
+
+a:focus,
+input:focus,
+select:focus,
+textarea:focus {
+	outline: 1px solid -webkit-focus-ring-color;
+	outline-offset: -1px;
+}
+
+hr {
+	border: 0;
+	height: 2px;
+	border-bottom: 2px solid;
+}
+
+h1 {
+	padding-bottom: 0.3em;
+	line-height: 1.2;
+	border-bottom-width: 1px;
+	border-bottom-style: solid;
+}
+
+h1, h2, h3 {
+	font-weight: normal;
+}
+
+table {
+	border-collapse: collapse;
+}
+
+table > thead > tr > th {
+	text-align: left;
+	border-bottom: 1px solid;
+}
+
+table > thead > tr > th,
+table > thead > tr > td,
+table > tbody > tr > th,
+table > tbody > tr > td {
+	padding: 5px 10px;
+}
+
+table > tbody > tr + tr > td {
+	border-top: 1px solid;
+}
+
+blockquote {
+	margin: 0 7px 0 5px;
+	padding: 0 16px 0 10px;
+	border-left-width: 5px;
+	border-left-style: solid;
+}
+
+code {
+	font-family: Menlo, Monaco, Consolas, "Droid Sans Mono", "Courier New", monospace, "Droid Sans Fallback";
+	font-size: 1em;
+	line-height: 1.357em;
+}
+
+body.wordWrap pre {
+	white-space: pre-wrap;
+}
+
+pre:not(.hljs),
+pre.hljs code > div {
+	padding: 16px;
+	border-radius: 3px;
+	overflow: auto;
+}
+
+pre code {
+	color: var(--vscode-editor-foreground);
+	tab-size: 4;
+}
+
+/** Theming */
+
+.vscode-light pre {
+	background-color: rgba(220, 220, 220, 0.4);
+}
+
+.vscode-dark pre {
+	background-color: rgba(10, 10, 10, 0.4);
+}
+
+.vscode-high-contrast pre {
+	background-color: rgb(0, 0, 0);
+}
+
+.vscode-high-contrast h1 {
+	border-color: rgb(0, 0, 0);
+}
+
+.vscode-light table > thead > tr > th {
+	border-color: rgba(0, 0, 0, 0.69);
+}
+
+.vscode-dark table > thead > tr > th {
+	border-color: rgba(255, 255, 255, 0.69);
+}
+
+.vscode-light h1,
+.vscode-light hr,
+.vscode-light table > tbody > tr + tr > td {
+	border-color: rgba(0, 0, 0, 0.18);
+}
+
+.vscode-dark h1,
+.vscode-dark hr,
+.vscode-dark table > tbody > tr + tr > td {
+	border-color: rgba(255, 255, 255, 0.18);
+}
+
+</style>
+
+<style>
+/* Tomorrow Theme */
+/* http://jmblog.github.com/color-themes-for-google-code-highlightjs */
+/* Original theme - https://github.com/chriskempson/tomorrow-theme */
+
+/* Tomorrow Comment */
+.hljs-comment,
+.hljs-quote {
+	color: #8e908c;
+}
+
+/* Tomorrow Red */
+.hljs-variable,
+.hljs-template-variable,
+.hljs-tag,
+.hljs-name,
+.hljs-selector-id,
+.hljs-selector-class,
+.hljs-regexp,
+.hljs-deletion {
+	color: #c82829;
+}
+
+/* Tomorrow Orange */
+.hljs-number,
+.hljs-built_in,
+.hljs-builtin-name,
+.hljs-literal,
+.hljs-type,
+.hljs-params,
+.hljs-meta,
+.hljs-link {
+	color: #f5871f;
+}
+
+/* Tomorrow Yellow */
+.hljs-attribute {
+	color: #eab700;
+}
+
+/* Tomorrow Green */
+.hljs-string,
+.hljs-symbol,
+.hljs-bullet,
+.hljs-addition {
+	color: #718c00;
+}
+
+/* Tomorrow Blue */
+.hljs-title,
+.hljs-section {
+	color: #4271ae;
+}
+
+/* Tomorrow Purple */
+.hljs-keyword,
+.hljs-selector-tag {
+	color: #8959a8;
+}
+
+.hljs {
+	display: block;
+	overflow-x: auto;
+	color: #4d4d4c;
+	padding: 0.5em;
+}
+
+.hljs-emphasis {
+	font-style: italic;
+}
+
+.hljs-strong {
+	font-weight: bold;
+}
+</style>
+
+<style>
+/*
+ * Markdown PDF CSS
+ */
+
+ body {
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif, "Meiryo";
+	padding: 0 12px;
+}
+
+pre {
+	background-color: #f8f8f8;
+	border: 1px solid #cccccc;
+	border-radius: 3px;
+	overflow-x: auto;
+	white-space: pre-wrap;
+	overflow-wrap: break-word;
+}
+
+pre:not(.hljs) {
+	padding: 23px;
+	line-height: 19px;
+}
+
+blockquote {
+	background: rgba(127, 127, 127, 0.1);
+	border-color: rgba(0, 122, 204, 0.5);
+}
+
+.emoji {
+	height: 1.4em;
+}
+
+code {
+	font-size: 14px;
+	line-height: 19px;
+}
+
+/* for inline code */
+:not(pre):not(.hljs) > code {
+	color: #C9AE75; /* Change the old color so it seems less like an error */
+	font-size: inherit;
+}
+
+/* Page Break : use <div class="page"/> to insert page break
+-------------------------------------------------------- */
+.page {
+	page-break-after: always;
+}
+
+</style>
+
+<script src="https://unpkg.com/mermaid/dist/mermaid.min.js"></script>
+</head>
+<body>
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: document.body.classList.contains('vscode-dark') || document.body.classList.contains('vscode-high-contrast')
+          ? 'dark'
+          : 'default'
+    });
+  </script>
+<h1 id="unimindai%E6%8A%8A%E5%AD%A6%E4%B9%A0%E5%8F%98%E6%88%90%E4%B8%80%E5%9C%BA%E7%B2%BE%E5%AF%86%E7%9A%84%E8%AE%A4%E7%9F%A5%E6%89%8B%E6%9C%AF">UniMind.ai：把学习变成一场精密的认知手术</h1>
+<p>我们常常陷入一种勤奋的假象：书读了一遍又一遍，笔记记得密密麻麻，但合上书本一周后，大脑依然一片空白。UniMind.ai 的诞生，就是为了终结这种徒劳的循环。它不是一个简单的工具箱，而是一台“AI 原生的高效学习机器”。除了底层精密的算法引擎，我们更精心构建了四大核心学习场景，覆盖你从“输入”到“输出”的全过程。</p>
+<p><strong>视频课程与深度文章：高质量的认知输入</strong>
+学习的起点往往始于高质量的输入。在 UniMind.ai 中，<strong>视频课程</strong>板块不仅是播放器，更是你的私人讲堂。你可以沉浸在高清流畅的课程中，随时暂停思考。而<strong>深度文章</strong>专栏则承载了更密集的知识干货，无论是系统的理论推导，还是前沿的学术观点，这里都是你拓展认知边界的图书馆。我们深度集成了 <strong>DeepSeek-R1 推理模型</strong>，确保每一篇由 AI 辅助生成的学术解析都具备深度逻辑与严谨性。对于教研端，系统内置了<strong>工业级的分片解析引擎</strong>，支持对 5-10 万字超长文本进行并行处理，将非结构化语料转化为结构化知识，只有地基打得足够深，知识的大厦才能建得足够高。</p>
+<p><strong>全景知识地图与智能测评：科学的内化训练</strong>
+输入之后，需要内化。打开<strong>全景知识地图</strong>，这不再是枯燥的目录，而是一个基于 <strong>D3.js</strong> 构建的可拖拽、可缩放的思维宇宙。你可以在这里“校准”自己的坐标，一键切换<strong>词条表</strong>模式查缺补漏。接着进入<strong>智能测评系统</strong>，这里拒绝题海战术。你可以<strong>自定义抽题数量</strong>，利用碎片时间完成一组5道题高质量的刻意练习，或是拿出大块时间开始一次30道题集中训练。系统已升级为最新、最有效率的 <strong>FSRS 记忆算法</strong> 抽题，与 <strong>ELO 竞技积分</strong> 双引擎驱动，不仅能精准计算个人遗忘曲线，更能通过竞技排位激发学习动力，实现真正的千人千面。配合 <strong>LaTeX 公式渲染引擎</strong>，无论是复杂的微积分还是经济学模型，都能在屏幕上优雅呈现。</p>
+<p><strong>互动答疑中心：思维碰撞的研讨室</strong>
+学习不该是一座孤岛。当你在做题卡壳，或对课程有独到见解时，<strong>答疑中心</strong>的大门永远敞开。这里不仅有支持<strong>图文混排与附件上传</strong>的社区讨论，
+我们的 AI 模块驻守着具备**“双轨人格”的 AI 导师**——它既是通晓各类知识的百科全书，又是懂你错题偏好的私人教练。遇到精彩的讨论，你可以点亮<strong>点赞</strong>图标，或者点击右上角<strong>关注</strong>该问题，不错过任何一条高价值回复。那些被大家公认的难题，还会被标记为<strong>星标精选</strong>，沉淀为集体的智慧结晶。</p>
+<p><strong>沉浸式自习室：极致专注的心流空间</strong>
+最后，我们为你保留了一方净土——<strong>自习室</strong>。在这个充满了仪式感的空间里，基于 <strong>WebSocket</strong> 的实时通信技术让全站学友的专注状态无感同步，营造出“天涯若比邻”的共学氛围。你可以制定专属的学习计划，开启番茄钟，屏蔽外界的一切纷扰。这里只有你和战友的学习之旅。你可以实时记录学习心得，看着进度条一点点填满，那种实实在在的成就感，是学习路上最好的燃料。</p>
+<p>我们把 UniMind.ai 打造成一个严密的闭环：从课程文章的<strong>输入</strong>，到地图测评的<strong>内化</strong>，再到答疑的<strong>交互</strong>与自习室的<strong>沉浸</strong>。我们期待这个系统能帮你把那些曾经以为无法征服的高山，变成脚下坚实的台阶。</p>
+
+</body>
+</html>

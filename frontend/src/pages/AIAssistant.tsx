@@ -158,11 +158,8 @@ export const AIAssistant: React.FC = () => {
                     </div>
                     {selectedBot && (
                       <div className="flex items-center gap-2">
-                        <p className="text-[8px] font-bold text-emerald-600 uppercase tracking-widest">Powered by DeepSeek-R1</p>
+                        <p className="text-[8px] font-bold text-emerald-600 uppercase tracking-widest">Powered by DeepSeek-V3.2</p>
                         <Dialog>
-                          <DialogTrigger asChild>
-                            <Button variant="ghost" className="h-4 px-1.5 text-[8px] font-bold text-muted-foreground hover:text-foreground uppercase tracking-tighter"> View Directives </Button>
-                          </DialogTrigger>
                           <DialogContent className="rounded-[2rem] border-none shadow-2xl p-10 max-w-2xl text-left bg-card">
                             <DialogHeader>
                               <DialogTitle className="text-xl font-bold text-foreground">{selectedBot.name} Core Logic</DialogTitle>

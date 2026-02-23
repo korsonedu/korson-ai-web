@@ -129,9 +129,9 @@ export const Landing: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
             {[
               { t: 'ELO 系统学力数字化', d: '引入竞技级积分系统，做题更有效率。精准量化掌握度，实时刷新全站天梯排行。', icon: Trophy, c: 'text-amber-500' },
-              { t: 'AI 驱动的题目打分', d: '基于 DeepSeek-Reasoner 模型驱动的智能打分系统，实现答题精准判分，实时定位答案逻辑漏洞。', icon: Sparkles, c: 'text-purple-500' },
+              { t: 'AI 驱动的题目打分', d: '基于 DeepSeek-V3.2 模型驱动的智能打分系统，实现答题精准判分，实时定位答案逻辑漏洞。', icon: Sparkles, c: 'text-purple-500' },
               { t: '专属 AI 助理教师', d: '实时接入用户学习数据，构造具备“上帝视角”的 AI 机器人，深度钩稽并透视薄弱点，打造你一个人的智能助教。', icon: BrainCircuit, c: 'text-pink-500' },
-              { t: '艾宾浩斯习题策略', d: '基于记忆曲线智能抽题，打造基础，时常强化，确保核心知识点抵达长时记忆。', icon: Target, c: 'text-indigo-500' },
+              { t: 'FSRS 智能记忆算法', d: '基于 FSRS 算法智能抽题，打造基础，时常强化，确保核心知识点抵达长时记忆。', icon: Target, c: 'text-indigo-500' },
               { t: '学术知识拓扑地图', d: '可视化溯源知识节点，实现学术资产的秒级检索定位，构建知识网络不再困难。', icon: Network, c: 'text-emerald-500' },
               { t: '毫秒级响应自习室', d: '高并发即时通讯与可视化番茄钟，广播任务进展与专注时间，打造沉浸学习共同体。', icon: Users, c: 'text-orange-500' }
             ].map(item => (
@@ -229,7 +229,7 @@ export const Landing: React.FC = () => {
           <div className="flex items-center gap-4">
             <div className="h-10 w-10 rounded-xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 flex items-center justify-center font-bold italic text-xl shadow-lg">K</div>
             <div className="text-left leading-tight">
-              <p className="font-bold text-lg text-slate-900 dark:text-white tracking-tighter uppercase">Korson Academy</p>
+              <p className="font-bold text-lg text-slate-900 dark:text-white tracking-tighter uppercase">UniMind.ai</p>
               <p className="text-xs font-medium text-slate-400 tracking-wide mt-1">© 2019-2026 北京融知高科 · 金融硕士辅导专家</p>
             </div>
           </div>

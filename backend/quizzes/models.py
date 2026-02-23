@@ -55,7 +55,14 @@ class UserQuestionStatus(models.Model):
     question = models.ForeignKey(Question, on_delete=models.CASCADE)
     is_favorite = models.BooleanField(default=False, verbose_name="是否收藏")
     wrong_count = models.IntegerField(default=0, verbose_name="错误次数")
-    review_stage = models.IntegerField(default=0)
+    
+    # FSRS Fields
+    stability = models.FloatField(default=0.0, help_text="记忆稳定性 (S)，单位：天")
+    difficulty = models.FloatField(default=0.0, help_text="记忆难度 (D)，范围 1-10")
+    reps = models.IntegerField(default=0, help_text="总复习次数")
+    lapses = models.IntegerField(default=0, help_text="忘记次数")
+    last_review = models.DateTimeField(null=True, blank=True, help_text="上次复习时间")
+    
     next_review_at = models.DateTimeField(auto_now_add=True)
     last_correct = models.BooleanField(default=False)
 

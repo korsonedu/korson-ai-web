@@ -164,7 +164,7 @@ export const TestLadder: React.FC = () => {
   const currentQ = questions[currentIdx];
 
   return (
-    <PageWrapper title="学术天梯" subtitle="基于艾宾浩斯记忆曲线的智能评估，精准量化您的学术成长路径。">
+    <PageWrapper title="学术天梯" subtitle="基于 FSRS 记忆算法的智能评估，精准量化您的学术成长路径。">
       <div className="flex flex-col gap-12 text-left animate-in fade-in duration-700 pb-20 max-w-6xl mx-auto">
 
         {/* Main Entry Card - Apple Aesthetic */}
@@ -176,9 +176,9 @@ export const TestLadder: React.FC = () => {
                 <div className="h-1.5 w-1.5 rounded-full bg-indigo-500 animate-pulse" />
                 <span className="text-[10px] font-bold text-indigo-600 uppercase tracking-[0.2em] leading-none">Smart Academic Assessment</span>
               </div>
-              <h2 className="text-4xl md:text-5xl font-black tracking-tighter text-slate-900 leading-[1.1]">开启艾宾浩斯<br />智能评估系统</h2>
+              <h2 className="text-4xl md:text-5xl font-black tracking-tighter text-slate-900 leading-[1.1]">开启 FSRS<br />智能评估系统</h2>
               <p className="text-base font-medium leading-relaxed text-slate-500 max-w-lg">
-                系统将根据您的历史记录自动定位知识盲区。通过这种深度学术评估，协助您在有限的时间内构建出色的专业素养。
+                FSRS 系统将根据您的历史记录自动定位知识盲区。通过深度学术训练，协助您在有限的时间内构建出色的专业素养与得分能力。
               </p>
 
               <div className="flex flex-wrap items-center gap-6 pt-4">
@@ -222,7 +222,7 @@ export const TestLadder: React.FC = () => {
                   className="h-14 px-12 text-white hover:opacity-90 rounded-2xl font-bold text-lg shadow-xl transition-all active:scale-95 self-end"
                   style={{ backgroundColor: primaryColor }}
                 >
-                  开始评估 <ArrowRight className="ml-2 h-5 w-5" />
+                  开启训练 <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
               </div>
             </div>

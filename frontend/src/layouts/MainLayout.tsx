@@ -108,8 +108,8 @@ export const MainLayout: React.FC = () => {
   const navItems = [
     { to: '/', icon: BookOpen, label: '课程中心' },
     { to: '/articles', icon: FileText, label: '文章中心' },
-    { to: '/qa', icon: MessageCircleQuestion, label: '答疑中心' },
-    { to: '/tests', icon: Trophy, label: '天梯排行' },
+    { to: '/qa', icon: MessageCircleQuestion, label: '答疑' },
+    { to: '/tests', icon: Trophy, label: '习题训练' },
     { to: '/knowledge-map', icon: BrainCircuit, label: '知识地图' },
     { to: '/study', icon: Clock, label: '自习室' },
     { to: '/ai', icon: Sparkles, label: 'AI 助教' },

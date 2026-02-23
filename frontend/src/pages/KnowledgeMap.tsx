@@ -224,7 +224,7 @@ export const KnowledgeMap: React.FC = () => {
   const [selectedNode, setSelectedNode] = useState<KPNode | null>(null);
   const [nodeDetails, setNodeDetails] = useState<{ courses: any[], articles: any[], questions: any[] }>({ courses: [], articles: [], questions: [] });
   const [searchQuery, setSearchSearchQuery] = useState('');
-  const [viewMode, setViewMode] = useState<'list' | 'graph'>('graph');
+  const [viewMode, setViewMode] = useState<'list' | 'graph'>('list');
 
   // Question Detail State
   const [selectedQuestion, setSelectedQuestion] = useState<any>(null);
@@ -233,20 +233,11 @@ export const KnowledgeMap: React.FC = () => {
 
   const fetchMap = async () => {
     try {
-      const [kpRes, qRes] = await Promise.all([
-        api.get('/quizzes/knowledge-points/'),
-        api.get('/quizzes/questions/')
-      ]);
-      const kps = kpRes.data;
-      const questions = qRes.data;
+      const res = await api.get('/quizzes/knowledge-points/');
+      const kps = res.data;
 
-      const flatNodes = kps.map((kp: any) => ({
-        ...kp,
-        questions_count: (questions || []).filter((q: any) => q.knowledge_point === kp.id).length
-      }));
-
-      flatNodes.sort((a: any, b: any) => (b.questions_count || 0) - (a.questions_count || 0) || a.name.localeCompare(b.name));
-      setNodes(flatNodes);
+      kps.sort((a: any, b: any) => (b.questions_count || 0) - (a.questions_count || 0) || a.name.localeCompare(b.name));
+      setNodes(kps);
     } catch (e) { } finally { setLoading(false); }
   };
 
@@ -282,8 +273,8 @@ export const KnowledgeMap: React.FC = () => {
             />
           </div>
           <div className="flex bg-muted/30 p-1 rounded-2xl border border-border/50">
-            <Button variant={viewMode === 'graph' ? 'secondary' : 'ghost'} onClick={() => setViewMode('graph')} className="rounded-xl h-9 text-xs font-bold px-6">关系图</Button>
             <Button variant={viewMode === 'list' ? 'secondary' : 'ghost'} onClick={() => setViewMode('list')} className="rounded-xl h-9 text-xs font-bold px-6">词条表</Button>
+            <Button variant={viewMode === 'graph' ? 'secondary' : 'ghost'} onClick={() => setViewMode('graph')} className="rounded-xl h-9 text-xs font-bold px-6">关系图</Button>
           </div>
         </div>
 

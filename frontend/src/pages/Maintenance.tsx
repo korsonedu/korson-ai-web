@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef, ChangeEvent } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -102,6 +102,7 @@ const QuestionBankPanel = ({ kpList, onEdit, onDelete }: { kpList: any[], onEdit
   const [bankData, setBankData] = useState<{ total: number, total_pages: number, results: any[] }>({ total: 0, total_pages: 1, results: [] });
   const [expanded, setExpanded] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const fetchBank = async (page = bankPage) => {
     setLoading(true);
@@ -122,12 +123,23 @@ const QuestionBankPanel = ({ kpList, onEdit, onDelete }: { kpList: any[], onEdit
   const handleExport = async () => {
     try {
       const res = await api.get('/quizzes/admin/export-structured/', { params: { kp_id: bankKP !== '0' ? bankKP : undefined } });
-      const blob = new Blob([JSON.stringify(res.data, null, 2)], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a'); a.href = url; a.download = `question_bank_structured_${Date.now()}.json`; a.click();
-      URL.revokeObjectURL(url);
-      toast.success(`已导出 ${res.data.total} 道题的结构化数据`);
+      toast.success(res.data.message || `已同步 ${res.data.total} 道题至服务器`);
     } catch (e) { toast.error('导出失败'); }
+  };
+
+  const handleImportCSV = async (e: ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+      const fd = new FormData();
+      fd.append('file', file);
+      try {
+          const res = await api.post('/quizzes/import-csv/', fd);
+          toast.success(`成功导入 ${res.data.count} 道题目`);
+          fetchBank(1);
+      } catch (e: any) {
+          toast.error(e.response?.data?.error || "导入失败");
+      }
+      e.target.value = '';
   };
 
   return (
@@ -139,9 +151,15 @@ const QuestionBankPanel = ({ kpList, onEdit, onDelete }: { kpList: any[], onEdit
             <span className="text-[11px] font-bold text-black/40 uppercase tracking-widest">题库浏览</span>
             <span className="text-[10px] font-bold bg-black text-white rounded-full px-2 py-0.5">{bankData.total}</span>
           </div>
-          <Button onClick={handleExport} variant="outline" className="h-8 px-3 rounded-xl text-[10px] font-bold border-black/10 gap-1.5">
-            <FileUp className="w-3 h-3" /> 导出AI结构化
-          </Button>
+          <div className="flex gap-2">
+            <Button onClick={() => fileInputRef.current?.click()} variant="outline" className="h-8 px-3 rounded-xl text-[10px] font-bold border-black/10 gap-1.5">
+                <Upload className="w-3 h-3" /> 导入CSV
+            </Button>
+            <input type="file" ref={fileInputRef} onChange={handleImportCSV} className="hidden" accept=".csv" />
+            <Button onClick={handleExport} variant="outline" className="h-8 px-3 rounded-xl text-[10px] font-bold border-black/10 gap-1.5">
+                <FileUp className="w-3 h-3" /> 导出AI结构化
+            </Button>
+          </div>
         </div>
         <div className="flex gap-2">
           <div className="relative flex-1">

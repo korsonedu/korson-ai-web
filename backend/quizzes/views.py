@@ -3,6 +3,8 @@ import requests
 import json
 import datetime
 import re
+import csv
+import io
 from django.utils import timezone
 from rest_framework import generics, permissions, status
 from rest_framework.response import Response
@@ -11,6 +13,7 @@ from .models import Question, QuizAttempt, UserQuestionStatus, KnowledgePoint
 from .serializers import QuestionSerializer, QuizAttemptSerializer, UserQuestionStatusSerializer, KnowledgePointSerializer
 from users.models import User
 from users.serializers import UserSerializer
+from .fsrs import FSRS
 
 def get_quiz_template(filename):
     """从模板文件夹读取提示词内容"""
@@ -103,10 +106,10 @@ class QuestionListView(generics.ListCreateAPIView):
         
         try:
             res = requests.post(
-                "https://api.deepseek.com/chat/completions",
+                "https://api.siliconflow.cn/v1/chat/completions",
                 headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
                 json={
-                    "model": "deepseek-chat",
+                    "model": "deepseek-ai/DeepSeek-V3.2",
                     "messages": [{"role": "system", "content": "你是一位专业的学术助教。"}, {"role": "user", "content": prompt}],
                     "stream": False
                 },
@@ -146,15 +149,16 @@ class GradeSubjectiveView(APIView):
             correct_answer=question.correct_answer or "见 AI 解析",
             user_answer=user_answer
         )
+        prompt += "\n\n请基于用户回答质量，给出 FSRS 记忆评级 (fsrs_rating): 1 (完全错误/遗忘), 2 (回答困难/不完整), 3 (回答正确/良好), 4 (回答完美/轻松)。"
 
         try:
             res = requests.post(
-                "https://api.deepseek.com/chat/completions",
+                "https://api.siliconflow.cn/v1/chat/completions",
                 headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
                 json={
-                    "model": "deepseek-chat",
+                    "model": "deepseek-ai/DeepSeek-V3.2",
                     "messages": [
-                        {"role": "system", "content": "你是一位专业的阅卷老师。只输出标准的 JSON 字符串。"}, 
+                        {"role": "system", "content": "你是一位专业的阅卷老师。请输出标准的 JSON 格式，字段包括：score, feedback, analysis, fsrs_rating。"}, 
                         {"role": "user", "content": prompt}
                     ],
                     "response_format": {"type": "json_object"},
@@ -173,22 +177,29 @@ class GradeSubjectiveView(APIView):
             score_val = float(grade_data.get('score', grade_data.get('Score', 0)))
             feedback = grade_data.get('feedback', grade_data.get('Feedback', '回答已评收'))
             analysis = grade_data.get('analysis', grade_data.get('Analysis', '解析生成中'))
+            fsrs_rating = int(grade_data.get('fsrs_rating', 0))
 
             user = request.user
             normalized_score = score_val / max_score if max_score > 0 else 0
+            
+            # Fallback Logic if AI misses rating
+            if fsrs_rating not in [1, 2, 3, 4]:
+                if normalized_score < 0.6: fsrs_rating = 1
+                elif normalized_score < 0.8: fsrs_rating = 2
+                elif normalized_score < 0.95: fsrs_rating = 3
+                else: fsrs_rating = 4
+
             status_obj, _ = UserQuestionStatus.objects.get_or_create(user=user, question=question)
+            
+            # FSRS Update
+            status_obj = FSRS.update_status(status_obj, fsrs_rating)
             
             if normalized_score < 0.6:
                 status_obj.wrong_count += 1
                 status_obj.last_correct = False
-                status_obj.review_stage = 0
             else:
                 status_obj.last_correct = True
-                status_obj.review_stage += 1
-
-            intervals = [0, 1, 2, 4, 7, 15, 30, 60]
-            stage = min(status_obj.review_stage, len(intervals)-1)
-            status_obj.next_review_at = timezone.now() + datetime.timedelta(days=intervals[stage])
+            
             status_obj.save()
             
             expected_score = 1 / (1 + 10**( (question.difficulty - user.elo_score) / 400 ))
@@ -290,9 +301,9 @@ class GenerateBulkQuestionsView(APIView):
         template = get_quiz_template('bulk_generate_prompt.txt')
         prompt = template.format(kp_name=kp.name, kp_description=kp.description, count=5)
         try:
-            res = requests.post("https://api.deepseek.com/chat/completions",
+            res = requests.post("https://api.siliconflow.cn/v1/chat/completions",
                 headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
-                json={"model": "deepseek-chat", "messages": [{"role": "user", "content": prompt}], "stream": False}, timeout=90)
+                json={"model": "deepseek-ai/DeepSeek-V3.2", "messages": [{"role": "user", "content": prompt}], "stream": False}, timeout=90)
             content = res.json()['choices'][0]['message']['content']
             questions_data = extract_json_from_text(content)
             for q_data in questions_data:
@@ -309,9 +320,9 @@ class GenerateFromTextView(APIView):
         template = get_quiz_template('generate_from_text_prompt.txt')
         prompt = template.format(text=text, num_obj=num_obj, num_short=num_short, num_essay=num_essay)
         try:
-            res = requests.post("https://api.deepseek.com/chat/completions",
+            res = requests.post("https://api.siliconflow.cn/v1/chat/completions",
                 headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
-                json={"model": "deepseek-chat", "messages": [{"role": "user", "content": prompt}], "stream": False}, timeout=120)
+                json={"model": "deepseek-ai/DeepSeek-V3.2", "messages": [{"role": "user", "content": prompt}], "stream": False}, timeout=120)
             content = res.json()['choices'][0]['message']['content']
             qs_data = extract_json_from_text(content)
             created_count = 0
@@ -357,10 +368,10 @@ def process_ai_parse_task(raw_text, kp_id, api_key, task_id):
         max_retries = 2
         for attempt in range(max_retries):
             try:
-                res = requests.post("https://api.deepseek.com/chat/completions",
+                res = requests.post("https://api.siliconflow.cn/v1/chat/completions",
                     headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
                     json={
-                        "model": "deepseek-chat", 
+                        "model": "deepseek-ai/DeepSeek-V3.2", 
                         "messages": [{"role": "user", "content": prompt}], 
                         "stream": False, 
                         "temperature": 0.1,
@@ -503,7 +514,7 @@ class AdminQuestionListView(APIView):
 class ExportStructuredQuestionsView(APIView):
     """
     导出结构化题目数据（AI 可读格式）。
-    每道题都包含完整字段，可直接作为 AI 生成新题的参考模板。
+    直接同步至服务器本地 seed_questions.json。
     """
     permission_classes = [permissions.IsAdminUser]
 
@@ -526,20 +537,78 @@ class ExportStructuredQuestionsView(APIView):
                 "correct_answer": q.correct_answer,
                 "grading_points": q.grading_points,
                 "ai_explanation": q.ai_answer,
-                # AI 生成新题时的模板提示
-                "_schema_hint": {
-                    "question_type": "objective | subjective",
-                    "subjective_type": "noun | short | essay | calculate",
-                    "difficulty_elo": "800-1800 integer (harder = higher)",
-                    "options": "list of 4 strings for objective, null for subjective",
-                    "correct_answer": "option text for objective, reference answer for subjective",
-                    "grading_points": "scoring rubric, required for subjective questions"
-                }
             })
 
-        return Response({
+        data = {
             "total": len(structured),
-            "format_version": "1.0",
-            "description": "Korson Academy Question Bank - Structured Export for AI Generation",
+            "format_version": "1.1",
+            "description": "UniMind.ai Question Bank - Structured Export",
+            "format_reference": {
+                "question_type": "objective | subjective",
+                "subjective_type": "noun | short | essay | calculate",
+                "difficulty_elo": "800-1800 integer (harder = higher)",
+                "options": "list of 4 strings for objective, null for subjective",
+                "correct_answer": "option text for objective, reference answer for subjective",
+                "grading_points": "scoring rubric, required for subjective questions"
+            },
             "questions": structured
-        })
+        }
+
+        # 持久化到服务器文件 (backend/seed_questions.json)
+        file_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "seed_questions.json")
+        try:
+            with open(file_path, "w", encoding="utf-8") as f:
+                json.dump(data, f, ensure_ascii=False, indent=2)
+            return Response({
+                "status": "success",
+                "total": len(structured),
+                "message": "已成功同步至服务器 seed_questions.json"
+            })
+        except Exception as e:
+            return Response({"error": f"写入文件失败: {str(e)}"}, status=500)
+
+class ImportCSVQuestionsView(APIView):
+    permission_classes = [permissions.IsAdminUser]
+    
+    def post(self, request):
+        file_obj = request.FILES.get('file')
+        if not file_obj:
+            return Response({'error': '未上传文件'}, status=400)
+            
+        try:
+            decoded_file = file_obj.read().decode('utf-8-sig')
+            io_string = io.StringIO(decoded_file)
+            reader = csv.DictReader(io_string)
+            
+            count = 0
+            errors = []
+            
+            for row in reader:
+                try:
+                    # Expected CSV headers: text, answer, type(optional), difficulty(optional)
+                    # Mapping flexible headers
+                    text = row.get('text') or row.get('question') or row.get('题目')
+                    answer = row.get('answer') or row.get('correct_answer') or row.get('答案')
+                    q_type = row.get('type') or row.get('q_type') or row.get('题型') or 'objective'
+                    difficulty = row.get('difficulty') or row.get('难度') or '1000'
+                    
+                    if not text: continue
+                    
+                    # Clean type
+                    if '客观' in q_type or 'choice' in q_type: q_type = 'objective'
+                    elif '主观' in q_type: q_type = 'subjective'
+                    
+                    Question.objects.create(
+                        text=text,
+                        correct_answer=answer,
+                        q_type=q_type,
+                        difficulty=int(difficulty) if str(difficulty).isdigit() else 1000
+                    )
+                    count += 1
+                except Exception as e:
+                    errors.append(f"Row error: {str(e)}")
+            
+            return Response({'status': 'success', 'count': count, 'errors': errors[:5]})
+            
+        except Exception as e:
+            return Response({'error': f'CSV解析失败: {str(e)}'}, status=400)

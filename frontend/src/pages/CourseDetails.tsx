@@ -203,7 +203,7 @@ export const CourseDetails: React.FC = () => {
 
       {/* Footer */}
       <footer className="py-20 border-t border-slate-100 dark:border-slate-900 text-center text-slate-400 text-sm">
-        <p>© 2026 Korson Academy. Designed with precision.</p>
+        <p>© 2026 UniMind.ai. Designed with precision.</p>
       </footer>
     </div>
   );

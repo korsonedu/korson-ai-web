@@ -528,7 +528,7 @@ export const QASystem: React.FC = () => {
   };
 
   return (
-    <PageWrapper title="答疑中心" subtitle="学术疑问 · 权威解答 · 深度探讨">
+    <PageWrapper title="答疑" subtitle="学术疑问 · 权威解答 · 深度探讨">
       <div className="max-w-5xl mx-auto space-y-8 animate-in fade-in duration-500">
         
         {/* Top Input Area */}
