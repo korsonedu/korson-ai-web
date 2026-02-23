@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     "study_room",
     "ai_assistant",
     "faq_system",
+    "notifications",
 ]
 
 MIDDLEWARE = [

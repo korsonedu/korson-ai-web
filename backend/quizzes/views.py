@@ -273,6 +273,23 @@ class QuizStatsView(APIView):
         user = request.user
         now = timezone.now()
         review_count = UserQuestionStatus.objects.filter(user=user, next_review_at__lte=now).count()
+        
+        # 自动生成复习提醒通知
+        if review_count > 0:
+            today_notif = Notification.objects.filter(
+                recipient=user, 
+                ntype='fsrs_reminder', 
+                created_at__date=now.date()
+            ).exists()
+            if not today_notif:
+                Notification.objects.create(
+                    recipient=user,
+                    ntype='fsrs_reminder',
+                    title='今日复习任务已就绪',
+                    content=f'你有 {review_count} 道题目已进入 FSRS 遗忘临界点，建议立即复习。',
+                    link='/tests'
+                )
+
         attempted_ids = UserQuestionStatus.objects.filter(user=user).values_list('question_id', flat=True)
         new_questions_count = Question.objects.exclude(id__in=attempted_ids).count()
         return Response({'review_goal': review_count, 'new_questions': new_questions_count})

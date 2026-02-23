@@ -4,6 +4,7 @@ from rest_framework.views import APIView
 from django.db.models import Q
 from .models import Question, Answer
 from .serializers import QuestionSerializer, AnswerSerializer
+from notifications.models import Notification
 
 class QuestionListCreateView(generics.ListCreateAPIView):
     serializer_class = QuestionSerializer
@@ -92,7 +93,31 @@ class AnswerCreateView(generics.CreateAPIView):
         serializer.is_valid(raise_exception=True)
         serializer.save(user=request.user, is_teacher=is_teacher, question=question)
         
-        # 如果是追问，可能将状态改为未解决？这里保持简单，由管理员手动控制状态
+        # 通知提问者
+        if question.user != request.user:
+            Notification.objects.create(
+                recipient=question.user,
+                sender=request.user,
+                ntype='qa_reply',
+                title='你的提问有了新回复',
+                content=f'{request.user.nickname or request.user.username} 回复了你的问题',
+                link=f'/qa'
+            )
+        
+        # 通知关注者
+        followers = question.followers.exclude(id=request.user.id).exclude(id=question.user.id)
+        if followers.exists():
+            notifs = [
+                Notification(
+                    recipient=f,
+                    sender=request.user,
+                    ntype='qa_reply',
+                    title='你关注的问题有了新动态',
+                    content=f'有人回复了你关注的问题',
+                    link=f'/qa'
+                ) for f in followers
+            ]
+            Notification.objects.bulk_create(notifs)
         
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 

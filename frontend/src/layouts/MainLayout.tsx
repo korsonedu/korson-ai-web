@@ -25,6 +25,7 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useSystemStore } from '@/store/useSystemStore';
+import { NotificationBell } from '@/components/NotificationBell';
 import api from '@/lib/api';
 import {
   DropdownMenu,
@@ -223,6 +224,7 @@ export const MainLayout: React.FC = () => {
                   )}
                </div>
                <div className="flex items-center gap-4">
+                  {user && <NotificationBell />}
                   <div className="flex items-center gap-2 px-3.5 py-1.5 bg-card rounded-full shadow-sm border border-border">
                      <Sparkles className="h-3.5 w-3.5 text-amber-500 fill-amber-500" />
                      <span className="text-xs font-bold text-foreground">ELO: {user?.elo_score}</span>

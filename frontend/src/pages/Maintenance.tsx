@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   BookOpen, FileText, Target, Video, Image as ImageIcon,
-  Upload, Trash2, Edit3, Settings2, Bot, Sparkles,
+  Upload, Trash2, Edit3, Settings2, Bot, Sparkles, Bell, Send, Loader2,
   RefreshCcw, BrainCircuit, Search, X,
   Layers, FileUp, ChevronRight, ChevronDown, CheckCircle2, Rocket
 } from 'lucide-react';
@@ -285,6 +285,8 @@ export const Maintenance: React.FC = () => {
   const [quizForm, setQuizForm] = useState({ text: '', q_type: 'objective', subjective_type: 'noun', grading_points: '', knowledge_point: '0', options: ['', '', '', ''], answer: '', difficulty: 1000 });
   const [kpForm, setKpForm] = useState({ name: '', description: '', parent: '0' });
   const [smForm, setSmForm] = useState({ name: '', description: '', file: null as File | null });
+  const [notifForm, setNotifForm] = useState({ title: '', content: '', link: '' });
+  const [isSendingNotif, setIsSendingNotif] = useState(false);
 
   const handleDelete = async (type: string, id: number) => {
     try {
@@ -349,6 +351,17 @@ export const Maintenance: React.FC = () => {
     fd.append('file', smForm.file);
     try { await api.post('/courses/startup-materials/', fd, { onUploadProgress: p => p.total && setUploadProgress(Math.round((p.loaded / p.total) * 100)) }); toast.success("资料已上传"); setSmForm({ name: '', description: '', file: null }); fetchLists(); }
     catch (e) { toast.error("上传失败"); } finally { setIsSubmitting(false); setUploadProgress(0); }
+  };
+
+  const handleBroadcast = async () => {
+    if (!notifForm.title || !notifForm.content) return toast.error("标题和内容必填");
+    setIsSendingNotif(true);
+    try {
+      await api.post('/notifications/broadcast/', notifForm);
+      toast.success("通知已广播至全站用户");
+      setNotifForm({ title: '', content: '', link: '' });
+    } catch (e) { toast.error("发送失败"); }
+    finally { setIsSendingNotif(false); }
   };
 
   const handleQuickCreateKP = async () => {
@@ -464,6 +477,7 @@ export const Maintenance: React.FC = () => {
           <TabsTrigger value="albums" className="rounded-xl px-5 py-2 data-[state=active]:bg-black data-[state=active]:text-white transition-all text-[11px] font-bold uppercase tracking-widest leading-none"><Layers className="w-3.5 h-3.5 mr-2" />专辑管理</TabsTrigger>
           <TabsTrigger value="bots" className="rounded-xl px-5 py-2 data-[state=active]:bg-black data-[state=active]:text-white transition-all text-[11px] font-bold uppercase tracking-widest leading-none"><Bot className="w-3.5 h-3.5 mr-2" />AI 机器人</TabsTrigger>
           <TabsTrigger value="sm" className="rounded-xl px-5 py-2 data-[state=active]:bg-black data-[state=active]:text-white transition-all text-[11px] font-bold uppercase tracking-widest leading-none"><Rocket className="w-3.5 h-3.5 mr-2" />启动资料</TabsTrigger>
+          <TabsTrigger value="notifications" className="rounded-xl px-5 py-2 data-[state=active]:bg-black data-[state=active]:text-white transition-all text-[11px] font-bold uppercase tracking-widest leading-none"><Bell className="w-3.5 h-3.5 mr-2" />发布通知</TabsTrigger>
           <TabsTrigger value="manage" className="rounded-xl px-5 py-2 data-[state=active]:bg-black data-[state=active]:text-white transition-all text-[11px] font-bold uppercase tracking-widest leading-none"><Settings2 className="w-3.5 h-3.5 mr-2" />资源审计</TabsTrigger>
         </TabsList>
 
@@ -613,6 +627,48 @@ export const Maintenance: React.FC = () => {
             {/* 右侧：题库浏览器 */}
             <QuestionBankPanel kpList={kpList} onEdit={(q) => setEditingItem({ type: 'quizzes', data: { ...q } })} onDelete={(id) => handleDelete('quizzes/questions', id)} />
           </div>
+        </TabsContent>
+
+        <TabsContent value="notifications" className="outline-none m-0 text-left">
+          <Card className="border-none shadow-sm rounded-[2rem] p-10 bg-white border border-black/[0.03] space-y-8 max-w-2xl mx-auto text-left">
+            <div className="flex items-center gap-3 text-left">
+              <Bell className="h-6 w-6 text-indigo-600" />
+              <h3 className="text-xl font-bold tracking-tight text-[#1D1D1F]">全站广播通知</h3>
+            </div>
+            <div className="space-y-6 text-left">
+              <div className="space-y-2 text-left">
+                <Label className="text-[10px] font-bold uppercase tracking-widest opacity-40 ml-1">通知标题</Label>
+                <Input 
+                  value={notifForm.title} 
+                  onChange={e => setNotifForm({ ...notifForm, title: e.target.value })} 
+                  placeholder="例如：系统维护公告" 
+                  className="bg-[#F5F5F7] border-none h-12 rounded-xl font-bold px-5" 
+                />
+              </div>
+              <div className="space-y-2 text-left">
+                <div className="flex justify-between items-center">
+                  <Label className="text-[10px] font-bold uppercase tracking-widest opacity-40 ml-1">通知内容</Label>
+                  <span className={cn("text-[9px] font-bold", notifForm.content.length > 50 ? "text-red-500" : "text-muted-foreground")}>
+                    {notifForm.content.length} / 50
+                  </span>
+                </div>
+                <textarea 
+                  value={notifForm.content} 
+                  onChange={e => setNotifForm({ ...notifForm, content: e.target.value })} 
+                  placeholder="请详细描述通知内容..." 
+                  className="w-full bg-[#F5F5F7] border-none rounded-2xl p-6 min-h-[120px] font-bold text-sm" 
+                />
+              </div>
+              <Button 
+                onClick={handleBroadcast} 
+                disabled={isSendingNotif} 
+                className="w-full bg-black text-white h-14 rounded-2xl font-bold shadow-xl uppercase text-xs tracking-widest gap-2"
+              >
+                {isSendingNotif ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                发送广播通知
+              </Button>
+            </div>
+          </Card>
         </TabsContent>
 
         <TabsContent value="manage" className="outline-none m-0 text-left">
