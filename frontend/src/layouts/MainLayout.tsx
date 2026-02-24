@@ -152,12 +152,12 @@ export const MainLayout: React.FC = () => {
 
   const navItems = [
     { to: '/', icon: BookOpen, label: '课程中心', restricted: true },
-    { to: '/articles', icon: FileText, label: '文章中心', restricted: true },
+    { to: '/articles', icon: FileText, label: '文章', restricted: true },
     { to: '/qa', icon: MessageCircleQuestion, label: '答疑', restricted: true },
     { to: '/tests', icon: Trophy, label: '习题训练', restricted: true },
     { to: '/knowledge-map', icon: BrainCircuit, label: '知识地图', restricted: true },
     { to: '/study', icon: Clock, label: '自习室', restricted: true },
-    { to: '/ai', icon: Sparkles, label: 'AI 助教', restricted: true },
+    { to: '/ai', icon: Sparkles, label: 'AI 实验室', restricted: true },
   ];
 
   if (user?.role === 'admin') navItems.push({ to: '/admin', icon: ShieldCheck, label: '维护中心', restricted: false });
@@ -299,7 +299,7 @@ export const MainLayout: React.FC = () => {
                </div>
             </header>
           )}
-          <div className={cn("flex-1 w-full relative", !isFullPage && "px-10 py-10")}>
+          <div className={cn("flex-1 w-full relative", !isFullPage && "px-8 py-6")}>
             <Outlet />
           </div>
         </main>
