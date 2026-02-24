@@ -93,7 +93,8 @@ const ArticleCenter = () => {
   const handlePageChange = (newPage: number) => {
     setPage(newPage);
     fetchArticles(newPage);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    // Scroll the main layout container to top
+    document.querySelector('main')?.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   if (loading && articles.length === 0) return <div className="h-[60vh] flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-black/10" /></div>;

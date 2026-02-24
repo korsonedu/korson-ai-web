@@ -235,12 +235,23 @@ export const StudyRoom: React.FC = () => {
   const handleStartTask = async () => {
     if (!taskName.trim()) return toast.error("请输入任务名称");
     setIsActive(true);
-    setIsTimerOpen(false);
-    if (allowBroadcast) {
-      try {
-        await api.post('/study/messages/', { content: `💪 开始了“${taskName}”任务 (计划 ${duration} 分钟)` });
-        fetchMessages();
-      } catch (e) {}
+    // Only close on first start
+    if (timeLeft === duration * 60) {
+      setIsTimerOpen(false);
+      if (allowBroadcast) {
+        try {
+          await api.post('/study/messages/', { content: `💪 开始了“${taskName}”任务 (计划 ${duration} 分钟)` });
+          fetchMessages();
+        } catch (e) {}
+      }
+    }
+  };
+
+  const toggleTimer = () => {
+    if (isActive) {
+      setIsActive(false);
+    } else {
+      handleStartTask();
     }
   };
 
@@ -315,7 +326,7 @@ export const StudyRoom: React.FC = () => {
         <header className="px-8 py-3 border-b border-border flex items-center justify-between bg-card/80 backdrop-blur-md sticky top-0 z-20">
           <div className="flex items-center gap-4">
             <div className="h-9 w-9 rounded-xl bg-primary flex items-center justify-center shadow-lg text-primary-foreground"><MessageSquare className="h-4 w-4" /></div>
-            <h2 className="text-sm font-bold tracking-tight">学习咖啡厅</h2>
+            <h2 className="text-sm font-bold tracking-tight">讨论区</h2>
           </div>
           <div className="flex items-center gap-2">
             <Popover open={isTimerOpen} onOpenChange={setIsTimerOpen}>
@@ -326,14 +337,14 @@ export const StudyRoom: React.FC = () => {
                     <div className="space-y-4 text-left">
                       <div className="space-y-2">
                         <div className="flex justify-between items-center mb-1"><label className="text-[10px] font-bold uppercase tracking-widest opacity-30 text-foreground">时长设定</label>
-                        <div className="flex items-center gap-1"><Input type="number" disabled={isActive} value={duration} onChange={e => handleDurationChange(parseInt(e.target.value) || 0)} className="w-12 h-6 p-0 text-center border-none bg-muted rounded-md text-[10px] font-bold text-foreground" /><span className="text-[10px] font-bold opacity-30 uppercase text-foreground">Min</span></div></div>
-                        <Slider disabled={isActive} value={[duration]} onValueChange={v => handleDurationChange(v[0])} max={120} min={1} step={1}/>
+                        <div className="flex items-center gap-1"><Input type="number" disabled={isActive || timeLeft < duration * 60} value={duration} onChange={e => handleDurationChange(parseInt(e.target.value) || 0)} className="w-12 h-6 p-0 text-center border-none bg-muted rounded-md text-[10px] font-bold text-foreground" /><span className="text-[10px] font-bold opacity-30 uppercase text-foreground">Min</span></div></div>
+                        <Slider disabled={isActive || timeLeft < duration * 60} value={[duration]} onValueChange={v => handleDurationChange(v[0])} max={120} min={1} step={1}/>
                       </div>
-                      <div className="space-y-2"><label className="text-[10px] font-bold uppercase tracking-widest opacity-30 ml-1 text-foreground">任务目标</label><Input value={taskName} onChange={e => setTaskName(e.target.value)} placeholder="你想完成什么？" className="bg-muted border-none h-11 rounded-xl text-center font-bold text-sm text-foreground" /></div>
+                      <div className="space-y-2"><label className="text-[10px] font-bold uppercase tracking-widest opacity-30 ml-1 text-foreground">任务目标</label><Input value={taskName} disabled={isActive || timeLeft < duration * 60} onChange={e => setTaskName(e.target.value)} placeholder="你想完成什么？" className="bg-muted border-none h-11 rounded-xl text-center font-bold text-sm text-foreground" /></div>
                     </div>
                     <div className="flex justify-center gap-2.5 pt-1">
-                      <Button size="lg" onClick={isActive ? () => setIsActive(false) : handleStartTask} className={cn("rounded-2xl flex-1 font-bold h-12 shadow-lg", isActive ? "bg-muted text-foreground" : "bg-primary text-primary-foreground shadow-primary/10")}>{isActive ? <Pause className="mr-2 h-4 w-4" /> : <Play className="mr-2 h-4 w-4" />}{isActive ? '暂停' : '开始学习'}</Button>
-                      {isActive && <Button variant="destructive" onClick={() => setShowStopAlert(true)} className="rounded-2xl h-12 w-12 shadow-xl shadow-red-500/20"><XCircle className="h-5 w-5" /></Button>}
+                      <Button size="lg" onClick={toggleTimer} className={cn("rounded-2xl flex-1 font-bold h-12 shadow-lg transition-all", isActive ? "bg-slate-100 text-slate-900 hover:bg-slate-200" : "bg-primary text-primary-foreground shadow-primary/10")}>{isActive ? <Pause className="mr-2 h-4 w-4" /> : <Play className="mr-2 h-4 w-4" />}{isActive ? '暂停' : (timeLeft < duration * 60 ? '继续' : '开始学习')}</Button>
+                      {(isActive || timeLeft < duration * 60) && <Button variant="destructive" onClick={() => setShowStopAlert(true)} className="rounded-2xl h-12 w-12 shadow-xl shadow-red-500/20"><XCircle className="h-5 w-5" /></Button>}
                     </div>
                  </div>
               </PopoverContent>

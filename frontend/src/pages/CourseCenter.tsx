@@ -38,7 +38,7 @@ export const CourseCenter: React.FC = () => {
   return (
     <PageWrapper 
       title="课程中心" 
-      subtitle="深入浅出的精品课程，助你构建完整的专业知识体系。"
+      subtitle="精品课程助你构建完整的专业知识体系。"
       action={ActionBtn}
     >
       {courses.length === 0 ? (

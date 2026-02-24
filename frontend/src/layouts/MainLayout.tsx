@@ -121,7 +121,7 @@ export const MainLayout: React.FC = () => {
   const [isActivating, setIsActivating] = useState(false);
   const [schoolConfig, setSchoolConfig] = useState({ name: '科晟智慧', desc: 'KORSON ACADEMY', logo: '' });
 
-  const isFullPage = ['/intro', '/course-details'].includes(location.pathname);
+  const isFullPage = ['/intro', '/course-details', '/admin'].includes(location.pathname);
 
   useEffect(() => {
     document.documentElement.style.setProperty('--primary-override', primaryColor);

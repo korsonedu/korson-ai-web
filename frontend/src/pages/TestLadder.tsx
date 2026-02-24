@@ -199,7 +199,7 @@ export const TestLadder: React.FC = () => {
   const currentQ = questions[currentIdx];
 
   return (
-    <PageWrapper title="学术天梯" subtitle="基于 FSRS 记忆算法的智能评估，精准量化您的学术成长路径。">
+    <PageWrapper title="学术天梯" subtitle="基于 FSRS 记忆算法的智能评估，精准量化学术成长路径。">
       <div className="flex flex-col gap-12 text-left animate-in fade-in duration-700 pb-20 max-w-6xl mx-auto">
 
         {/* Main Entry Card - Apple Aesthetic */}
