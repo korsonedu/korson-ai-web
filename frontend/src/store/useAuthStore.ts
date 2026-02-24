@@ -3,11 +3,22 @@ import { create } from 'zustand';
 interface User {
   id: number;
   username: string;
+  nickname: string;
   role: 'student' | 'admin';
   elo_score: number;
   avatar_url: string;
+  avatar_style: string;
+  avatar_seed: string;
+  bio: string;
   allow_broadcast: boolean;
   show_others_broadcast: boolean;
+  is_member: boolean;
+  has_completed_initial_assessment: boolean;
+  elo_reset_count: number;
+  current_task?: string;
+  current_timer_end?: string;
+  today_focused_minutes?: number;
+  today_completed_tasks?: any[];
 }
 
 interface AuthState {
