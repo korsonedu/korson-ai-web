@@ -262,7 +262,7 @@ export const AIAssistant: React.FC = () => {
                   )}>
                     {msg.role === 'user' ? <User className="w-5 h-5 text-foreground" /> : (selectedBot.avatar ? <img src={selectedBot.avatar} className="w-full h-full rounded-full object-cover" /> : <BotIcon className="w-5 h-5 text-primary-foreground" />)}
                   </div>
-                  <div className={cn("flex flex-col gap-1.5 max-w-[85%]", msg.role === 'user' ? "items-end" : "items-start")}>
+                  <div className={cn("flex flex-col gap-1.5 max-w-[70%]", msg.role === 'user' ? "items-end" : "items-start")}>
                     <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground px-1">
                       {msg.role === 'user' ? (user?.nickname || user?.username) : selectedBot.name}
                     </span>

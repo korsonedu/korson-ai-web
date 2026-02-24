@@ -401,7 +401,7 @@ export const StudyRoom: React.FC = () => {
               return (
                 <div key={msg.id} className={cn("flex gap-4 group animate-in fade-in slide-in-from-bottom-2 duration-300", isMe ? "flex-row-reverse text-right" : "flex-row text-left")}>
                   <Avatar className="h-9 w-9 border border-border shadow-sm shrink-0 group-hover:scale-105 transition-transform"><AvatarImage src={msg.user_detail.avatar_url} /><AvatarFallback className="text-[10px] font-bold bg-muted">{(msg.user_detail.nickname || msg.user_detail.username)[0]}</AvatarFallback></Avatar>
-                  <div className={cn("flex flex-col gap-1 max-w-[85%] w-fit", isMe ? "items-end" : "items-start")}>
+                  <div className={cn("flex flex-col gap-1 max-w-[70%] w-fit", isMe ? "items-end" : "items-start")}>
                     <div className="flex items-center gap-2 px-1 text-muted-foreground"><span className="text-[9px] font-bold uppercase tracking-widest">{msg.user_detail.nickname || msg.user_detail.username}</span></div>
                     <div 
                       className={cn(
