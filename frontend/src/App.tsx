@@ -15,7 +15,7 @@ import { KnowledgeMap } from './pages/KnowledgeMap';
 import { QASystem } from './pages/QASystem';
 import { useAuthStore } from './store/useAuthStore';
 import { useSystemStore } from './store/useSystemStore';
-import { FileText, Loader2, ChevronRight } from 'lucide-react';
+import { FileText, Loader2, ChevronRight, ChevronLeft } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { PageWrapper } from '@/components/PageWrapper';
 import { useState, useEffect } from 'react';
