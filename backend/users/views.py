@@ -11,12 +11,16 @@ import datetime
 
 class IsMember(permissions.BasePermission):
     """
-    仅允许会员访问。
+    允许会员或管理员访问。
     """
     message = "您需要先成为学员（激活会员）才能使用此功能。"
 
     def has_permission(self, request, view):
-        return bool(request.user and request.user.is_authenticated and request.user.is_member)
+        return bool(
+            request.user and 
+            request.user.is_authenticated and 
+            (request.user.is_member or request.user.role == 'admin' or request.user.is_superuser)
+        )
 
 class ActivateMembershipView(APIView):
     permission_classes = [permissions.IsAuthenticated]

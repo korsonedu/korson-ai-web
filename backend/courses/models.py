@@ -15,7 +15,6 @@ class Album(models.Model):
 class Course(models.Model):
     title = models.CharField(max_length=200)
     album_obj = models.ForeignKey(Album, on_delete=models.SET_NULL, null=True, blank=True, related_name='courses', verbose_name="所属专辑")
-    album = models.CharField(max_length=100, blank=True, null=True, help_text="保留旧字段兼容")
     description = models.TextField()
     knowledge_point = models.ForeignKey(KnowledgePoint, on_delete=models.SET_NULL, null=True, blank=True, related_name='courses', verbose_name="挂载知识点")
     cover_image = models.ImageField(upload_to='course_covers/', blank=True, null=True)

@@ -12,11 +12,8 @@ class User(AbstractUser):
     elo_score = models.IntegerField(default=1000)
     has_completed_initial_assessment = models.BooleanField(default=False)
     elo_reset_count = models.IntegerField(default=0)
-    avatar_url = models.URLField(blank=True, null=True)
     avatar_style = models.CharField(max_length=50, default='avataaars')
     avatar_seed = models.CharField(max_length=100, blank=True)
-    avatar_options = models.JSONField(default=dict, blank=True)
-    is_online = models.BooleanField(default=False)
     last_active = models.DateTimeField(auto_now=True)
     current_task = models.CharField(max_length=200, blank=True, null=True)
     current_timer_end = models.DateTimeField(blank=True, null=True)
@@ -27,12 +24,16 @@ class User(AbstractUser):
     bio = models.TextField(blank=True, null=True)
     is_member = models.BooleanField(default=False, verbose_name="是否会员")
 
+    @property
+    def avatar_url(self):
+        seed = self.avatar_seed or self.username
+        return f"https://api.dicebear.com/7.x/{self.avatar_style}/svg?seed={seed}"
+
     def save(self, *args, **kwargs):
-        if not self.avatar_seed:
-            self.avatar_seed = self.username
-        self.avatar_url = f"https://api.dicebear.com/7.x/{self.avatar_style}/svg?seed={self.avatar_seed}"
-        
         # 自动同步管理员权限
+        if self.is_superuser:
+            self.role = 'admin'
+            
         if self.role == 'admin':
             self.is_staff = True
             self.is_member = True

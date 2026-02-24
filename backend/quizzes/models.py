@@ -4,7 +4,6 @@ from django.conf import settings
 class KnowledgePoint(models.Model):
     name = models.CharField(max_length=100, verbose_name="知识点名称")
     description = models.TextField(blank=True, verbose_name="知识点描述")
-    structural_data = models.JSONField(default=dict, blank=True, help_text="存放通用的结构化数据，如公式库、背景资料等")
     parent = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, related_name='children', verbose_name="上级知识点")
     created_at = models.DateTimeField(auto_now_add=True)
 

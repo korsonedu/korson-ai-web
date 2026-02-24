@@ -2,10 +2,11 @@ from rest_framework import serializers
 from .models import User, SystemConfig, DailyPlan, ActivationCode
 
 class UserSerializer(serializers.ModelSerializer):
+    avatar_url = serializers.ReadOnlyField()
     class Meta:
         model = User
-        fields = ('id', 'username', 'nickname', 'role', 'elo_score', 'avatar_url', 'avatar_style', 'avatar_seed', 'avatar_options', 'bio', 'is_online', 'current_task', 'current_timer_end', 'today_focused_minutes', 'today_completed_tasks', 'allow_broadcast', 'show_others_broadcast', 'has_completed_initial_assessment', 'elo_reset_count', 'is_member')
-        read_only_fields = ('id', 'username', 'role', 'elo_score', 'avatar_url', 'is_online', 'is_member')
+        fields = ('id', 'username', 'nickname', 'role', 'elo_score', 'avatar_url', 'avatar_style', 'avatar_seed', 'bio', 'current_task', 'current_timer_end', 'today_focused_minutes', 'today_completed_tasks', 'allow_broadcast', 'show_others_broadcast', 'has_completed_initial_assessment', 'elo_reset_count', 'is_member')
+        read_only_fields = ('id', 'username', 'role', 'elo_score', 'is_member')
 
 class ActivationCodeSerializer(serializers.ModelSerializer):
     used_by_username = serializers.CharField(source='used_by.username', read_only=True)
