@@ -7,8 +7,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   BookOpen, FileText, Target, Video, Image as ImageIcon,
   Upload, Trash2, Edit3, Settings2, Bot, Sparkles, Bell, Send, Loader2,
-  RefreshCcw, BrainCircuit, Search, X,
-  Layers, FileUp, ChevronRight, ChevronDown, CheckCircle2, Rocket
+  RefreshCcw, RefreshCw, BrainCircuit, Search, X,
+  Layers, FileUp, ChevronRight, ChevronDown, CheckCircle2, Rocket, ShieldCheck, BarChart3
 } from 'lucide-react';
 import api from '@/lib/api';
 import { toast } from 'sonner';
@@ -195,7 +195,7 @@ const QuestionBankPanel = ({ kpList, onEdit, onDelete }: { kpList: any[], onEdit
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-[11px] font-bold text-[#1D1D1F] leading-relaxed line-clamp-2">{q.text}</p>
-                  <p className="text-[9px] font-bold text-black/30 mt-1">{q.knowledge_point_name} · ELO {q.difficulty}</p>
+                  <p className="text-[9px] font-bold text-black/30 mt-1">{q.knowledge_point_name} · {q.difficulty_level_display} (ELO {q.difficulty})</p>
                 </div>
                 <div className="flex gap-1 shrink-0">
                   <Button onClick={e => { e.stopPropagation(); onEdit(q); }} variant="ghost" size="icon" className="h-7 w-7 rounded-lg hover:bg-white text-blue-600 shadow-sm"><Edit3 className="w-3 h-3" /></Button>
@@ -256,7 +256,11 @@ export const Maintenance: React.FC = () => {
   const [isParsing, setIsParsing] = useState(false);
   const [parseProgress, setParseProgress] = useState("");
 
-  useEffect(() => { fetchLists(); }, []);
+  useEffect(() => { 
+    fetchLists(); 
+    fetchCodes();
+    fetchBI();
+  }, []);
   const fetchLists = async () => {
     try {
       const [c, a, b, k, al, sm] = await Promise.all([
@@ -282,7 +286,7 @@ export const Maintenance: React.FC = () => {
   const [articleForm, setArticleForm] = useState({ title: '', content: '', author_display_name: '', tags: [] as string[], knowledge_point: '0' });
   const [botForm, setBotForm] = useState({ name: '', prompt: '', avatar: null as File | null, is_exclusive: false });
   const [albumForm, setAlbumForm] = useState({ name: '', description: '', cover: null as File | null });
-  const [quizForm, setQuizForm] = useState({ text: '', q_type: 'objective', subjective_type: 'noun', grading_points: '', knowledge_point: '0', options: ['', '', '', ''], answer: '', difficulty: 1000 });
+  const [quizForm, setQuizForm] = useState({ text: '', q_type: 'objective', subjective_type: 'noun', grading_points: '', knowledge_point: '0', options: ['', '', '', ''], answer: '', difficulty_level: 'normal' });
   const [kpForm, setKpForm] = useState({ name: '', description: '', parent: '0' });
   const [smForm, setSmForm] = useState({ name: '', description: '', file: null as File | null });
   const [notifForm, setNotifForm] = useState({ title: '', content: '', link: '' });
@@ -318,7 +322,8 @@ export const Maintenance: React.FC = () => {
       await api.post('/quizzes/questions/', {
         text: quizForm.text, q_type: quizForm.q_type, subjective_type: quizForm.subjective_type,
         grading_points: quizForm.grading_points, knowledge_point: quizForm.knowledge_point === "0" ? null : quizForm.knowledge_point,
-        options: quizForm.q_type === 'objective' ? quizForm.options : null, correct_answer: quizForm.answer, difficulty: quizForm.difficulty
+        options: quizForm.q_type === 'objective' ? quizForm.options : null, correct_answer: quizForm.answer, 
+        difficulty_level: quizForm.difficulty_level
       });
       toast.success("题目已入库"); fetchLists();
     } catch (e) { toast.error("入库失败"); }
@@ -340,6 +345,60 @@ export const Maintenance: React.FC = () => {
     const fd = new FormData(); fd.append('name', albumForm.name); fd.append('description', albumForm.description); if (albumForm.cover) fd.append('cover_image', albumForm.cover);
     try { await api.post('/courses/albums/', fd); toast.success("专辑已创建"); setAlbumForm({ name: '', description: '', cover: null }); fetchLists(); }
     catch (e) { toast.error("失败"); }
+  };
+
+  const [codes, setCodes] = useState<any[]>([]);
+  const [newCodeCount, setNewCodeCount] = useState(1);
+  const [isGeneratingCodes, setIsGeneratingCodes] = useState(false);
+
+  const [biData, setBIData] = useState<any>(null);
+  const [isLoadingBI, setIsLoadingBI] = useState(false);
+
+  const fetchBI = async () => {
+    setIsLoadingBI(true);
+    try {
+      const res = await api.get('/users/admin/bi/');
+      setBIData(res.data);
+    } catch (e) {
+      toast.error("获取分析数据失败");
+    } finally {
+      setIsLoadingBI(false);
+    }
+  };
+
+  const fetchCodes = async () => {
+    try {
+      const res = await api.get('/users/admin/codes/');
+      setCodes(res.data);
+    } catch (e) {}
+  };
+
+  const handleGenerateCodes = async () => {
+    setIsGeneratingCodes(true);
+    try {
+      // Generate unique codes
+      for (let i = 0; i < newCodeCount; i++) {
+        const randomCode = Math.random().toString(36).substring(2, 10).toUpperCase();
+        await api.post('/users/admin/codes/', { code: randomCode });
+      }
+      toast.success(`成功生成 ${newCodeCount} 个激活码`);
+      fetchCodes();
+    } catch (e) {
+      toast.error("生成失败");
+    } finally {
+      setIsGeneratingCodes(false);
+    }
+  };
+
+  const handleDeleteCode = async (id: number) => {
+    if (!confirm("确定要删除此激活码吗？如果已被使用，该用户的会员权限将被收回。")) return;
+    try {
+      await api.delete(`/users/admin/codes/${id}/`);
+      toast.success("已成功删除/收回");
+      fetchCodes();
+    } catch (e) {
+      toast.error("操作失败");
+    }
   };
 
   const handleCreateSM = async () => {
@@ -469,16 +528,18 @@ export const Maintenance: React.FC = () => {
       <Button onClick={() => setShowAIWorkstation(true)} className="fixed bottom-10 right-10 h-12 w-12 rounded-full bg-emerald-500 text-white shadow-2xl hover:scale-110 active:scale-95 transition-all z-[60] border-none group animate-pulse flex items-center justify-center"><Sparkles className="w-5 h-5" /></Button>
 
       <Tabs defaultValue="courses" className="space-y-6 text-left">
-        <TabsList className="bg-white/50 backdrop-blur-md p-1.5 rounded-2xl border border-black/5 h-auto inline-flex shadow-sm">
-          <TabsTrigger value="courses" className="rounded-xl px-5 py-2 data-[state=active]:bg-black data-[state=active]:text-white transition-all text-[11px] font-bold uppercase tracking-widest leading-none"><BookOpen className="w-3.5 h-3.5 mr-2" />课程上传</TabsTrigger>
-          <TabsTrigger value="articles" className="rounded-xl px-5 py-2 data-[state=active]:bg-black data-[state=active]:text-white transition-all text-[11px] font-bold uppercase tracking-widest leading-none"><FileText className="w-3.5 h-3.5 mr-2" />发布文章</TabsTrigger>
-          <TabsTrigger value="quizzes" className="rounded-xl px-5 py-2 data-[state=active]:bg-black data-[state=active]:text-white transition-all text-[11px] font-bold uppercase tracking-widest leading-none"><Target className="w-3.5 h-3.5 mr-2" />智能题库</TabsTrigger>
-          <TabsTrigger value="kp" className="rounded-xl px-5 py-2 data-[state=active]:bg-black data-[state=active]:text-white transition-all text-[11px] font-bold uppercase tracking-widest leading-none"><BrainCircuit className="w-3.5 h-3.5 mr-2" />知识体系</TabsTrigger>
-          <TabsTrigger value="albums" className="rounded-xl px-5 py-2 data-[state=active]:bg-black data-[state=active]:text-white transition-all text-[11px] font-bold uppercase tracking-widest leading-none"><Layers className="w-3.5 h-3.5 mr-2" />专辑管理</TabsTrigger>
-          <TabsTrigger value="bots" className="rounded-xl px-5 py-2 data-[state=active]:bg-black data-[state=active]:text-white transition-all text-[11px] font-bold uppercase tracking-widest leading-none"><Bot className="w-3.5 h-3.5 mr-2" />AI 机器人</TabsTrigger>
-          <TabsTrigger value="sm" className="rounded-xl px-5 py-2 data-[state=active]:bg-black data-[state=active]:text-white transition-all text-[11px] font-bold uppercase tracking-widest leading-none"><Rocket className="w-3.5 h-3.5 mr-2" />启动资料</TabsTrigger>
-          <TabsTrigger value="notifications" className="rounded-xl px-5 py-2 data-[state=active]:bg-black data-[state=active]:text-white transition-all text-[11px] font-bold uppercase tracking-widest leading-none"><Bell className="w-3.5 h-3.5 mr-2" />发布通知</TabsTrigger>
-          <TabsTrigger value="manage" className="rounded-xl px-5 py-2 data-[state=active]:bg-black data-[state=active]:text-white transition-all text-[11px] font-bold uppercase tracking-widest leading-none"><Settings2 className="w-3.5 h-3.5 mr-2" />资源审计</TabsTrigger>
+        <TabsList className="bg-white/50 backdrop-blur-md p-1.5 rounded-2xl border border-black/5 h-auto flex flex-wrap gap-1.5 shadow-sm w-fit mx-auto">
+          <TabsTrigger value="courses" className="rounded-xl px-4 py-2 data-[state=active]:bg-black data-[state=active]:text-white transition-all text-[11px] font-bold uppercase tracking-widest leading-none min-w-[110px] justify-center"><BookOpen className="w-3.5 h-3.5 mr-2" />课程上传</TabsTrigger>
+          <TabsTrigger value="articles" className="rounded-xl px-4 py-2 data-[state=active]:bg-black data-[state=active]:text-white transition-all text-[11px] font-bold uppercase tracking-widest leading-none min-w-[110px] justify-center"><FileText className="w-3.5 h-3.5 mr-2" />发布文章</TabsTrigger>
+          <TabsTrigger value="quizzes" className="rounded-xl px-4 py-2 data-[state=active]:bg-black data-[state=active]:text-white transition-all text-[11px] font-bold uppercase tracking-widest leading-none min-w-[110px] justify-center"><Target className="w-3.5 h-3.5 mr-2" />智能题库</TabsTrigger>
+          <TabsTrigger value="kp" className="rounded-xl px-4 py-2 data-[state=active]:bg-black data-[state=active]:text-white transition-all text-[11px] font-bold uppercase tracking-widest leading-none min-w-[110px] justify-center"><BrainCircuit className="w-3.5 h-3.5 mr-2" />知识体系</TabsTrigger>
+          <TabsTrigger value="albums" className="rounded-xl px-4 py-2 data-[state=active]:bg-black data-[state=active]:text-white transition-all text-[11px] font-bold uppercase tracking-widest leading-none min-w-[110px] justify-center"><Layers className="w-3.5 h-3.5 mr-2" />专辑管理</TabsTrigger>
+          <TabsTrigger value="bots" className="rounded-xl px-4 py-2 data-[state=active]:bg-black data-[state=active]:text-white transition-all text-[11px] font-bold uppercase tracking-widest leading-none min-w-[110px] justify-center"><Bot className="w-3.5 h-3.5 mr-2" />AI 机器人</TabsTrigger>
+          <TabsTrigger value="sm" className="rounded-xl px-4 py-2 data-[state=active]:bg-black data-[state=active]:text-white transition-all text-[11px] font-bold uppercase tracking-widest leading-none min-w-[110px] justify-center"><Rocket className="w-3.5 h-3.5 mr-2" />启动资料</TabsTrigger>
+          <TabsTrigger value="notifications" className="rounded-xl px-4 py-2 data-[state=active]:bg-black data-[state=active]:text-white transition-all text-[11px] font-bold uppercase tracking-widest leading-none min-w-[110px] justify-center"><Bell className="w-3.5 h-3.5 mr-2" />发布通知</TabsTrigger>
+          <TabsTrigger value="membership" className="rounded-xl px-4 py-2 data-[state=active]:bg-black data-[state=active]:text-white transition-all text-[11px] font-bold uppercase tracking-widest leading-none min-w-[110px] justify-center"><ShieldCheck className="h-3.5 w-3.5 mr-2" />激活码管理</TabsTrigger>
+          <TabsTrigger value="insights" className="rounded-xl px-4 py-2 data-[state=active]:bg-black data-[state=active]:text-white transition-all text-[11px] font-bold uppercase tracking-widest leading-none min-w-[110px] justify-center"><BarChart3 className="w-3.5 h-3.5 mr-2" />数据洞察</TabsTrigger>
+          <TabsTrigger value="manage" className="rounded-xl px-4 py-2 data-[state=active]:bg-black data-[state=active]:text-white transition-all text-[11px] font-bold uppercase tracking-widest leading-none min-w-[110px] justify-center"><Settings2 className="w-3.5 h-3.5 mr-2" />资源审计</TabsTrigger>
         </TabsList>
 
         <TabsContent value="sm" className="outline-none m-0 text-left">
@@ -613,7 +674,19 @@ export const Maintenance: React.FC = () => {
                   <div className="space-y-2.5 text-left"><Label className="text-[10px] font-bold uppercase tracking-widest opacity-40 ml-1">题型</Label><Select value={quizForm.q_type} onValueChange={v => setQuizForm({ ...quizForm, q_type: v })}><SelectTrigger className="h-10 rounded-xl bg-[#F5F5F7] border-none font-bold text-xs"><SelectValue /></SelectTrigger><SelectContent className="rounded-xl"><SelectItem value="objective">客观题</SelectItem><SelectItem value="subjective">主观题</SelectItem></SelectContent></Select></div>
                   {quizForm.q_type === 'subjective' && (<div className="space-y-2.5 text-left"><Label className="text-[10px] font-bold uppercase tracking-widest opacity-40 ml-1">子类</Label><Select value={quizForm.subjective_type} onValueChange={v => setQuizForm({ ...quizForm, subjective_type: v })}><SelectTrigger className="h-10 rounded-xl bg-[#F5F5F7] border-none font-bold text-xs"><SelectValue /></SelectTrigger><SelectContent className="rounded-xl"><SelectItem value="noun">名词解释</SelectItem><SelectItem value="short">简答题</SelectItem><SelectItem value="essay">论述题</SelectItem></SelectContent></Select></div>)}
                   <div className="space-y-2.5 text-left"><Label className="text-[10px] font-bold uppercase tracking-widest opacity-40 ml-1">挂载点</Label><Select value={quizForm.knowledge_point} onValueChange={v => setQuizForm({ ...quizForm, knowledge_point: v })}><SelectTrigger className="h-10 rounded-xl bg-[#F5F5F7] border-none font-bold text-xs px-4"><SelectValue placeholder="不挂载" /></SelectTrigger><SelectContent className="rounded-xl"><SelectItem value="0" className="text-xs font-bold">不挂载</SelectItem>{kpList.map(kp => <SelectItem key={kp.id} value={kp.id.toString()} className="text-xs font-bold">{kp.name}</SelectItem>)}</SelectContent></Select></div>
-                  <div className="space-y-2.5 text-left"><Label className="text-[10px] font-bold uppercase tracking-widest opacity-40 ml-1">难度</Label><Input type="number" value={quizForm.difficulty} onChange={e => setQuizForm({ ...quizForm, difficulty: parseInt(e.target.value) })} className="h-10 rounded-xl bg-[#F5F5F7] border-none font-bold text-xs px-4" /></div>
+                  <div className="space-y-2.5 text-left">
+                    <Label className="text-[10px] font-bold uppercase tracking-widest opacity-40 ml-1">难度等级</Label>
+                    <Select value={quizForm.difficulty_level} onValueChange={v => setQuizForm({ ...quizForm, difficulty_level: v })}>
+                      <SelectTrigger className="h-10 rounded-xl bg-[#F5F5F7] border-none font-bold text-xs px-4"><SelectValue /></SelectTrigger>
+                      <SelectContent className="rounded-xl">
+                        <SelectItem value="entry">入门 (Entry)</SelectItem>
+                        <SelectItem value="easy">简单 (Easy)</SelectItem>
+                        <SelectItem value="normal">适当 (Normal)</SelectItem>
+                        <SelectItem value="hard">困难 (Hard)</SelectItem>
+                        <SelectItem value="extreme">极限 (Extreme)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
                 <div className="space-y-2.5 text-left"><Label className="text-[10px] font-bold uppercase tracking-widest opacity-40 ml-1">题目文本</Label><textarea value={quizForm.text} onChange={e => setQuizForm({ ...quizForm, text: e.target.value })} className="w-full bg-[#F5F5F7] border-none rounded-2xl p-6 min-h-[100px] font-bold text-sm" /></div>
                 {quizForm.q_type === 'objective' ? (
@@ -669,6 +742,196 @@ export const Maintenance: React.FC = () => {
               </Button>
             </div>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="membership" className="outline-none m-0 text-left">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+            <Card className="lg:col-span-4 border-none shadow-sm rounded-3xl p-10 bg-white border border-black/[0.03] space-y-8">
+              <div className="flex items-center gap-3">
+                <ShieldCheck className="h-6 w-6 text-amber-600" />
+                <h3 className="text-xl font-bold tracking-tight text-[#1D1D1F]">批量生成激活码</h3>
+              </div>
+              <div className="space-y-6">
+                <div className="space-y-2.5">
+                  <Label className="text-[10px] font-bold uppercase tracking-widest opacity-40 ml-1">生成数量</Label>
+                  <Input 
+                    type="number" 
+                    min="1" 
+                    max="50" 
+                    value={newCodeCount} 
+                    onChange={e => setNewCodeCount(parseInt(e.target.value) || 1)} 
+                    className="bg-[#F5F5F7] border-none h-12 rounded-xl font-bold px-5" 
+                  />
+                </div>
+                <Button 
+                  onClick={handleGenerateCodes} 
+                  disabled={isGeneratingCodes}
+                  className="w-full bg-black text-white h-14 rounded-2xl font-bold shadow-xl uppercase text-xs tracking-widest gap-2"
+                >
+                  {isGeneratingCodes ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+                  Generate Codes
+                </Button>
+                <p className="text-[10px] font-medium text-muted-foreground leading-relaxed px-2">
+                  提示：生成后激活码将立即出现在右侧列表中。你可以将其发送给已缴费的学员。
+                </p>
+              </div>
+            </Card>
+
+            <Card className="lg:col-span-8 border-none shadow-sm rounded-3xl p-10 bg-[#F5F5F7]/50 border border-black/[0.03] space-y-6">
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-bold uppercase tracking-widest text-black/40">激活码库存与状态</h3>
+                <Button variant="ghost" size="icon" onClick={fetchCodes} className="rounded-full h-10 w-10">
+                  <RefreshCcw className="w-4 h-4 opacity-40" />
+                </Button>
+              </div>
+              <ScrollArea className="h-[520px]">
+                <div className="grid gap-3 pr-4">
+                  {codes.length === 0 ? (
+                    <div className="py-20 text-center opacity-20 font-bold uppercase text-[10px] tracking-widest">暂无数据</div>
+                  ) : (
+                    codes.map(c => (
+                      <div key={c.id} className="p-4 bg-white rounded-2xl border border-black/[0.02] shadow-sm flex items-center justify-between group">
+                        <div className="flex items-center gap-4">
+                          <div className={cn(
+                            "h-10 px-4 rounded-xl flex items-center justify-center font-mono font-bold text-sm tracking-widest",
+                            c.is_used ? "bg-muted text-muted-foreground line-through" : "bg-amber-50 text-amber-700 border border-amber-100"
+                          )}>
+                            {c.code}
+                          </div>
+                          <div className="flex flex-col">
+                            <span className={cn("text-[10px] font-bold uppercase", c.is_used ? "text-red-500" : "text-emerald-500")}>
+                              {c.is_used ? '已失效' : '待使用'}
+                            </span>
+                            {c.is_used && (
+                              <span className="text-[9px] font-medium text-muted-foreground italic">
+                                由 {c.used_by_username || '未知用户'} 激活于 {new Date(c.used_at).toLocaleDateString()}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                        <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity text-left">
+                          {!c.is_used && (
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              onClick={() => {
+                                navigator.clipboard.writeText(c.code);
+                                toast.success("已复制到剪贴板");
+                              }}
+                              className="h-8 rounded-lg font-bold text-[10px] uppercase text-indigo-600 hover:bg-indigo-50"
+                            >
+                              Copy
+                            </Button>
+                          )}
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            onClick={() => handleDeleteCode(c.id)}
+                            className="h-8 rounded-lg font-bold text-[10px] uppercase text-red-600 hover:bg-red-50"
+                          >
+                            {c.is_used ? 'Revoke' : 'Delete'}
+                          </Button>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </ScrollArea>
+            </Card>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="insights" className="outline-none m-0 text-left">
+          <div className="space-y-8">
+            {/* 顶层数据卡片 */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <Card className="p-8 rounded-[2rem] border-none shadow-sm bg-white border border-black/[0.03]">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1">注册总用户</p>
+                <div className="flex items-baseline gap-2">
+                  <span className="text-4xl font-black tracking-tighter">{biData?.user_overview?.total || 0}</span>
+                  <span className="text-[10px] font-bold text-emerald-500 uppercase">Registered</span>
+                </div>
+              </Card>
+              <Card className="p-8 rounded-[2rem] border-none shadow-sm bg-white border border-black/[0.03]">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1">正式学员 (Pro)</p>
+                <div className="flex items-baseline gap-2">
+                  <span className="text-4xl font-black tracking-tighter text-amber-600">{biData?.user_overview?.members || 0}</span>
+                  <span className="text-[10px] font-bold text-amber-500 uppercase">Paid Members</span>
+                </div>
+              </Card>
+              <Card className="p-8 rounded-[2rem] border-none shadow-sm bg-white border border-black/[0.03]">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1">付费转化率</p>
+                <div className="flex items-baseline gap-2">
+                  <span className="text-4xl font-black tracking-tighter">{biData?.user_overview?.member_rate || 0}%</span>
+                  <span className="text-[10px] font-bold text-indigo-500 uppercase">Conversion</span>
+                </div>
+              </Card>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+              {/* 学术瓶颈榜 */}
+              <Card className="border-none shadow-sm rounded-[2.5rem] p-10 bg-white border border-black/[0.03] space-y-8">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <Target className="h-6 w-6 text-red-600" />
+                    <h3 className="text-xl font-bold tracking-tight text-[#1D1D1F]">学术瓶颈 Top 10</h3>
+                  </div>
+                  <Badge variant="outline" className="text-[9px] font-bold border-red-100 text-red-600">按错题总数降序</Badge>
+                </div>
+                <div className="space-y-4">
+                  {biData?.kp_errors?.map((item: any, i: number) => (
+                    <div key={i} className="space-y-2">
+                      <div className="flex justify-between items-center px-1">
+                        <span className="text-xs font-bold text-[#1D1D1F]">{item.question__knowledge_point__name}</span>
+                        <span className="text-[10px] font-bold tabular-nums text-red-500">{item.total_errors} 次错误</span>
+                      </div>
+                      <div className="h-2 w-full bg-slate-50 rounded-full overflow-hidden">
+                        <div 
+                          className="h-full bg-red-500/80 rounded-full transition-all duration-1000" 
+                          style={{ width: `${(item.total_errors / biData.kp_errors[0].total_errors) * 100}%` }} 
+                        />
+                      </div>
+                    </div>
+                  ))}
+                  {(!biData?.kp_errors || biData.kp_errors.length === 0) && (
+                    <div className="py-20 text-center opacity-20 font-bold uppercase text-[10px]">暂无错题数据</div>
+                  )}
+                </div>
+              </Card>
+
+              {/* 课程吸引力 */}
+              <Card className="border-none shadow-sm rounded-[2.5rem] p-10 bg-[#F5F5F7]/50 border border-black/[0.03] space-y-8">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <Video className="h-6 w-6 text-emerald-600" />
+                    <h3 className="text-xl font-bold tracking-tight text-[#1D1D1F]">课程吸睛指数</h3>
+                  </div>
+                  <Button variant="ghost" size="icon" onClick={fetchBI} className="rounded-full h-8 w-8"><RefreshCw className={cn("w-3.5 h-3.5 opacity-40", isLoadingBI && "animate-spin")} /></Button>
+                </div>
+                <div className="space-y-2">
+                  {biData?.course_stats?.map((item: any, i: number) => (
+                    <div key={i} className="p-5 bg-white rounded-2xl border border-black/[0.02] shadow-sm flex items-center justify-between group">
+                      <div className="min-w-0 flex-1 pr-4">
+                        <p className="text-xs font-bold text-[#1D1D1F] truncate">{item.course__title}</p>
+                        <p className="text-[9px] font-medium text-muted-foreground mt-1 uppercase tracking-tighter">
+                          {item.total_views} 位学者观看 · {item.completions} 位已达成
+                        </p>
+                      </div>
+                      <div className="text-right shrink-0">
+                        <div className="text-[10px] font-black tracking-tighter text-emerald-600">
+                          {Math.round((item.completions / item.total_views) * 100)}%
+                        </div>
+                        <p className="text-[8px] font-bold text-muted-foreground/40 uppercase">Finish Rate</p>
+                      </div>
+                    </div>
+                  ))}
+                  {(!biData?.course_stats || biData.course_stats.length === 0) && (
+                    <div className="py-20 text-center opacity-20 font-bold uppercase text-[10px]">暂无观看记录</div>
+                  )}
+                </div>
+              </Card>
+            </div>
+          </div>
         </TabsContent>
 
         <TabsContent value="manage" className="outline-none m-0 text-left">
@@ -777,6 +1040,29 @@ export const Maintenance: React.FC = () => {
             {editingItem?.type === 'quizzes' && (
               <div className="space-y-4 text-left">
                 <textarea value={editingItem.data.text} onChange={e => setEditingItem({ ...editingItem, data: { ...editingItem.data, text: e.target.value } })} className="w-full p-4 rounded-xl bg-slate-50 border-none text-xs font-bold min-h-[80px]" />
+                <div className="grid grid-cols-2 gap-4 text-left">
+                  <div className="space-y-1.5 text-left"><Label className="text-[10px] font-bold uppercase opacity-40">关联知识点</Label>
+                    <Select value={editingItem.data.knowledge_point || "0"} onValueChange={v => setEditingItem({ ...editingItem, data: { ...editingItem.data, knowledge_point: v } })}>
+                      <SelectTrigger className="h-10 rounded-xl bg-slate-50 border-none font-bold text-xs px-4"><SelectValue /></SelectTrigger>
+                      <SelectContent className="rounded-xl">
+                        <SelectItem value="0" className="text-xs font-bold">不挂载</SelectItem>
+                        {kpList.map(kp => <SelectItem key={kp.id} value={kp.id.toString()} className="text-xs font-bold">{kp.name}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-1.5 text-left"><Label className="text-[10px] font-bold uppercase opacity-40">难度等级</Label>
+                    <Select value={editingItem.data.difficulty_level || "normal"} onValueChange={v => setEditingItem({ ...editingItem, data: { ...editingItem.data, difficulty_level: v } })}>
+                      <SelectTrigger className="h-10 rounded-xl bg-slate-50 border-none font-bold text-xs px-4"><SelectValue /></SelectTrigger>
+                      <SelectContent className="rounded-xl">
+                        <SelectItem value="entry">入门 (Entry)</SelectItem>
+                        <SelectItem value="easy">简单 (Easy)</SelectItem>
+                        <SelectItem value="normal">适当 (Normal)</SelectItem>
+                        <SelectItem value="hard">困难 (Hard)</SelectItem>
+                        <SelectItem value="extreme">极限 (Extreme)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
                 <div className="grid grid-cols-2 gap-4 text-left">
                   <div className="space-y-1.5 text-left"><Label className="text-[10px] font-bold uppercase opacity-40">判分点</Label><textarea value={editingItem.data.grading_points} onChange={e => setEditingItem({ ...editingItem, data: { ...editingItem.data, grading_points: e.target.value } })} className="w-full p-4 rounded-xl bg-slate-50 border-none text-[10px] h-24" /></div>
                   <div className="space-y-1.5 text-left"><Label className="text-[10px] font-bold uppercase opacity-40">答案</Label><textarea value={editingItem.data.correct_answer} onChange={e => setEditingItem({ ...editingItem, data: { ...editingItem.data, correct_answer: e.target.value } })} className="w-full p-4 rounded-xl bg-slate-50 border-none text-[10px] h-24" /></div>

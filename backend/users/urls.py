@@ -2,7 +2,9 @@ from django.urls import path
 from .views import (
     RegisterView, LoginView, UserDetailView, UpdateProfileView, 
     SystemConfigView, OnlineUserListView, UpdateEmailView, UpdatePasswordView,
-    DailyPlanListView, DailyPlanDetailView, ResetEloView
+    DailyPlanListView, DailyPlanDetailView, ResetEloView,
+    ActivateMembershipView, ActivationCodeListView, ActivationCodeDetailView,
+    BIAnalyticsView, WeeklyCognitiveReportView
 )
 
 urlpatterns = [
@@ -17,4 +19,9 @@ urlpatterns = [
     path('plans/', DailyPlanListView.as_view(), name='daily-plan-list'),
     path('plans/<int:pk>/', DailyPlanDetailView.as_view(), name='daily-plan-detail'),
     path('me/reset-elo/', ResetEloView.as_view(), name='reset-elo'),
+    path('me/activate/', ActivateMembershipView.as_view(), name='activate-membership'),
+    path('admin/codes/', ActivationCodeListView.as_view(), name='activation-codes'),
+    path('admin/codes/<int:pk>/', ActivationCodeDetailView.as_view(), name='activation-code-detail'),
+    path('admin/bi/', BIAnalyticsView.as_view(), name='admin-bi'),
+    path('me/weekly-report/', WeeklyCognitiveReportView.as_view(), name='weekly-report'),
 ]

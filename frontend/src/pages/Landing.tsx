@@ -15,6 +15,7 @@ import { cn } from '@/lib/utils';
 import { useNavigate } from 'react-router-dom';
 import { Avatar, AvatarImage } from '@/components/ui/avatar';
 import { useAuthStore } from '../store/useAuthStore';
+import { APP_VERSION, COPYRIGHT_YEAR, COPYRIGHT_ENTITY } from '@/constants/version';
 
 const Glow = ({ className }: { className?: string }) => (
   <div className={cn("absolute -z-10 w-[500px] h-[500px] bg-gradient-to-tr from-pink-500/5 to-purple-600/5 blur-[120px] rounded-full pointer-events-none", className)} />
@@ -168,9 +169,9 @@ export const Landing: React.FC = () => {
                   <p className="text-slate-400 text-sm font-medium max-w-md mt-4 leading-relaxed">一站式全周期深度辅导，重构金融 431 应试效率极限。包含 AMR 核心课程体系的所有模块与增值服务。</p>
                 </div>
                 <div className="text-left md:text-right space-y-1">
-                  <span className="text-4xl text-slate-500 font-bold line-through opacity-80">¥9500</span>
+                  <span className="text-4xl text-slate-500 font-bold line-through opacity-80">¥9,799</span>
                   <div className="flex items-baseline justify-start md:justify-end gap-1">
-                    <span className="text-6xl font-black tracking-tighter text-white">¥8150</span>
+                    <span className="text-6xl font-black tracking-tighter text-white">¥8,150</span>
                   </div>
                   <p className="text-[10px] font-bold text-pink-500 uppercase tracking-widest mt-2">全程班限时优惠</p>
                 </div>
@@ -230,11 +231,11 @@ export const Landing: React.FC = () => {
             <div className="h-10 w-10 rounded-xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 flex items-center justify-center font-bold italic text-xl shadow-lg">K</div>
             <div className="text-left leading-tight">
               <p className="font-bold text-lg text-slate-900 dark:text-white tracking-tighter uppercase">UniMind.ai</p>
-              <p className="text-xs font-medium text-slate-400 tracking-wide mt-1">© 2019-2026 北京融知高科 · 金融硕士辅导专家</p>
+              <div className="flex flex-col gap-1 mt-1">
+                <p className="text-[10px] font-medium text-slate-400 tracking-wide">© {COPYRIGHT_YEAR} {COPYRIGHT_ENTITY}</p>
+                <p className="text-[9px] font-bold text-slate-300 dark:text-slate-700 uppercase tracking-[0.2em]">{APP_VERSION} · </p>
+              </div>
             </div>
-          </div>
-          <div className="flex gap-10 font-bold text-slate-500">
-            {['微信公众号', 'SciRise', 'Terms', 'Privacy'].map(item => (<a key={item} href="#" className="hover:text-pink-500 transition-colors uppercase tracking-widest text-[9px]">{item}</a>))}
           </div>
         </div>
       </footer>

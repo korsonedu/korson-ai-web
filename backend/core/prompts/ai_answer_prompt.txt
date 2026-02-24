@@ -1,0 +1,7 @@
+请为以下题目提供深度解析和标准答案。支持 LaTeX 公式渲染（公式前后保留空格）。
+
+题目类型：{q_type_display}
+题目内容：{question_text}
+得分点参考：{grading_points}
+
+请输出详细的解析过程和标准答案。

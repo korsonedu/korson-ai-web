@@ -9,7 +9,6 @@ import api from '@/lib/api';
 export const Register: React.FC = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [inviteCode, setInviteCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
@@ -19,7 +18,7 @@ export const Register: React.FC = () => {
     setLoading(true);
     setError('');
     try {
-      await api.post('/users/register/', { username, password, invite_code: inviteCode });
+      await api.post('/users/register/', { username, password });
       navigate('/login');
     } catch (err: any) {
       setError(Object.values(err.response?.data || {}).flat()[0] as string || '注册失败，请换个用户名试试');
@@ -55,14 +54,6 @@ export const Register: React.FC = () => {
                 onChange={(e) => setPassword(e.target.value)}
                 className="bg-slate-50/50 border-none h-12 rounded-xl focus-visible:ring-black"
                 required
-              />
-            </div>
-            <div className="space-y-2">
-              <Input 
-                placeholder="邀请码 (如有)" 
-                value={inviteCode}
-                onChange={(e) => setInviteCode(e.target.value)}
-                className="bg-slate-50/50 border-none h-12 rounded-xl focus-visible:ring-black"
               />
             </div>
             <Button className="w-full h-12 bg-black text-white rounded-xl font-medium hover:bg-black/90 transition-all" disabled={loading}>

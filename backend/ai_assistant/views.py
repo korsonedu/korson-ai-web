@@ -1,22 +1,55 @@
 import os
-import requests
-import json
-import datetime
-import re
-from django.utils import timezone
+import threading
+from django.db import connections
 from rest_framework import generics, permissions, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from .models import AIChatMessage, Bot
 from .serializers import AIChatMessageSerializer, BotSerializer
 from .utils import get_student_academic_context
+from users.views import IsMember
+from ai_service import AIService
 
-def get_ai_template(filename):
-    path = os.path.join(os.path.dirname(__file__), 'templates', filename)
-    if os.path.exists(path):
-        with open(path, 'r', encoding='utf-8') as f:
-            return f.read()
-    return ""
+def process_ai_chat(user, bot, user_message, api_key, pending_msg_id, history_limit=10):
+    # Filter out pending messages from history
+    history_objs = AIChatMessage.objects.filter(user=user, bot=bot).order_by('-timestamp')[:history_limit]
+    history_msgs = [{"role": h.role, "content": h.content} for h in reversed(history_objs) if h.content != "[Thinking...]"]
+    
+    student_context = ""
+    if bot and bot.is_exclusive:
+        student_context = get_student_academic_context(user)
+
+    try:
+        res = AIService.chat_with_assistant(bot, history_msgs, user_message, student_context)
+        
+        pending_msg = AIChatMessage.objects.filter(id=pending_msg_id).first()
+        
+        if res and 'choices' in res:
+            ai_content = res['choices'][0]['message']['content']
+            finish_reason = res['choices'][0].get('finish_reason')
+            
+            # Format math
+            ai_content = ai_content.replace('\\[', ' $$ ').replace('\\]', ' $$ ').replace('\\(', ' $ ').replace('\\)', ' $ ')
+            
+            if finish_reason == 'length':
+                ai_content += "\n\n(已达到单次回复上限...)"
+            
+            if pending_msg:
+                pending_msg.content = ai_content
+                pending_msg.save()
+        else:
+            if pending_msg:
+                pending_msg.content = "AI 助教暂时无法响应，请稍后再试。"
+                pending_msg.save()
+                
+    except Exception as e:
+        print(f"AI Chat Thread Error: {e}")
+        pending_msg = AIChatMessage.objects.filter(id=pending_msg_id).first()
+        if pending_msg:
+            pending_msg.content = f"抱歉，连接中断: {str(e)}"
+            pending_msg.save()
+    finally:
+        connections.close_all()
 
 def get_bot_prompt_path(bot):
     base_dir = os.path.join(os.path.dirname(__file__), 'templates', 'bots')
@@ -41,7 +74,7 @@ class BotListCreateView(generics.ListCreateAPIView):
     serializer_class = BotSerializer
     def get_permissions(self):
         if self.request.method == 'POST': return [permissions.IsAdminUser()]
-        return [permissions.IsAuthenticated()]
+        return [IsMember()]
 
     def get_queryset(self):
         bots = Bot.objects.all()
@@ -75,7 +108,7 @@ class BotDetailView(generics.RetrieveUpdateDestroyAPIView):
         instance.delete()
 
 class AIChatView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [IsMember]
 
     def post(self, request):
         user_message = request.data.get('message')
@@ -83,45 +116,28 @@ class AIChatView(APIView):
         if not user_message: return Response({'error': 'Message is required'}, status=400)
 
         bot = Bot.objects.filter(id=bot_id).first()
-        if bot: sync_bot_prompt(bot) # 对话前进行终极同步
+        if bot: sync_bot_prompt(bot) 
 
+        # 1. Save User Message
         AIChatMessage.objects.create(user=request.user, role='user', content=user_message, bot=bot)
+        
+        # 2. Create Pending Assistant Message
+        pending_msg = AIChatMessage.objects.create(user=request.user, role='assistant', content="[Thinking...]", bot=bot)
 
         api_key = os.getenv('DEEPSEEK_API_KEY')
-        url = "https://api.deepseek.com/chat/completions"
-        headers = {"Content-Type": "application/json", "Authorization": f"Bearer {api_key}"}
-
-        # 优先级：机器人专属Prompt > 物理文件同步后的Prompt > 基础模板
-        base_system_prompt = bot.system_prompt if (bot and bot.system_prompt) else get_ai_template('base_assistant_prompt.txt')
         
-        if bot and bot.is_exclusive:
-            student_context = get_student_academic_context(request.user)
-            mentor_template = get_ai_template('exclusive_mentor_prompt.txt')
-            full_system_prompt = mentor_template.format(student_context=student_context)
-            if bot.system_prompt:
-                full_system_prompt = f"{bot.system_prompt}\n\n{full_system_prompt}"
-        else:
-            full_system_prompt = base_system_prompt
+        # 3. Start Background Thread
+        thread = threading.Thread(
+            target=process_ai_chat,
+            args=(request.user, bot, user_message, api_key, pending_msg.id)
+        )
+        thread.start()
 
-        history_objs = AIChatMessage.objects.filter(user=request.user, bot=bot).order_by('-timestamp')[:10]
-        history_msgs = [{"role": h.role, "content": h.content} for h in reversed(history_objs)]
-        messages = [{"role": "system", "content": full_system_prompt}] + history_msgs
-
-        data = {"model": "deepseek-chat", "messages": messages, "stream": False}
-
-        try:
-            response = requests.post(url, headers=headers, json=data, timeout=60)
-            result = response.json()
-            ai_content = result['choices'][0]['message']['content']
-            ai_content = ai_content.replace('\\[', ' $$ ').replace('\\]', ' $$ ').replace('\\(', ' $ ').replace('\\)', ' $ ')
-            AIChatMessage.objects.create(user=request.user, role='assistant', content=ai_content, bot=bot)
-            return Response({'content': ai_content})
-        except Exception as e:
-            return Response({'error': f'连接 AI 失败: {str(e)}'}, status=500)
+        return Response({'status': 'pending'})
 
 class AIChatListView(generics.ListAPIView):
     serializer_class = AIChatMessageSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [IsMember]
     def get_queryset(self):
         bot_id = self.request.query_params.get('bot_id')
         qs = AIChatMessage.objects.filter(user=self.request.user)
@@ -129,7 +145,7 @@ class AIChatListView(generics.ListAPIView):
         return qs
 
 class AIChatResetView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [IsMember]
     def post(self, request):
         bot_id = request.data.get('bot_id')
         qs = AIChatMessage.objects.filter(user=request.user)

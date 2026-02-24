@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Question, QuizAttempt, KnowledgePoint, UserQuestionStatus
+from .models import Question, QuizAttempt, KnowledgePoint, UserQuestionStatus, QuizExam, ExamQuestionResult
 from users.serializers import UserSerializer
 
 class KnowledgePointSerializer(serializers.ModelSerializer):
@@ -11,6 +11,8 @@ class KnowledgePointSerializer(serializers.ModelSerializer):
 class QuestionSerializer(serializers.ModelSerializer):
     knowledge_point_detail = KnowledgePointSerializer(source='knowledge_point', read_only=True)
     is_favorite = serializers.SerializerMethodField()
+    is_mastered = serializers.SerializerMethodField()
+    difficulty_level_display = serializers.CharField(source='get_difficulty_level_display', read_only=True)
 
     class Meta:
         model = Question
@@ -21,6 +23,13 @@ class QuestionSerializer(serializers.ModelSerializer):
         if user.is_authenticated:
             status = UserQuestionStatus.objects.filter(user=user, question=obj).first()
             return status.is_favorite if status else False
+        return False
+
+    def get_is_mastered(self, obj):
+        user = self.context.get('request').user
+        if user.is_authenticated:
+            status = UserQuestionStatus.objects.filter(user=user, question=obj).first()
+            return status.is_mastered if status else False
         return False
 
 class UserQuestionStatusSerializer(serializers.ModelSerializer):
@@ -34,3 +43,17 @@ class QuizAttemptSerializer(serializers.ModelSerializer):
         model = QuizAttempt
         fields = '__all__'
         read_only_fields = ('user', 'elo_change')
+
+class ExamQuestionResultSerializer(serializers.ModelSerializer):
+    question_detail = QuestionSerializer(source='question', read_only=True)
+    class Meta:
+        model = ExamQuestionResult
+        fields = '__all__'
+
+class QuizExamSerializer(serializers.ModelSerializer):
+    results = ExamQuestionResultSerializer(many=True, read_only=True)
+    created_at_fmt = serializers.DateTimeField(source='created_at', format="%Y-%m-%d %H:%M", read_only=True)
+    
+    class Meta:
+        model = QuizExam
+        fields = '__all__'

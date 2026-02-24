@@ -1,0 +1,17 @@
+针对知识点 {kp_name} ({kp_description}) 生成 {count} 道题目（含客观题和主观题）。
+
+输出格式要求 (JSON 数组):
+[
+  {{
+    "text": "题干内容 (支持 LaTeX 公式，前后加空格)",
+    "q_type": "objective" 或 "subjective",
+    "subjective_type": "noun", "short" 或 "essay" (仅主观题),
+    "options": ["A. xx", "B. xx", "C. xx", "D. xx"] (仅客观题),
+    "correct_answer": "答案字母或文本",
+    "grading_points": "主观题得分点核心词",
+    "analysis": "题目深度解析",
+    "difficulty": 1000
+  }}
+]
+
+只输出 JSON，不要任何 Markdown 标记。

@@ -5,10 +5,11 @@ from django.db.models import Q
 from .models import Question, Answer
 from .serializers import QuestionSerializer, AnswerSerializer
 from notifications.models import Notification
+from users.views import IsMember
 
 class QuestionListCreateView(generics.ListCreateAPIView):
     serializer_class = QuestionSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [IsMember]
     filter_backends = [filters.SearchFilter]
     search_fields = ['content', 'user__nickname']
 
@@ -35,7 +36,7 @@ class QuestionListCreateView(generics.ListCreateAPIView):
 class QuestionDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Question.objects.all()
     serializer_class = QuestionSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [IsMember]
 
     def perform_update(self, serializer):
         if self.request.user == serializer.instance.user or self.request.user.role == 'admin':
@@ -53,7 +54,7 @@ class QuestionDetailView(generics.RetrieveUpdateDestroyAPIView):
 class AnswerDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Answer.objects.all()
     serializer_class = AnswerSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [IsMember]
 
     def perform_update(self, serializer):
         if self.request.user == serializer.instance.user or self.request.user.role == 'admin':
@@ -69,7 +70,7 @@ class AnswerDetailView(generics.RetrieveUpdateDestroyAPIView):
 
 class AnswerCreateView(generics.CreateAPIView):
     serializer_class = AnswerSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [IsMember]
 
     def create(self, request, *args, **kwargs):
         question_id = request.data.get('question')
@@ -122,7 +123,7 @@ class AnswerCreateView(generics.CreateAPIView):
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 class QuestionActionView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [IsMember]
 
     def patch(self, request, pk):
         try:
@@ -173,7 +174,7 @@ class QuestionActionView(APIView):
         return Response({'error': 'Invalid action'}, status=400)
 
 class AnswerActionView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [IsMember]
 
     def patch(self, request, pk):
         try:

@@ -38,3 +38,16 @@ class StartupMaterial(models.Model):
 
     def __str__(self):
         return self.name
+
+class VideoProgress(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='progress_records')
+    last_position = models.FloatField(default=0, help_text="上次观看位置（秒）")
+    is_finished = models.BooleanField(default=False, verbose_name="是否观看完成")
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ('user', 'course')
+
+    def __str__(self):
+        return f"{self.user.username} - {self.course.title} ({'完成' if self.is_finished else '进行中'})"

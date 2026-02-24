@@ -1,5 +1,10 @@
 from django.urls import path
-from .views import CourseListCreateView, CourseDetailView, AwardEloView, AlbumListCreateView, AlbumDetailView, StartupMaterialListCreateView, StartupMaterialDetailView
+from .views import (
+    CourseListCreateView, CourseDetailView, AwardEloView, 
+    AlbumListCreateView, AlbumDetailView, 
+    StartupMaterialListCreateView, StartupMaterialDetailView,
+    VideoProgressUpdateView
+)
 
 urlpatterns = [
     path('', CourseListCreateView.as_view(), name='course-list'),
@@ -9,4 +14,5 @@ urlpatterns = [
     path('albums/<int:pk>/', AlbumDetailView.as_view(), name='album-detail'),
     path('startup-materials/', StartupMaterialListCreateView.as_view(), name='startup-material-list'),
     path('startup-materials/<int:pk>/', StartupMaterialDetailView.as_view(), name='startup-material-detail'),
+    path('<int:pk>/progress/', VideoProgressUpdateView.as_view(), name='video-progress-update'),
 ]

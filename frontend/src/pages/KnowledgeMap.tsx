@@ -263,23 +263,37 @@ export const KnowledgeMap: React.FC = () => {
     <PageWrapper title="知识地图" subtitle="可视化呈现知识载体间的逻辑脉络与关联结构。">
       <div className="w-full space-y-6 text-left animate-in fade-in duration-700">
 
-        <div className="flex justify-between items-center">
-          <div className="max-w-md flex-1">
-            <Input
-              placeholder="搜索知识点..."
-              value={searchQuery}
-              onChange={e => setSearchSearchQuery(e.target.value)}
-              className="rounded-2xl bg-white border-border shadow-sm h-11 px-5 font-bold"
-            />
-          </div>
-          <div className="flex bg-muted/30 p-1 rounded-2xl border border-border/50">
-            <Button variant={viewMode === 'list' ? 'secondary' : 'ghost'} onClick={() => setViewMode('list')} className="rounded-xl h-9 text-xs font-bold px-6">词条表</Button>
-            <Button variant={viewMode === 'graph' ? 'secondary' : 'ghost'} onClick={() => setViewMode('graph')} className="rounded-xl h-9 text-xs font-bold px-6">关系图</Button>
-          </div>
-        </div>
+                <div className="flex justify-between items-center">
 
-        {loading ? (
-          <div className="py-20 text-center opacity-20 font-bold uppercase text-[10px] animate-pulse">Mapping connections...</div>
+                  <div className="max-w-md flex-1">
+
+                    <Input
+
+                      placeholder="搜索知识点..."
+
+                      value={searchQuery}
+
+                      onChange={e => setSearchSearchQuery(e.target.value)}
+
+                      className="rounded-2xl bg-white border-border shadow-sm h-11 px-5 font-bold"
+
+                    />
+
+                  </div>
+
+                  <div className="flex bg-muted/30 p-1 rounded-2xl border border-border/50">
+
+                    <Button variant={viewMode === 'list' ? 'secondary' : 'ghost'} onClick={() => setViewMode('list')} className="rounded-xl h-9 text-xs font-bold px-6">词条表</Button>
+
+                    <Button variant={viewMode === 'graph' ? 'secondary' : 'ghost'} onClick={() => setViewMode('graph')} className="rounded-xl h-9 text-xs font-bold px-6">关系图</Button>
+
+                  </div>
+
+                </div>
+
+        
+
+                {loading ? (          <div className="py-20 text-center opacity-20 font-bold uppercase text-[10px] animate-pulse">Mapping connections...</div>
         ) : viewMode === 'graph' ? (
           <KnowledgeGraph nodes={nodes} onNodeClick={handleNodeSelect} />
         ) : (

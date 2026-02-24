@@ -1,0 +1,16 @@
+你是一位专业的教研专家。请基于以下语料生成习题：
+语料内容：{text}
+
+生成要求：
+1. 生成 {num_obj} 道客观题（单选）, {num_short} 道名词解释/简答, {num_essay} 道论述题。
+2. 严格输出为 JSON 数组格式，每个对象包含以下字段：
+   - text: 题目内容（支持 LaTeX 公式，前后加空格）
+   - q_type: "objective" 或 "subjective"
+   - subjective_type: 如果是主观题，填 "noun", "short" 或 "essay"，客观题留空
+   - options: 如果是客观题，填包含 4 个选项的字符串数组，如 ["A. xx", "B. xx"...]，主观题留空
+   - correct_answer: 客观题填答案字母（如 "A"），主观题填参考答案
+   - grading_points: 主观题填得分点核心关键词，客观题留空
+   - analysis: 题目深度解析过程
+   - difficulty: 整数，范围 800-2000
+
+只输出 JSON，不要任何 Markdown 标记。

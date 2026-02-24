@@ -1,21 +1,26 @@
 from django.urls import path
 from .views import (
     QuestionListView, QuestionDetailView, QuizAttemptCreateView, 
-    LeaderboardView, GradeSubjectiveView, ToggleFavoriteView, QuizStatsView,
+    LeaderboardView, GradeSubjectiveView, ToggleFavoriteView, ToggleMasteredView, QuizStatsView,
     WrongQuestionListView, FavoriteQuestionListView,
     KnowledgePointListView, KnowledgePointDetailView, GenerateBulkQuestionsView,
     GenerateFromTextView, AIPreviewParseView, BulkImportQuestionsView,
-    AdminQuestionListView, ExportStructuredQuestionsView, ImportCSVQuestionsView
+    AdminQuestionListView, ExportStructuredQuestionsView, ImportCSVQuestionsView,
+    SubmitExamView, LatestExamReportView, ExamDetailView
 )
 
 urlpatterns = [
     path('questions/', QuestionListView.as_view(), name='question-list'),
     path('questions/<int:pk>/', QuestionDetailView.as_view(), name='question-detail'),
     path('submit/', QuizAttemptCreateView.as_view(), name='quiz-submit'),
+    path('submit-exam/', SubmitExamView.as_view(), name='quiz-submit-exam'),
+    path('exams/<int:pk>/', ExamDetailView.as_view(), name='exam-detail'),
+    path('latest-report/', LatestExamReportView.as_view(), name='latest-exam-report'),
     path('leaderboard/', LeaderboardView.as_view(), name='leaderboard'),
     path('grade-subjective/', GradeSubjectiveView.as_view(), name='grade-subjective'),
     path('stats/', QuizStatsView.as_view(), name='quiz-stats'),
     path('favorite/toggle/', ToggleFavoriteView.as_view(), name='favorite-toggle'),
+    path('mastered/toggle/', ToggleMasteredView.as_view(), name='mastered-toggle'),
     path('wrong-questions/', WrongQuestionListView.as_view(), name='wrong-questions'),
     path('favorites/', FavoriteQuestionListView.as_view(), name='favorites-list'),
     path('knowledge-points/', KnowledgePointListView.as_view(), name='knowledge-point-list'),

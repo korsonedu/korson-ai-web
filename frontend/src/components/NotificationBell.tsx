@@ -115,9 +115,9 @@ export const NotificationBell = () => {
                       {getIcon(notif.ntype)}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-[11px] font-bold text-foreground leading-tight">{notif.title}</p>
-                      <p className="text-[10px] text-muted-foreground leading-normal mt-0.5 break-words whitespace-pre-wrap">{notif.content}</p>
-                      <p className="text-[7px] font-bold text-muted-foreground/30 uppercase tracking-tighter mt-1">
+                      <p className="text-[13px] font-black text-foreground leading-tight">{notif.title}</p>
+                      <p className="text-[12px] font-medium text-muted-foreground leading-relaxed mt-1 break-words whitespace-pre-wrap">{notif.content}</p>
+                      <p className="text-[9px] font-bold text-muted-foreground/30 uppercase tracking-tighter mt-1.5">
                         {new Date(notif.created_at).toLocaleString('zh-CN', {month: '2-digit', day: '2-digit', hour: '2-digit', minute:'2-digit'})}
                       </p>
                     </div>

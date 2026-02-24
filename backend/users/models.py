@@ -25,6 +25,7 @@ class User(AbstractUser):
     allow_broadcast = models.BooleanField(default=True)
     show_others_broadcast = models.BooleanField(default=True)
     bio = models.TextField(blank=True, null=True)
+    is_member = models.BooleanField(default=False, verbose_name="是否会员")
 
     def save(self, *args, **kwargs):
         if not self.avatar_seed:
@@ -34,11 +35,22 @@ class User(AbstractUser):
         # 自动同步管理员权限
         if self.role == 'admin':
             self.is_staff = True
+            self.is_member = True
         
         super().save(*args, **kwargs)
 
     class Meta:
         ordering = ['-elo_score']
+
+class ActivationCode(models.Model):
+    code = models.CharField(max_length=50, unique=True, verbose_name="激活码")
+    is_used = models.BooleanField(default=False, verbose_name="是否已使用")
+    used_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name="used_codes")
+    used_at = models.DateTimeField(null=True, blank=True, verbose_name="使用时间")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.code} ({'已用' if self.is_used else '可用'})"
 
 class DailyPlan(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)

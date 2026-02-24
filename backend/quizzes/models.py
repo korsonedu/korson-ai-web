@@ -22,16 +22,38 @@ class Question(models.Model):
         ('essay', '论述题'),
         ('calculate', '计算题'),
     )
+    DIFFICULTY_LEVELS = (
+        ('entry', '入门 (Entry)'),
+        ('easy', '简单 (Easy)'),
+        ('normal', '适当 (Normal)'),
+        ('hard', '困难 (Hard)'),
+        ('extreme', '极限 (Extreme)'),
+    )
+    DIFFICULTY_MAP = {
+        'entry': 800,
+        'easy': 1000,
+        'normal': 1200,
+        'hard': 1400,
+        'extreme': 1600,
+    }
+    
     knowledge_point = models.ForeignKey(KnowledgePoint, on_delete=models.SET_NULL, null=True, blank=True, related_name='questions')
     text = models.TextField(verbose_name="题目内容")
     q_type = models.CharField(max_length=20, choices=QUESTION_TYPES, default='objective')
     subjective_type = models.CharField(max_length=20, choices=SUBJECTIVE_TYPES, blank=True, null=True, verbose_name="主观题类型")
+    difficulty_level = models.CharField(max_length=20, choices=DIFFICULTY_LEVELS, default='normal', verbose_name="难度等级")
     grading_points = models.TextField(blank=True, null=True, help_text="得分点说明（主观题必填）")
     options = models.JSONField(blank=True, null=True, help_text="客观题选项")
     correct_answer = models.TextField(blank=True, null=True, help_text="客观题标准答案或主观题参考答案")
     ai_answer = models.TextField(blank=True, null=True, verbose_name="AI 生成的深度解析答案")
-    difficulty = models.IntegerField(default=1000)
+    difficulty = models.IntegerField(default=1200, help_text="基准 ELO 分值")
     created_at = models.DateTimeField(auto_now_add=True)
+
+    def save(self, *args, **kwargs):
+        # 自动同步标签到分值 (如果难度分值为默认或未手动指定，则根据级别映射)
+        if self.difficulty_level and (self._state.adding or self.difficulty == 1200):
+            self.difficulty = self.DIFFICULTY_MAP.get(self.difficulty_level, 1200)
+        super().save(*args, **kwargs)
 
     def get_max_score(self):
         if self.q_type == 'objective': return 10
@@ -54,6 +76,7 @@ class UserQuestionStatus(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     question = models.ForeignKey(Question, on_delete=models.CASCADE)
     is_favorite = models.BooleanField(default=False, verbose_name="是否收藏")
+    is_mastered = models.BooleanField(default=False, verbose_name="是否已掌握(排除)")
     wrong_count = models.IntegerField(default=0, verbose_name="错误次数")
     
     # FSRS Fields
@@ -68,3 +91,24 @@ class UserQuestionStatus(models.Model):
 
     class Meta:
         unique_together = ('user', 'question')
+
+class QuizExam(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='exams')
+    total_score = models.FloatField(default=0)
+    max_score = models.FloatField(default=0)
+    elo_change = models.IntegerField(default=0)
+    summary = models.TextField(blank=True, help_text="AI 对整张试卷的综合点评")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+class ExamQuestionResult(models.Model):
+    exam = models.ForeignKey(QuizExam, on_delete=models.CASCADE, related_name='results')
+    question = models.ForeignKey(Question, on_delete=models.SET_NULL, null=True)
+    user_answer = models.TextField()
+    score = models.FloatField()
+    max_score = models.FloatField()
+    feedback = models.TextField(blank=True)
+    analysis = models.TextField(blank=True, help_text="思维链分析")
+    is_correct = models.BooleanField(default=False)

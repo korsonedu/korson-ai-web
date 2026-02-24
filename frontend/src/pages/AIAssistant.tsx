@@ -28,6 +28,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { PageWrapper } from '@/components/PageWrapper';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -101,26 +102,69 @@ export const AIAssistant: React.FC = () => {
     }
   }, [messages, loading]);
 
+  // Poll for updates if last message is from user or is thinking
+  useEffect(() => {
+    if (!selectedBot) return;
+    
+    const lastMsg = messages[messages.length - 1];
+    const needsPolling = lastMsg && (lastMsg.role === 'user' || lastMsg.content === '[Thinking...]');
+    
+    if (needsPolling) {
+      const timer = setInterval(() => {
+        api.get('/ai/history/', { params: { bot_id: selectedBot.id } }).then(res => {
+          if (res.data.length > 0) {
+            const processedHistory = res.data.map((m: any) => ({
+              ...m,
+              content: processMathContent(m.content)
+            }));
+            
+            // Check if the last message has changed from thinking to content
+            const newLastMsg = processedHistory[processedHistory.length - 1];
+            if (newLastMsg.content !== '[Thinking...]') {
+               setMessages(processedHistory);
+               setLoading(false);
+            } else {
+               // Update anyway to show thinking placeholder if not already there
+               if (messages.length !== processedHistory.length) {
+                 setMessages(processedHistory);
+               }
+            }
+          }
+        });
+      }, 2000);
+      return () => clearInterval(timer);
+    }
+  }, [messages, selectedBot]);
+
   const handleSend = async () => {
     if (!selectedBot) return toast.error("请先在上方选择一位 AI 助教");
     if (!input.trim() || loading) return;
-    const userMsg: Message = { role: 'user', content: input };
-    setMessages(prev => [...prev, userMsg]);
+    
+    // Strategy: Send request -> Clear input -> Let the poller fetch the new state.
+    const messageContent = input;
     setInput('');
     setLoading(true);
+    
     try {
-      const response = await api.post('/ai/chat/', { 
-        message: input, 
+      await api.post('/ai/chat/', { 
+        message: messageContent, 
         bot_id: selectedBot.id 
       });
-      const aiContent = processMathContent(response.data.content);
-      setMessages(prev => [...prev, { role: 'assistant', content: aiContent }]);
+      // Force an immediate fetch to show the user message and thinking state ASAP
+      // The useEffect poller will then take over for the answer
+      const res = await api.get('/ai/history/', { params: { bot_id: selectedBot.id } });
+      if (res.data.length > 0) {
+        setMessages(res.data.map((m: any) => ({
+          ...m,
+          content: processMathContent(m.content)
+        })));
+        // Turn off loading skeleton immediately if we have the messages
+        setLoading(false);
+      }
     } catch (error: any) {
-      const errorMsg = error.response?.data?.error || "AI 响应失败";
-      toast.error(errorMsg);
-      setMessages(prev => [...prev, { role: 'assistant', content: `抱歉，我现在遇到了一点技术问题: ${errorMsg}` }]);
-    } finally {
+      toast.error("发送失败");
       setLoading(false);
+      setInput(messageContent); // Restore input on failure
     }
   };
 
@@ -134,15 +178,18 @@ export const AIAssistant: React.FC = () => {
   };
 
   if (isInitialLoading) return (
-    <div className="h-[60vh] flex flex-col items-center justify-center gap-4 opacity-20">
-      <Loader2 className="h-8 w-8 animate-spin text-foreground" />
-      <p className="text-[10px] font-bold uppercase tracking-widest leading-none text-foreground">Initializing AI Laboratory...</p>
-    </div>
+    <PageWrapper title="AI 实验室" subtitle="与您的专属数字导师进行深度学术对话。">
+      <div className="h-[calc(100vh-8.5rem)] flex flex-col items-center justify-center gap-4 opacity-20">
+        <Loader2 className="h-8 w-8 animate-spin text-foreground" />
+        <p className="text-[10px] font-bold uppercase tracking-widest leading-none text-foreground">Initializing AI Laboratory...</p>
+      </div>
+    </PageWrapper>
   );
 
   return (
-    <div className="h-[calc(100vh-8.5rem)] flex flex-col animate-in fade-in duration-300 max-w-5xl mx-auto text-left relative text-foreground px-4">
-      <Card className="flex-1 flex flex-col bg-card rounded-3xl shadow-sm border border-border overflow-hidden relative">
+    <PageWrapper title="AI 实验室" subtitle="与您的专属数字导师进行深度学术对话。">
+      <div className="h-[calc(100vh-8.5rem)] flex flex-col animate-in fade-in duration-300 max-w-5xl mx-auto text-left relative text-foreground px-4">
+        <Card className="flex-1 flex flex-col bg-card rounded-3xl shadow-sm border border-border overflow-hidden relative">
         <header className="px-8 py-3 border-b border-border flex items-center justify-between bg-card/80 backdrop-blur-md sticky top-0 z-10">
           <div className="flex items-center gap-4">
             <DropdownMenu modal={false}>
@@ -207,7 +254,7 @@ export const AIAssistant: React.FC = () => {
             </div>
           ) : (
             <div className="p-8 space-y-8 max-w-4xl mx-auto w-full">
-              {messages.map((msg, i) => (
+              {messages.filter(msg => msg.content !== '[Thinking...]').map((msg, i) => (
                 <div key={i} className={cn("flex gap-4 group w-full", msg.role === 'user' ? "flex-row-reverse text-right" : "flex-row text-left animate-in fade-in slide-in-from-bottom-2")}>
                   <div className={cn(
                     "h-10 w-10 rounded-full flex items-center justify-center shrink-0 shadow-sm border border-border",
@@ -225,26 +272,29 @@ export const AIAssistant: React.FC = () => {
                         ? "bg-primary text-primary-foreground rounded-tr-none font-medium" 
                         : "bg-slate-100/80 dark:bg-slate-800/80 text-foreground rounded-tl-none font-medium"
                     )}>
-                      <div className={cn("prose prose-slate dark:prose-invert prose-sm max-w-none text-left prose-headings:font-black prose-headings:tracking-tight prose-p:leading-relaxed prose-p:text-slate-600 dark:prose-p:text-slate-300")}>
-                        <ReactMarkdown 
-                          remarkPlugins={[remarkMath]} 
-                          rehypePlugins={[rehypeKatex]}
-                        >
-                          {msg.content}
-                        </ReactMarkdown>
-                      </div>
+                        <div className={cn("prose prose-slate dark:prose-invert prose-sm max-w-none text-left prose-headings:font-black prose-headings:tracking-tight prose-p:leading-relaxed prose-p:text-slate-600 dark:prose-p:text-slate-300")}>
+                          <ReactMarkdown 
+                            remarkPlugins={[remarkMath]} 
+                            rehypePlugins={[rehypeKatex]}
+                          >
+                            {msg.content}
+                          </ReactMarkdown>
+                        </div>
                     </div>
                   </div>
                 </div>
               ))}
-              {loading && (
-                <div className="flex gap-4 animate-pulse">
-                  <div className="h-10 w-10 rounded-full bg-primary flex justify-center items-center shadow-lg overflow-hidden shrink-0">
+              {/* Separate Thinking Indicator - Only show if the latest message is [Thinking...] */}
+              {messages.length > 0 && messages[messages.length - 1].content === '[Thinking...]' && (
+                <div className="flex gap-4 group w-full flex-row text-left animate-in fade-in slide-in-from-bottom-2">
+                  <div className="h-10 w-10 rounded-full bg-primary flex justify-center items-center shadow-lg overflow-hidden shrink-0 border border-white/10">
                     {selectedBot.avatar ? <img src={selectedBot.avatar} className="w-full h-full object-cover"/> : <BotIcon className="w-5 h-5 text-primary-foreground" />}
                   </div>
                   <div className="flex flex-col gap-1.5 w-full">
-                    <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground px-1">Reasoning In Progress...</span>
-                    <div className="p-3 px-4 rounded-2xl rounded-tl-none bg-slate-100/80 dark:bg-slate-800/80 w-16 flex justify-center"><Loader2 className="h-3.5 w-3.5 animate-spin opacity-20" /></div>
+                    <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground px-1">{selectedBot.name}</span>
+                    <div className="p-3 px-4 rounded-2xl rounded-tl-none bg-slate-100/80 dark:bg-slate-800/80 w-fit flex items-center justify-center text-muted-foreground">
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    </div>
                   </div>
                 </div>
               )}
@@ -277,5 +327,6 @@ export const AIAssistant: React.FC = () => {
         </footer>
       </Card>
     </div>
+    </PageWrapper>
   );
 };

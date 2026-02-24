@@ -9,35 +9,18 @@ from django.utils import timezone
 from rest_framework import generics, permissions, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from .models import Question, QuizAttempt, UserQuestionStatus, KnowledgePoint
-from .serializers import QuestionSerializer, QuizAttemptSerializer, UserQuestionStatusSerializer, KnowledgePointSerializer
+from .models import Question, QuizAttempt, UserQuestionStatus, KnowledgePoint, QuizExam, ExamQuestionResult
+from .serializers import (
+    QuestionSerializer, QuizAttemptSerializer, UserQuestionStatusSerializer, 
+    KnowledgePointSerializer, QuizExamSerializer
+)
 from users.models import User
 from users.serializers import UserSerializer
 from .fsrs import FSRS
-
-def get_quiz_template(filename):
-    """从模板文件夹读取提示词内容"""
-    path = os.path.join(os.path.dirname(__file__), 'templates', filename)
-    if os.path.exists(path):
-        with open(path, 'r', encoding='utf-8') as f:
-            return f.read()
-    return ""
-
-def extract_json_from_text(content):
-    """从 AI 返回的文本中稳健地提取 JSON 数据"""
-    try:
-        # 优先尝试匹配 Markdown 代码块中的 JSON
-        json_match = re.search(r'```(?:json)?\s*(\[.*\]|\{.*\})\s*```', content, re.DOTALL)
-        if json_match:
-            return json.loads(json_match.group(1))
-        # 其次尝试匹配首个 [ 或 { 到末尾
-        json_match = re.search(r'(\[.*\]|\{.*\})', content, re.DOTALL)
-        if json_match:
-            return json.loads(json_match.group(1))
-        # 最后直接尝试解析
-        return json.loads(content.strip())
-    except Exception as e:
-        raise ValueError(f"JSON 解析失败: {str(e)}。原始内容: {content[:200]}")
+from users.views import IsMember
+import random
+from ai_service import AIService
+from notifications.models import Notification
 
 class QuestionListView(generics.ListCreateAPIView):
     serializer_class = QuestionSerializer
@@ -45,7 +28,7 @@ class QuestionListView(generics.ListCreateAPIView):
     def get_permissions(self):
         if self.request.method == 'POST':
             return [permissions.IsAdminUser()]
-        return [permissions.IsAuthenticated()]
+        return [IsMember()]
 
     def get_queryset(self):
         user = self.request.user
@@ -63,29 +46,45 @@ class QuestionListView(generics.ListCreateAPIView):
         if user.is_staff and not self.request.query_params.get('limit'):
             return qs
 
-        # If kp_id is provided, return all questions for that KP (for Knowledge Map)
         if kp_id:
             return qs
 
         now = timezone.now()
+        # 硬性冷却：30分钟内复习过的题不再抽选，给大脑留出间隔时间
+        cooldown_time = now - datetime.timedelta(minutes=30)
         limit = self.request.query_params.get('limit', 10)
         try: limit = int(limit)
         except: limit = 10
 
-        review_ids = UserQuestionStatus.objects.filter(user=user, next_review_at__lte=now).values_list('question_id', flat=True)
+        # 获取所有符合条件的候选 ID，排除已掌握的题目
+        mastered_ids = UserQuestionStatus.objects.filter(user=user, is_mastered=True).values_list('question_id', flat=True)
+        
+        review_ids = list(UserQuestionStatus.objects.filter(
+            user=user, 
+            next_review_at__lte=now,
+            is_mastered=False
+        ).exclude(
+            last_review__gt=cooldown_time # 过滤掉最近 30 分钟内刚做过的题
+        ).values_list('question_id', flat=True))
+        
         attempted_ids = UserQuestionStatus.objects.filter(user=user).values_list('question_id', flat=True)
         
-        # 1. 优先获取艾宾浩斯记忆曲线中已到期需要复习的题目
-        due_ids = list(Question.objects.filter(id__in=review_ids).values_list('id', flat=True)[:limit])
+        # 1. 已到期需要复习的题目
+        due_ids = review_ids[:limit]
         
-        # 2. 如果复习的题不够本次抽题数量，用没做过的新题补足即可
+        # 2. 如果复习的题不够本次抽题数量，用没做过的新题补足
         needed = limit - len(due_ids)
         new_ids = []
         if needed > 0:
-            new_ids = list(Question.objects.exclude(id__in=attempted_ids).values_list('id', flat=True)[:needed])
+            new_ids = list(Question.objects.exclude(
+                id__in=attempted_ids
+            ).exclude(
+                id__in=mastered_ids
+            ).values_list('id', flat=True)[:needed])
             
         final_ids = due_ids + new_ids
-        # 返回最终整合好的指定数量的 QuerySet
+        
+        random.shuffle(final_ids)
         return Question.objects.filter(id__in=final_ids)
 
     def perform_create(self, serializer):
@@ -94,34 +93,20 @@ class QuestionListView(generics.ListCreateAPIView):
             self.generate_ai_answer(question)
 
     def generate_ai_answer(self, question):
-        api_key = os.getenv('DEEPSEEK_API_KEY')
-        if not api_key: return
-        
-        template = get_quiz_template('ai_answer_prompt.txt') or "解析题目: {question_text}"
+        template = AIService.get_template('quizzes', 'ai_answer_prompt.txt') or "解析题目: {question_text}"
         prompt = template.format(
             q_type_display=question.get_subjective_type_display() if question.q_type == 'subjective' else '客观题',
             question_text=question.text,
             grading_points=question.grading_points or '无'
         )
         
-        try:
-            res = requests.post(
-                "https://api.siliconflow.cn/v1/chat/completions",
-                headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
-                json={
-                    "model": "deepseek-ai/DeepSeek-V3.2",
-                    "messages": [{"role": "system", "content": "你是一位专业的学术助教。"}, {"role": "user", "content": prompt}],
-                    "stream": False
-                },
-                timeout=60
-            )
-            if res.status_code == 200:
-                question.ai_answer = res.json()['choices'][0]['message']['content']
-                question.save()
-        except: pass
+        res = AIService.simple_chat("你是一位专业的学术助教。", prompt)
+        if res:
+            question.ai_answer = res['choices'][0]['message']['content']
+            question.save()
 
 class GradeSubjectiveView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [IsMember]
 
     def post(self, request):
         question_id = request.data.get('question_id')
@@ -136,62 +121,30 @@ class GradeSubjectiveView(APIView):
             return Response({'error': '题目不存在'}, status=404)
 
         max_score = question.get_max_score()
-        api_key = os.getenv('DEEPSEEK_API_KEY')
-        if not api_key:
-            return Response({'error': '后端 AI 密钥未配置'}, status=500)
         
-        template = get_quiz_template('grading_prompt.txt') or "评分: {user_answer}"
-        prompt = template.format(
-            question_text=question.text,
-            subjective_type=question.get_subjective_type_display(),
-            max_score=max_score,
-            grading_points=question.grading_points or "全面准确回答",
-            correct_answer=question.correct_answer or "见 AI 解析",
-            user_answer=user_answer
-        )
-        prompt += "\n\n请基于用户回答质量，给出 FSRS 记忆评级 (fsrs_rating): 1 (完全错误/遗忘), 2 (回答困难/不完整), 3 (回答正确/良好), 4 (回答完美/轻松)。"
-
         try:
-            res = requests.post(
-                "https://api.siliconflow.cn/v1/chat/completions",
-                headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
-                json={
-                    "model": "deepseek-ai/DeepSeek-V3.2",
-                    "messages": [
-                        {"role": "system", "content": "你是一位专业的阅卷老师。请输出标准的 JSON 格式，字段包括：score, feedback, analysis, fsrs_rating。"}, 
-                        {"role": "user", "content": prompt}
-                    ],
-                    "response_format": {"type": "json_object"},
-                    "stream": False,
-                    "temperature": 0.1
-                },
-                timeout=60
+            grade_data = AIService.grade_question(
+                question_text=question.text,
+                user_answer=user_answer,
+                correct_answer=question.correct_answer,
+                q_type=question.q_type,
+                max_score=max_score,
+                grading_points=question.grading_points,
+                subjective_type=question.get_subjective_type_display() if question.q_type == 'subjective' else "客观题"
             )
-            if res.status_code != 200:
-                return Response({'error': f'AI 评分服务异常 ({res.status_code})'}, status=res.status_code)
             
-            result = res.json()
-            raw_content = result['choices'][0]['message']['content']
-            grade_data = extract_json_from_text(raw_content)
+            if not grade_data:
+                return Response({'error': 'AI 评分服务异常'}, status=500)
             
-            score_val = float(grade_data.get('score', grade_data.get('Score', 0)))
-            feedback = grade_data.get('feedback', grade_data.get('Feedback', '回答已评收'))
-            analysis = grade_data.get('analysis', grade_data.get('Analysis', '解析生成中'))
-            fsrs_rating = int(grade_data.get('fsrs_rating', 0))
+            score_val = float(grade_data.get('score', 0))
+            feedback = grade_data.get('feedback', '回答已评阅')
+            analysis = grade_data.get('analysis', '解析生成中')
+            fsrs_rating = int(grade_data.get('fsrs_rating', 2))
 
             user = request.user
             normalized_score = score_val / max_score if max_score > 0 else 0
             
-            # Fallback Logic if AI misses rating
-            if fsrs_rating not in [1, 2, 3, 4]:
-                if normalized_score < 0.6: fsrs_rating = 1
-                elif normalized_score < 0.8: fsrs_rating = 2
-                elif normalized_score < 0.95: fsrs_rating = 3
-                else: fsrs_rating = 4
-
             status_obj, _ = UserQuestionStatus.objects.get_or_create(user=user, question=question)
-            
-            # FSRS Update
             status_obj = FSRS.update_status(status_obj, fsrs_rating)
             
             if normalized_score < 0.6:
@@ -199,7 +152,6 @@ class GradeSubjectiveView(APIView):
                 status_obj.last_correct = False
             else:
                 status_obj.last_correct = True
-            
             status_obj.save()
             
             expected_score = 1 / (1 + 10**( (question.difficulty - user.elo_score) / 400 ))
@@ -219,7 +171,7 @@ class GradeSubjectiveView(APIView):
             return Response({'error': f'评分逻辑错误: {str(e)}'}, status=500)
 
 class ToggleFavoriteView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [IsMember]
     def post(self, request):
         q_id = request.data.get('question_id')
         status_obj, _ = UserQuestionStatus.objects.get_or_create(user=request.user, question_id=q_id)
@@ -227,15 +179,24 @@ class ToggleFavoriteView(APIView):
         status_obj.save()
         return Response({'is_favorite': status_obj.is_favorite})
 
+class ToggleMasteredView(APIView):
+    permission_classes = [IsMember]
+    def post(self, request):
+        q_id = request.data.get('question_id')
+        status_obj, _ = UserQuestionStatus.objects.get_or_create(user=request.user, question_id=q_id)
+        status_obj.is_mastered = not status_obj.is_mastered
+        status_obj.save()
+        return Response({'is_mastered': status_obj.is_mastered})
+
 class WrongQuestionListView(generics.ListAPIView):
     serializer_class = UserQuestionStatusSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [IsMember]
     def get_queryset(self):
         return UserQuestionStatus.objects.filter(user=self.request.user, wrong_count__gt=0).order_by('-wrong_count')
 
 class FavoriteQuestionListView(generics.ListAPIView):
     serializer_class = UserQuestionStatusSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [IsMember]
     def get_queryset(self):
         return UserQuestionStatus.objects.filter(user=self.request.user, is_favorite=True)
 
@@ -246,7 +207,7 @@ class QuestionDetailView(generics.RetrieveUpdateDestroyAPIView):
 
 class QuizAttemptCreateView(generics.CreateAPIView):
     serializer_class = QuizAttemptSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [IsMember]
 
     def perform_create(self, serializer):
         user = self.request.user
@@ -264,35 +225,42 @@ class QuizAttemptCreateView(generics.CreateAPIView):
 class LeaderboardView(generics.ListAPIView):
     queryset = User.objects.filter(is_active=True).order_by('-elo_score')[:50]
     serializer_class = UserSerializer
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [IsMember]
 
 class QuizStatsView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [IsMember]
 
     def get(self, request):
         user = request.user
         now = timezone.now()
-        review_count = UserQuestionStatus.objects.filter(user=user, next_review_at__lte=now).count()
         
-        # 自动生成复习提醒通知
-        if review_count > 0:
-            today_notif = Notification.objects.filter(
-                recipient=user, 
-                ntype='fsrs_reminder', 
-                created_at__date=now.date()
-            ).exists()
-            if not today_notif:
-                Notification.objects.create(
-                    recipient=user,
-                    ntype='fsrs_reminder',
-                    title='今日复习任务已就绪',
-                    content=f'你有 {review_count} 道题目已进入 FSRS 遗忘临界点，建议立即复习。',
-                    link='/tests'
-                )
+        status_qs = UserQuestionStatus.objects.filter(user=user)
+        
+        # 今日复习任务 (Due Today)
+        review_count = status_qs.filter(next_review_at__lte=now).count()
+        
+        # FSRS 预警: 稳定性 < 7天 且 下次复习在 3天内 的题目
+        # 这代表短期记忆中容易遗忘的部分
+        at_risk_count = status_qs.filter(
+            stability__lt=7,
+            next_review_at__lte=now + datetime.timedelta(days=3),
+            next_review_at__gt=now
+        ).count()
 
-        attempted_ids = UserQuestionStatus.objects.filter(user=user).values_list('question_id', flat=True)
+        attempted_ids = status_qs.values_list('question_id', flat=True)
         new_questions_count = Question.objects.exclude(id__in=attempted_ids).count()
-        return Response({'review_goal': review_count, 'new_questions': new_questions_count})
+        
+        # 自动生成复习提醒
+        if review_count > 0:
+            today_notif = Notification.objects.filter(recipient=user, ntype='fsrs_reminder', created_at__date=now.date()).exists()
+            if not today_notif:
+                Notification.objects.create(recipient=user, ntype='fsrs_reminder', title='今日复习任务已就绪', content=f'你有 {review_count} 道题目已进入 FSRS 遗忘临界点。', link='/tests')
+
+        return Response({
+            'review_goal': review_count,
+            'new_questions': new_questions_count,
+            'at_risk_count': at_risk_count
+        })
 
 class IsAdminUserOrReadOnly(permissions.BasePermission):
     def has_permission(self, request, view):
@@ -309,56 +277,213 @@ class KnowledgePointDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = KnowledgePointSerializer
     permission_classes = [IsAdminUserOrReadOnly]
 
+def process_exam_grading(user, exam, questions_data, api_key):
+    """后台异步批改整张试卷"""
+    total_score = 0
+    max_total_score = 0
+    total_difficulty = 0
+    question_count = 0
+    
+    for item in questions_data:
+        q_id = item.get('question_id')
+        user_answer = item.get('answer')
+        
+        try:
+            question = Question.objects.get(id=q_id)
+        except Question.DoesNotExist:
+            continue
+            
+        max_score = question.get_max_score()
+        max_total_score += max_score
+        total_difficulty += (question.difficulty or 1000)
+        question_count += 1
+        
+        # 统一调用 AI 服务进行判分与解析（选择题也包含解析）
+        try:
+            grade_data = AIService.grade_question(
+                question_text=question.text,
+                user_answer=user_answer,
+                correct_answer=question.correct_answer,
+                q_type=question.q_type,
+                max_score=max_score,
+                grading_points=question.grading_points,
+                subjective_type=question.get_subjective_type_display() if question.q_type == 'subjective' else "客观选择题"
+            )
+            
+            if grade_data:
+                score_val = float(grade_data.get('score', 0))
+                # 客观题强制覆盖分数为数据库校验结果
+                if question.q_type == 'objective':
+                    is_correct = str(user_answer).strip() == str(question.correct_answer).strip()
+                    score_val = 10 if is_correct else 0
+                
+                fsrs_rating = int(grade_data.get('fsrs_rating', 2))
+                normalized_score = score_val / max_score if max_score > 0 else 0
+                total_score += score_val
+                
+                # FSRS 状态更新
+                status_obj, _ = UserQuestionStatus.objects.get_or_create(user=user, question=question)
+                status_obj = FSRS.update_status(status_obj, fsrs_rating)
+                status_obj.last_review = timezone.now() # 记录复习时间，触发冷却
+                if normalized_score < 0.6:
+                    status_obj.wrong_count += 1
+                    status_obj.last_correct = False
+                else:
+                    status_obj.last_correct = True
+                status_obj.save()
+                
+                # 保存详细记录
+                ExamQuestionResult.objects.create(
+                    exam=exam,
+                    question=question,
+                    user_answer=user_answer,
+                    score=score_val,
+                    max_score=max_score,
+                    feedback=grade_data.get('feedback', '已评阅'),
+                    analysis=grade_data.get('analysis', '解析生成中...'),
+                    is_correct=normalized_score >= 0.6
+                )
+        except Exception as e:
+            print(f"Error grading Q{q_id}: {e}")
+            ExamQuestionResult.objects.create(
+                exam=exam,
+                question=question,
+                user_answer=user_answer,
+                score=0,
+                max_score=max_score,
+                feedback="评分服务异常",
+                analysis=f"错误详情: {str(e)}",
+                is_correct=False
+            )
+    
+    # 结算 ELO 和 发送通知
+    avg_score = total_score / max_total_score if max_total_score > 0 else 0
+    avg_difficulty = total_difficulty / question_count if question_count > 0 else 1000
+    
+    # ELO 结算：根据本次考试的平均难度计算预期得分
+    expected_score = 1 / (1 + 10**( (avg_difficulty - user.elo_score) / 400 ))
+    elo_change = int(32 * (avg_score - expected_score))
+    user.elo_score += elo_change
+    user.save()
+    
+    exam.total_score = total_score
+    exam.max_score = max_total_score
+    exam.elo_change = elo_change
+    exam.save()
+    
+    Notification.objects.create(
+        recipient=user,
+        ntype='system',
+        title='📝 评估完成',
+        content=f'得分：{total_score}/{max_total_score}。本次测验平均难度：{int(avg_difficulty)}。',
+        link=f'/tests?action=view_report&exam_id={exam.id}'
+    )
+
+class SubmitExamView(APIView):
+    permission_classes = [IsMember]
+
+    def post(self, request):
+        questions_data = request.data.get('answers', [])
+        if not questions_data:
+            return Response({'error': '无答题数据'}, status=400)
+            
+        api_key = os.getenv('DEEPSEEK_API_KEY')
+        if not api_key:
+            return Response({'error': 'AI 配置缺失'}, status=500)
+            
+        exam = QuizExam.objects.create(user=request.user)
+
+        # 【优化】即时同步状态：确保题目立即打上“已复习”标记，防止异步判卷期间被再次抽到
+        now = timezone.now()
+        for item in questions_data:
+            q_id = item.get('question_id')
+            try:
+                # 使用 get_or_create 确保新题也被即时排除
+                status_obj, created = UserQuestionStatus.objects.get_or_create(
+                    user=request.user, 
+                    question_id=q_id
+                )
+                status_obj.last_review = now
+                status_obj.save(update_fields=['last_review'])
+            except Exception as e:
+                print(f"Sync review status error for Q{q_id}: {e}")
+
+        # 启动后台线程
+        thread = threading.Thread(
+            target=process_exam_grading,
+            args=(request.user, exam, questions_data, api_key)
+        )
+        thread.start()
+        
+        return Response({'status': 'processing', 'message': '试卷已提交后台批改，结果将通过通知发送。'})
+
+class LatestExamReportView(APIView):
+    """
+    获取最近一次考试报告。
+    """
+    permission_classes = [IsMember]
+
+    def get(self, request):
+        latest_exam = QuizExam.objects.filter(user=request.user).first()
+        if not latest_exam:
+            return Response({'error': '报告不存在'}, status=404)
+            
+        serializer = QuizExamSerializer(latest_exam)
+        return Response(serializer.data)
+
+class ExamDetailView(generics.RetrieveAPIView):
+    """
+    获取某次考试的详细报告
+    """
+    queryset = QuizExam.objects.all()
+    serializer_class = QuizExamSerializer
+    permission_classes = [IsMember]
+
+    def get_queryset(self):
+        return QuizExam.objects.filter(user=self.request.user)
+
 class GenerateBulkQuestionsView(APIView):
     permission_classes = [permissions.IsAdminUser]
     def post(self, request, pk):
         try: kp = KnowledgePoint.objects.get(pk=pk)
         except KnowledgePoint.DoesNotExist: return Response({'error': '知识点不存在'}, status=404)
-        api_key = os.getenv('DEEPSEEK_API_KEY')
-        template = get_quiz_template('bulk_generate_prompt.txt')
+        template = AIService.get_template('quizzes', 'bulk_generate_prompt.txt')
         prompt = template.format(kp_name=kp.name, kp_description=kp.description, count=5)
-        try:
-            res = requests.post("https://api.siliconflow.cn/v1/chat/completions",
-                headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
-                json={"model": "deepseek-ai/DeepSeek-V3.2", "messages": [{"role": "user", "content": prompt}], "stream": False}, timeout=90)
-            content = res.json()['choices'][0]['message']['content']
-            questions_data = extract_json_from_text(content)
-            for q_data in questions_data:
-                Question.objects.create(knowledge_point=kp, **q_data)
-            return Response({'status': 'success', 'count': len(questions_data)})
-        except Exception as e: return Response({'error': str(e)}, status=500)
+        res = AIService.simple_chat("你是一位专业的出题官。", prompt)
+        if not res: return Response({'error': 'AI 生成失败'}, status=500)
+        content = res['choices'][0]['message']['content']
+        questions_data = AIService.extract_json(content)
+        for q_data in questions_data:
+            Question.objects.create(knowledge_point=kp, **q_data)
+        return Response({'status': 'success', 'count': len(questions_data)})
 
 class GenerateFromTextView(APIView):
     permission_classes = [permissions.IsAdminUser]
     def post(self, request):
         text = request.data.get('text'); kp_id = request.data.get('kp_id')
         num_obj = request.data.get('num_objective', 3); num_short = request.data.get('num_short', 1); num_essay = request.data.get('num_essay', 1)
-        api_key = os.getenv('DEEPSEEK_API_KEY')
-        template = get_quiz_template('generate_from_text_prompt.txt')
+        template = AIService.get_template('quizzes', 'generate_from_text_prompt.txt')
         prompt = template.format(text=text, num_obj=num_obj, num_short=num_short, num_essay=num_essay)
-        try:
-            res = requests.post("https://api.siliconflow.cn/v1/chat/completions",
-                headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
-                json={"model": "deepseek-ai/DeepSeek-V3.2", "messages": [{"role": "user", "content": prompt}], "stream": False}, timeout=120)
-            content = res.json()['choices'][0]['message']['content']
-            qs_data = extract_json_from_text(content)
-            created_count = 0
-            for q in qs_data:
-                clean_q = {
-                    'text': q.get('text', q.get('question', '')),
-                    'q_type': q.get('q_type', 'objective'),
-                    'subjective_type': q.get('subjective_type'),
-                    'options': q.get('options'),
-                    'correct_answer': q.get('correct_answer', q.get('answer', '')),
-                    'grading_points': q.get('grading_points', ''),
-                    'difficulty': q.get('difficulty', 1000),
-                    'knowledge_point_id': kp_id if kp_id else None
-                }
-                if clean_q['text']:
-                    Question.objects.create(**clean_q)
-                    created_count += 1
-            return Response({'status': 'success', 'count': created_count})
-        except Exception as e: return Response({'error': str(e)}, status=500)
+        res = AIService.simple_chat("你是一位专业的出题官。", prompt)
+        if not res: return Response({'error': 'AI 生成失败'}, status=500)
+        content = res['choices'][0]['message']['content']
+        qs_data = AIService.extract_json(content)
+        created_count = 0
+        for q in qs_data:
+            clean_q = {
+                'text': q.get('text', q.get('question', '')),
+                'q_type': q.get('q_type', 'objective'),
+                'subjective_type': q.get('subjective_type'),
+                'options': q.get('options'),
+                'correct_answer': q.get('correct_answer', q.get('answer', '')),
+                'grading_points': q.get('grading_points', ''),
+                'difficulty': q.get('difficulty', 1000),
+                'knowledge_point_id': kp_id if kp_id else None
+            }
+            if clean_q['text']:
+                Question.objects.create(**clean_q)
+                created_count += 1
+        return Response({'status': 'success', 'count': created_count})
 
 import docx # 导入 Word 解析库
 
@@ -375,44 +500,21 @@ def process_ai_parse_task(raw_text, kp_id, api_key, task_id):
     
     total_chunks = len(chunks[:25]) # 封顶支持 5万字左右
     all_questions = []
-    template = get_quiz_template('preview_parse_prompt.txt')
+    template = AIService.get_template('quizzes', 'preview_parse_prompt.txt')
     
     for i, chunk in enumerate(chunks[:25]):
         # 更新进度
         cache.set(f"parse_task_{task_id}", {"status": "processing", "progress": f"{i+1}/{total_chunks}", "data": all_questions}, 3600)
         
         prompt = template.format(raw_text=chunk)
-        max_retries = 2
-        for attempt in range(max_retries):
-            try:
-                res = requests.post("https://api.siliconflow.cn/v1/chat/completions",
-                    headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
-                    json={
-                        "model": "deepseek-ai/DeepSeek-V3.2", 
-                        "messages": [{"role": "user", "content": prompt}], 
-                        "stream": False, 
-                        "temperature": 0.1,
-                        "max_tokens": 3000 # 限制单次输出，防止过长
-                    }, 
-                    timeout=90)
-                
-                if res.status_code == 200:
-                    content = res.json()['choices'][0]['message']['content']
-                    try:
-                        qs_data = extract_json_from_text(content)
-                        if isinstance(qs_data, list):
-                            for q in qs_data:
-                                if not any(existing.get('text') == q.get('text') for existing in all_questions):
-                                    all_questions.append(q)
-                        break # 成功则跳出重试
-                    except:
-                        if attempt == max_retries - 1: print(f"Chunk {i} JSON extraction failed")
-                else:
-                    print(f"Chunk {i} API error: {res.status_code}")
-            except Exception as e:
-                print(f"Chunk {i} exception: {str(e)}")
-                import time
-                time.sleep(2)
+        res = AIService.simple_chat("你是一位专业的文本解析专家。", prompt, max_tokens=3000)
+        if res:
+            content = res['choices'][0]['message']['content']
+            qs_data = AIService.extract_json(content)
+            if isinstance(qs_data, list):
+                for q in qs_data:
+                    if not any(existing.get('text') == q.get('text') for existing in all_questions):
+                        all_questions.append(q)
     
     # 最终完成
     cache.set(f"parse_task_{task_id}", {"status": "completed", "progress": "100%", "data": all_questions}, 3600)
@@ -462,6 +564,7 @@ class BulkImportQuestionsView(APIView):
                 'text': q.get('text', ''),
                 'q_type': q.get('q_type', 'objective'),
                 'subjective_type': q.get('subjective_type'),
+                'difficulty_level': q.get('difficulty_level', 'normal'),
                 'options': q.get('options'),
                 'correct_answer': q.get('correct_answer', ''),
                 'grading_points': q.get('grading_points', ''),
@@ -514,6 +617,8 @@ class AdminQuestionListView(APIView):
                 'grading_points': q.grading_points or '',
                 'ai_answer': q.ai_answer or '',
                 'difficulty': q.difficulty,
+                'difficulty_level': q.difficulty_level,
+                'difficulty_level_display': q.get_difficulty_level_display(),
                 'options': q.options,
                 'knowledge_point': q.knowledge_point.id if q.knowledge_point else None,
                 'knowledge_point_name': q.knowledge_point.name if q.knowledge_point else '无',
@@ -549,6 +654,7 @@ class ExportStructuredQuestionsView(APIView):
                 "question_type": q.q_type,
                 "subjective_type": q.subjective_type,
                 "difficulty_elo": q.difficulty,
+                "difficulty_level": q.difficulty_level,
                 "question_text": q.text,
                 "options": q.options,
                 "correct_answer": q.correct_answer,

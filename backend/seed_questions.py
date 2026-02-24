@@ -102,14 +102,21 @@ def seed_data():
                 kp_map[kp_name] = kp_obj
 
         try:
+            diff_level = q.get("difficulty_level", "normal")
+            diff_elo = q.get("difficulty_elo") or q.get("difficulty")
+            
+            # 如果提供了 ELO 数字但没提供 Level，反向推导 Level (可选)
+            # 这里我们优先信任 JSON 中的 Level，如果没有则用默认，save() 方法会处理 Level -> ELO 的映射
+            
             defaults = {
                 "q_type": q.get("question_type") or q.get("q_type", "subjective"),
                 "subjective_type": q.get("subjective_type"),
+                "difficulty_level": diff_level,
                 "options": q.get("options"),
                 "correct_answer": q.get("correct_answer", ""),
                 "grading_points": q.get("grading_points", ""),
                 "ai_answer": q.get("ai_explanation") or q.get("ai_answer", ""),
-                "difficulty": q.get("difficulty_elo") or q.get("difficulty", 1200),
+                "difficulty": diff_elo if diff_elo else Question.DIFFICULTY_MAP.get(diff_level, 1200),
                 "knowledge_point": kp_obj,
             }
 

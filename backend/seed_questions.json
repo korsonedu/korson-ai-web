@@ -8,7 +8,8 @@
     "difficulty_elo": "800-1800 integer (harder = higher)",
     "options": "list of 4 strings for objective, null for subjective",
     "correct_answer": "option text for objective, reference answer for subjective",
-    "grading_points": "scoring rubric, required for subjective questions"
+    "grading_points": "scoring rubric, required for subjective questions",
+    "difficulty_level": "entry | easy | normal | hard | extreme"
   },
   "questions": [
     {
@@ -26,7 +27,8 @@
       ],
       "correct_answer": "零",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "easy"
     },
     {
       "id": 2,
@@ -38,7 +40,8 @@
       "options": null,
       "correct_answer": "",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "normal"
     },
     {
       "id": 4,
@@ -55,7 +58,8 @@
       ],
       "correct_answer": "B",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "easy"
     },
     {
       "id": 5,
@@ -72,7 +76,8 @@
       ],
       "correct_answer": "D",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "hard"
     },
     {
       "id": 6,
@@ -89,7 +94,8 @@
       ],
       "correct_answer": "A",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "hard"
     },
     {
       "id": 7,
@@ -101,7 +107,8 @@
       "options": null,
       "correct_answer": "在凯恩斯交叉模型中，计划支出（E）是家庭、企业和政府计划购买的商品和服务的总和，即E = C + I + G。实际产出（Y）是经济实际生产的商品和服务的价值。模型的均衡条件是计划支出等于实际产出（E = Y）。当两者相等时，企业的生产恰好满足计划需求，非计划存货投资为零，经济处于稳定状态。如果计划支出大于实际产出（E > Y），意味着需求超过生产，企业的非计划存货会减少，这将激励企业增加生产，从而推动实际产出Y上升，直至重新达到E = Y。反之，如果计划支出小于实际产出（E < Y），则生产超过需求，企业会积累非计划的存货，这将导致企业削减生产，使实际产出Y下降，直至回到均衡点。",
       "grading_points": "明确定义计划支出（E = C + I + G）与实际产出（Y）; 阐述均衡条件：当计划支出等于实际产出（E = Y）时，经济达到均衡; 描述非均衡状态的调整过程：若E>Y，非计划存货减少，企业增加生产，Y上升；若E<Y，非计划存货增加，企业减少生产，Y下降",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "extreme"
     },
     {
       "id": 8,
@@ -113,7 +120,8 @@
       "options": null,
       "correct_answer": "凯恩斯交叉模型的核心思想是，在短期价格水平粘性的假设下，一个经济的均衡产出水平主要由总需求或计划总支出决定，而非经济的生产潜力（总供给）。模型强调需求侧的主导作用，产出会调整到使计划支出等于实际产出的水平。\n\n这一思想蕴含着重要的政策含义，即政府可以通过财政政策主动管理总需求，从而影响短期经济产出和就业。其关键机制在于乘数效应。乘数效应是指，由于边际消费倾向（MPC）的存在，自发支出（如政府购买G、投资I）的一个初始变动，会引发一连串的引致消费支出，从而对均衡产出产生一个放大的最终影响。\n\n具体而言：\n1.  政府购买乘数：政府购买G是计划支出的直接组成部分。当G增加ΔG时，直接使总需求增加ΔG，导致产出首次增加ΔG。产出的增加意味着居民可支配收入增加，在MPC的作用下，消费将增加MPC * ΔG，这又进一步增加需求和产出。这个过程持续下去，最终均衡产出的总增加量为 ΔY = [1 / (1 - MPC)] * ΔG。例如，若MPC=0.8，政府购买乘数为5，政府增加100单位购买，最终能使均衡产出增加500单位。这表明政府购买政策对刺激经济有强大的放大效应。\n2.  税收乘数：税收T通过影响可支配收入来间接影响消费C。减税（ΔT为负）使居民可支配收入增加，从而增加消费MPC * |ΔT|，成为初始的需求冲击。随后同样通过乘数过程放大。最终，税收变动对产出的影响为 ΔY = [-MPC / (1 - MPC)] * ΔT。其乘数绝对值小于政府购买乘数（因为MPC < 1），且作用方向相反（减税刺激产出，增税抑制产出）。\n\n综上所述，凯恩斯交叉模型为积极的财政政策提供了理论基础。当经济处于衰退、总需求不足时，政府可以通过增加政府购买或减税来刺激计划总支出，利用乘数效应显著提高短期均衡产出，帮助经济回归潜在水平。反之，当经济过热时，则可以采取相反的政策。模型突出了政府在短期宏观经济稳定中的关键角色。",
       "grading_points": "阐明模型核心：短期内总需求（尤其是计划支出）决定均衡产出水平，而非供给能力; 解释乘数效应的概念与机制：初始支出变动通过边际消费倾向引发连锁消费反应，放大对总产出的影响; 具体分析政府购买乘数：ΔY = [1/(1-MPC)] * ΔG，说明其扩张效应; 具体分析税收乘数：ΔY = [-MPC/(1-MPC)] * ΔT，说明其效应方向与大小; 总结政策含义：政府可以通过主动的财政政策（增减G或T）来稳定或调节短期经济波动",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "extreme"
     },
     {
       "id": 9,
@@ -125,7 +133,8 @@
       "options": null,
       "correct_answer": "P=(80/2)*PVIFA(5%,10)+1000/(1+5%)^10=922.77元\n\n备注：注意“年限”并不一定是一整年，而是“一期”。半年付息意味着一年有两期，折现率也是变为原折现率的一半。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "normal"
     },
     {
       "id": 12,
@@ -137,7 +146,8 @@
       "options": null,
       "correct_answer": "Pa=1000*8%*PVIFA(10%，5)+1000/(1+10%)^5=925.18元\nPb=1000*8%*PVIFA(10%，10)+1000/(1+10%)^10=877.11元\nA的价格波动幅度=(924.18-1000)/1000=-7.58%\nB的价格波动幅度=(877.11-1000)/1000=-12.28%\nB的波动幅度更大，大4.7%\n\n备注：这道题难度不高，核心考点是当息票率与市场利率相同时，债券的价值等于面值，也就是平价发行。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "normal"
     },
     {
       "id": 13,
@@ -149,7 +159,8 @@
       "options": null,
       "correct_answer": "（1）当期收益率=70/960=7.29%\\n（2）到期收益率\\n960=1000*3.5%*PVIFA(r/2,10)+1000/(1+r/2)^10\\n根据上式可以解出其收益率r\\n（3）实际收益率\\n960=1000*3.5%*PVIFA(r1/2,6)+992/(1+r/2)^6\\n根据上式可以解出其收益率r1\\n\\n备注：债券的收益率问题是常考的一类题型，虽然简单也建议大家不要忽视。当期收益率和到期收益率要分清楚，我们将在课上进行专题讲解。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "normal"
     },
     {
       "id": 14,
@@ -161,7 +172,8 @@
       "options": null,
       "correct_answer": "80/(1+r)+80/(1+r)2+1080/(1+r)3=953.1\n到期收益率r=9.88%\n年复合收益率：首先求出再投资的息票和本金的终值\nFV=(80*1.1*1.12)+(80*1.12)+1080=1268.16美元",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "normal"
     },
     {
       "id": 15,
@@ -173,7 +185,8 @@
       "options": null,
       "correct_answer": "\\n\\n备注：到期收益率是使债券的支付现值与其价格相等的利率；当期收益率为每年支付的利息支付除以债券价格；复合收益率是假定在所有的利息支付都可以再投资的前提下，使最终收益等于购买债券支付的贴现率。复合收益率也就是CAGR，如果同学们未来进入券商做二级市场研究，将会经常使用到。几个收益率的概念请同学们不要混淆。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "normal"
     },
     {
       "id": 16,
@@ -185,7 +198,8 @@
       "options": null,
       "correct_answer": "到期收益率y满足：\\n85/(1+y)+85/(1+y)^2+1085/(1+y)^3=1040.2\\n解得y=6.97%\\n(2）如果第一年年底y=8%\\n则债券价格P=85/1.08+1085/1.08^2=1008.92美元\\n持有期收益率=[85+(1008.92-1040.2)]/1040.2=5.16%\\n\\n备注：持有期收益率取决于两部分，一是利息收入，二是资本利得，不要忘记任意一项。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "normal"
     },
     {
       "id": 17,
@@ -197,7 +211,8 @@
       "options": null,
       "correct_answer": "（2）到期收益率y满足：\\n60/(1+y)+60/(1+y)^2+1060/(1+y)^3=984.14\\n解得y=6.6%\\n（3）利息再投资与本金的终值\\nFV=60*1.07*1.08+60*1.08+1060=1194.14\\n复合收益率满足：984.14*(1+y*)^3=1194.14\\n解得y*=6.66%\\n（4）第二年，债券价格P=60/1.07+1060/1.07^2=981.92美元\\n持有期收益率为60+(981.92-984.14)/984.14=5.88%\\n\\n备注：同上。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "normal"
     },
     {
       "id": 18,
@@ -209,7 +224,8 @@
       "options": null,
       "correct_answer": "（1）P=10000*[1-0.03*(90/360)]=9925美元\\n（2）90天收益率=(10000-9925)/9925=0.7557%\\n（3）EAR=(1+0.7557%)^(365/90)-1=3.10%\\n\\n备注：重点为第三问，请注意一年期以下的持有期收益率转化为有效年收益率的方式。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "normal"
     },
     {
       "id": 19,
@@ -221,7 +237,8 @@
       "options": null,
       "correct_answer": "[(100-97.43)/100]*360/323=2.86%\n[1+(100-97.43)/97.43]^(365/323)-1=2.99%\n[(100-97.43)/97.43]*365/323=2.98%\n\n备注：一定要区分好这几种收益率，从原理上理解，而不是死记公式。注意真实年收益率是EAR，债券等价收益率是APR。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "normal"
     },
     {
       "id": 20,
@@ -233,7 +250,8 @@
       "options": null,
       "correct_answer": "（1）4年期零息债券现在的价格为1000/1.064^4=780.25 美元\\n第二年，收益率曲线不变时，现在的4年期债券还有3年到期，价格为1000/1.0633=832.53美元\\n所以一年期收益率为6.7%，在这种情况下，4年期零息债券具有较高的预期收益率。\\n（2）根据期望假说，所有的债券具有相同的期望持有期收益率。因此，预期4年期的债券持有期收益率为6.1%，与1年期债券相同。\\n\\n备注：这是一道比较新颖的题。解决这类题要清楚以下几个知识点：",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "normal"
     },
     {
       "id": 21,
@@ -245,7 +263,8 @@
       "options": null,
       "correct_answer": "",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "normal"
     },
     {
       "id": 22,
@@ -257,7 +276,8 @@
       "options": null,
       "correct_answer": "",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "normal"
     },
     {
       "id": 23,
@@ -269,7 +289,8 @@
       "options": null,
       "correct_answer": "",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "normal"
     },
     {
       "id": 24,
@@ -281,7 +302,8 @@
       "options": null,
       "correct_answer": "",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "normal"
     },
     {
       "id": 25,
@@ -293,7 +315,8 @@
       "options": null,
       "correct_answer": "",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "normal"
     },
     {
       "id": 27,
@@ -305,7 +328,8 @@
       "options": null,
       "correct_answer": "（2）对于现在发行的3年期零息债券来说\\n可以用发行收入购买782.92/715=1.095只4年期债券，因此，现金流状况如下\\n这是一种从第三年开始的1年期合成贷款，贷款利率为第四年远期利率9.5%\\n（3）对于现在发行的4年期零息债券来说\\n可以用发行收入购买715/650=1.1只5年期债券，因此，现金流状况如下\\n这是一种从第四年开始的1年期合成贷款，贷款利率为第五年远期利率10%\\n\\n备注：构建远期贷款这一类型的题目比较少见，但经过分析其实也不难。主要在于掌握我们一直强调的“复制”理念。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "normal"
     },
     {
       "id": 28,
@@ -317,7 +341,8 @@
       "options": null,
       "correct_answer": "（2）\\n（3）两年期远期贷款实际利率为1204.5/1000-1=20.45%\\n（4）第4年和第5年的1年期远期利率分别为9.5%和10%",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "normal"
     },
     {
       "id": 29,
@@ -329,7 +354,8 @@
       "options": null,
       "correct_answer": "\\n\\n备注：同上题，只不过主体改变了，将头寸方向改变至相反就可以了。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "normal"
     },
     {
       "id": 31,
@@ -341,7 +367,8 @@
       "options": null,
       "correct_answer": "久期D=2833.392/1000=2.833年\n同理到期收益率为10%时\n久期D=2542.899/900.525=2.824年\n以后者为例，到期收益率为10%时的价格：\nP=60/1.1+60/1.12 +1060/1.13=900.525\n利用久期计算 △P=-P*△y*D/(1+y)=-1000*0.04*2.833/1.06=-106.906\n所以价格为 1000-106.906=893.094\n误差=893.094-900.525=-7.431\n误差百分比=7.431/900.525=0.83%\n\n备注：注意在△P=-P*△y*D/(1+y)计算公式中，△y有正负，并且D是变动之前的到期收益率对应的久期，y是变动之前的收益率，变动后的收益率只对△y产生影响。为什么有误差呢？大家知道久期是一个近似计算，是一阶的泰勒展开，本来就有误差。二阶泰勒展开就比较好的弥补了误差，也就是凸性。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "normal"
     },
     {
       "id": 32,
@@ -353,7 +380,8 @@
       "options": null,
       "correct_answer": "因为该债券按面值发行，所以其半年期的到期收益率等于半年期的息票率3%。\n当前的久期：\n下一期的久期：\n同理可计算其他各期久期，结果见下表\n\n备注：期数多的久期计算一定要细心，公式记牢就没有大问题。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "normal"
     },
     {
       "id": 35,
@@ -365,7 +393,8 @@
       "options": null,
       "correct_answer": "（1）P=6/1.05+6/1.052+106/1.053=102.72\\nC =1/102.72*(1*2*6/1.05^3+2*3*6/1.05^4+3*4*106/1.06^5)\\n=10.09\\n同（1）可得 剩余期限为1年时C=1.81\\n息票率为10%时，C=9.69\\n\\n备注：久期怎么算？理论上来说，凸性是债券价格对收益率二阶导数除以价格，相当于一阶泰勒——久期的扩展。大家不妨从最底层也就是DCF来推一遍，只要掌握了推理过程，哪怕在考场上忘记了公式，也可以在一分钟内解决。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "normal"
     },
     {
       "id": 36,
@@ -377,7 +406,8 @@
       "options": null,
       "correct_answer": "到期收益率变为8%时，\\n债券价格P=70/1.08+70/1.082+……+1070/1.0810=932.9元\\n即债券价格下降到原来的93.29%，下降百分比为6.71%\\n运用久期法则，△P/P=-△y*D/(1+y)=-0.01*7.515/1.07=-7.02%\\n这比实际的价格下跌要多出0.31%\\n运用久期—凸性法则，△P/P=-△y*D/(1+y)+1/2*C*△y2=-6.7%\\n其估计误差只有0.01%，远远小于使用久期法则的误差\\n\\n备注：请大家先不要翻看答案，先耐心的算下去，算完之后你会对久期凸性法则有更深刻的理解。本题很好的验证了久期—凸性法则与久期法则相比精确度更高。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "normal"
     },
     {
       "id": 38,
@@ -389,7 +419,8 @@
       "options": null,
       "correct_answer": "因为支付流从5年后开始，而不是第一年，因此我们必须在久期加4年，得到久期为8.7255年\\n（2）递延年金的现值为10000*PVIFA(10%, 10)/1.1^4=41968美元\\n令5年期零息债券的投资比例为w,则\\n5w+20(1-w)=8.7255,w=0.7516\\n因此5年期的零息债券投资额为0.7516*41968=31543美元\\n20年期的零息债券投资额为(1-0.7516)*41968=10425美元\\n这是每笔投资的市值或现值，而面值是投资的未来值。\\n5年期零息债券的面值为31543*1.15=50800美元\\n20年期零息债券的面值为10425*1.120=70134美元\\n\\n备注：同上题",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "normal"
     },
     {
       "id": 39,
@@ -401,7 +432,8 @@
       "options": null,
       "correct_answer": "久期D=(10000/1.08*1+10000/1.082*2)/17832.65=1.4808年\\n（2）要使债务免疫，需要久期为1.4808年的零息债券，面值为",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "normal"
     },
     {
       "id": 42,
@@ -413,7 +445,8 @@
       "options": null,
       "correct_answer": "久期D=(1000/1.1*1+400/1.1^5*5)/1157=1.86年\\n（2）零息债券市场价值与债务的市场价值相等为1157万美元\\n面值为1157*1.1^1.86=1381万美元\\n\\n备注：遇到债券久期的计算根本不用怕，我们在研究生招生考试过程中，涉及到的久期题基本只有三类：久期计算、久期法则（利率-债券价格变动关系）、免疫。掌握了定义及公式，基本没有任何难度。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "normal"
     },
     {
       "id": 51,
@@ -425,7 +458,8 @@
       "options": null,
       "correct_answer": "因此\\n解得σA=31.3%\\n同理σB=69.28%\\n（2）A和B的收益率的协方差为（由于残差被假定是不相关的）\\n所以相关系数为\\n（3）\\n\\n备注：注意R2的含义，是指系统性风险占总风险的比例，在计算题中体现为βi2σm2与σi2的比值。另外和RA是不同的！前者是回归模型的指标，后者是证券超额收益率。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "normal"
     },
     {
       "id": 52,
@@ -437,7 +471,8 @@
       "options": null,
       "correct_answer": "如果该证券与市场组合的相关系数加倍（其他所有变量保持不变），那么β将加倍。\n14%=6%+β*(8.5%-6%)\n解得β=3.2，变动后β=6.4\n变动后股票期望收益率=6%+6.4*(8.5%-6%)=22%\n由题知 50=D1/0.14  得D1=7美元\n在新的贴现率22%的情况下，P=7/0.22=31.82美元\n\n备注：本题实际上是想让大家注意到一个点：当证券与市场组合的相关系数发生变化时，不光β会发生变化，个股相对于无风险利率的超额收益（当然你也可以叫它风险溢价）也会随之变化。变动前股票收益率14%，超额收益8%；变动后股票收益率22%，超额收益16%。怎么证明呢？只需要CAPM一步简单的数学变换就ok了。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "normal"
     },
     {
       "id": 53,
@@ -449,7 +484,8 @@
       "options": null,
       "correct_answer": "（1）β是股票收益对市场收益的敏感程度，即是市场收益每变动一单位股票收益的相应变化\\nβA=(0.38-(-0.02))/(0.25-0.05)=2 同理βB=0.3\\n（2）在两种情形可能性相同的情况下，股票的期望收益是两种可能结果的平均数\\nE(rA)=0.5*(0.38+(-0.02))=18%\\nE(rB)=9%\\n（3）证券市场线由市场期望收益0.5*（25%+5%）=15%决定\\n此时βM=1, rf=6%, βf=0\\n证券市场线的方程E(r)=0.06+β*(0.15-0.06)\\n\\n备注：SML和CML的横轴大家要区分明确。思考一下，SML上的点都是有效组合吗？",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "normal"
     },
     {
       "id": 54,
@@ -461,7 +497,8 @@
       "options": null,
       "correct_answer": "（1）由\\n（2）如果存在无限多的资产，即n无限大的时，组合的非系统性风险被充分分散，资产组合将只有系统性风险，\\n充分分散化\\n充分分散化\\n充分分散化\\n均值将等于个股（都是相等的）均值\\n（3）没有套利机会。因为充分分散化的资产组合都落于证券市场线上，他们都是公平定价的。\\n\\n备注：充分分散的资产组合中只有系统性风险，非系统性风险全部被分散掉，是为什么？怎么证明？资本市场线上的组合和证券市场线是什么关系？请思考。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "normal"
     },
     {
       "id": 56,
@@ -473,7 +510,8 @@
       "options": null,
       "correct_answer": "（1）g=5%  D1=8美元  r=10%\\nP0=D1/(r-g)=8/(10%-5%)=160美元\\n（2）d=8/12=2/3  b=1/3\\ng=b*ROE=1/3*ROE=5%\\n解得ROE=15%\\n（3）NPVGO=P0-E1/(r-g)=160-12/10%=40美元\\n\\n备注：是否对上一问备注中提出的问题有更深的理解了呢？",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "normal"
     },
     {
       "id": 58,
@@ -485,7 +523,8 @@
       "options": null,
       "correct_answer": "OCF=EBIT(1-t)+D=69.375\nNPV=-195+69.375*(P/A, 16%, 4)+15/1.16^4=7.408\n应当进行该项目。\n\n备注：严格按照资本预算题型的标准步骤，这类题不可以出现错误。净营运资本期末收回，即使题干中没做提示也要记住。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "normal"
     },
     {
       "id": 59,
@@ -497,7 +536,8 @@
       "options": null,
       "correct_answer": "(2080000-775000)*(1-35%)+900000*0.35=1163250元\n\n备注：此题为简单题，请使用至少四种求OCF的方法去求，并观察其结果是否一致。若本题存在利息呢？结果还一致吗？请思考原因。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "normal"
     },
     {
       "id": 60,
@@ -509,7 +549,8 @@
       "options": null,
       "correct_answer": "购买：\nNPV=-300+40*0.25*4.114+60*0.5066=-228.464万元\n租赁：\n-70*(1-25%)*4.114=-215.985万元\n选择租赁方式\n\n备注：注意租赁要使用税后费用进行折现。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "normal"
     },
     {
       "id": 63,
@@ -521,7 +562,8 @@
       "options": null,
       "correct_answer": "Rf=4%  Rs=4%+1.2*8%=13.6%\nRwacc=1/3*6%*75%+2/3*13.6%+2%=12.57%\nNPV=160/12.57%-1000=272.87万>0\n应该选择此投资项目。\n\n备注：这道题是考试真题，考察的知识点较多，符合考研计算题的特征。要注意题中给出了2%的风险溢价，因此需要加在wacc里，不要忘掉。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "normal"
     },
     {
       "id": 67,
@@ -533,7 +575,8 @@
       "options": null,
       "correct_answer": "残值的纳税调整=20000-20000*35%=13000美元\nOCF1=(0-45000)*(1-0.35)+(270000/3)*0.35=2250美元\nNPV1=-270000+2250*(P/A,12%,3)+13000/1.123=-255342.74美元\nEAC1=-255342.74/(P/A,12%,3)=-106311.69\nOCF2=(0-48000)*(1-0.35)+(370000/5)*0.35=-5300美元\nNPV2=-370000-5300*(P/A,12%,5)+13000/1.125=-381728.76美元\nEAC2=-381728.76/(P/A,12%,5)=-105895.27美元\n选择第二台机器。\n\n备注：请思考为什么要对比EAC而不是NPV。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "normal"
     },
     {
       "id": 68,
@@ -545,7 +588,8 @@
       "options": null,
       "correct_answer": "OCFA=-105000*(1-34%)+34%*(360000/4)=-38700美元\nNPVA=-360000-38700*(P/A,11%,4)=-480064.65美元\nOCFB=-65000*(1-34%)+34%*(480000/6)=-15700美元\nNPVB=-480000-15700*(P/A,11%,6)=-546419.44美元\n选择第一台机器\n\n备注：请思考为什么要对比NPV而不是EAC。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "normal"
     },
     {
       "id": 69,
@@ -557,7 +601,8 @@
       "options": null,
       "correct_answer": "（1）10台A型文字处理器\nNPV=-10*8000-10*2000*PVIFA(14%,4)=-138274美元\nEAC1= -138274/PVIFA(14%,4)=-47456美元\n（2）11台B型文字处理器\nPV=-11*5000-11*2500*PVIFA(14%,3)+11*500/(1+14%)^3=-115133美元\nEAC2=-115133/PVIFA(14%,3)=-49591美元\nEAC1>EAC2因此，应当购买A型文字处理器\n\n备注：使用EAC选择投资项目时老生常谈的问题了，在这里不再赘述。但是要注意一个细节，即EAC取值为负数，是成本，因此绝对值小的才是应当选择的，不要选反。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "normal"
     },
     {
       "id": 71,
@@ -569,7 +614,8 @@
       "options": null,
       "correct_answer": "NPVa=-150000-5000*PVIFA(8%,3)=-162885.48美元\nNPVb=-100000-6000*PVIFA(8%,2)=-110699.59美元\nEACa=NPVa/PVIFA(8%,3)=-63205.03美元\nEACb=NPVb/PVIFA(8%,2)=-62076.92美元\n应选择B，因为其约当年均成本更低。\n\n备注：当两种资产年份不同时，应当使用EAC进行度量。但是如果题目特别强调了资产在结束使用寿命后不进行替换，就不应该使用EAC。这个考察点需要大家记牢，不要出错。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "normal"
     },
     {
       "id": 72,
@@ -581,7 +627,8 @@
       "options": null,
       "correct_answer": "会计盈亏平衡点=(F+D)/(P-V)=(17.91+3)亿/(200-100)万=2091万\nEAC=15/(P/A,15%,5)=4.475亿\n财务盈亏平衡点=[EAC+F*(1-t)-D*t]/[(P-V)*(1-t)]=2315台\n\n备注：必须牢记公式，每个细节都不能出差错。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "normal"
     },
     {
       "id": 74,
@@ -593,7 +640,8 @@
       "options": null,
       "correct_answer": "会计盈亏平衡点=(F+D)/(P-C)=(15+16)/(6-2)=7.75万\nEAC=160/6.144=26.04万元\n财务盈亏平衡点=[EAC+F*(1-tc)-D*tc]/[(P-C)*(1-tc)]=11.097万\n\n备注：这一类题如果出现在真题中，是不允许犯错误的！",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "normal"
     },
     {
       "id": 75,
@@ -605,7 +653,8 @@
       "options": null,
       "correct_answer": "D=95/5=19万元\nEAC=(100-5/1.085)/3.9927=24.198万元\nQ=[24.198+4*(1-25%)-19*0.25]/[(3000-2000)*(1-25%)]=299万\n\n备注：23万元含折旧，注意把折旧刨除。在做题时也要注意给出的条件是否含折旧。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "normal"
     },
     {
       "id": 78,
@@ -617,7 +666,8 @@
       "options": null,
       "correct_answer": "发行成本率=725000/(725000+14000000)=4.9236%\nWs*7%+Wb*3%=4.9236%     Ws+Wb=1\nWs=48.1%    Wb=51.9%\n（1）V=B+S=10000+30000=40000万美元\n（2）βs=β0/(1+B/S)=0.9/(1+1/3)=0.675\n（3）Rs=3%+0.9*4%=6.6%\nWACC=0.25*3%+0.75*6.6%=5.7%\n\n备注：本题属于简单题。牢记公式即可。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "normal"
     },
     {
       "id": 80,
@@ -629,7 +679,8 @@
       "options": null,
       "correct_answer": "债务成本=2000*8%*(1-40%)/2000*(1-2%)=4.90%\n优先股成本=D/P=2000*10%/2000*(1-3%)=10.31%\n普通股成本=D1/(P+g)=4000*10%/4000*（1-5%）+5%=15.53%\n留存收益成本=2000*10%/2000+5%=15%\n综合资本成本=债务成本*2000/10000+优先股成本*2000/10000+普通股成本*4000/10000+留存收益成本*2000/10000=9.28%\n\n备注：这道题考查的知识点比较偏，考到的可能性不高。但是近几年很多学校开始考到细枝末节的知识点，造成大批学生失分，因此不得不防。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "normal"
     },
     {
       "id": 81,
@@ -641,7 +692,8 @@
       "options": null,
       "correct_answer": "Vu=1000/12%=8333.33万元\n根据无税MM定理命题I，Vu=VL=8333.33\n其中L公司的负债800万元，权益为7533.33万元\n根据无税MM定理，R0=Rwacc=12%\nL公司的Rs=r0+(r0-rb)*(B/S)=12.64%\n\n备注：此题属于MM定理基础题，熟记理论内容即可。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "normal"
     },
     {
       "id": 85,
@@ -653,7 +705,8 @@
       "options": null,
       "correct_answer": "（1）Vu=500/10%=5000万元\nVL=Vu=5000万元\nB=500万元  S=4500万元\n（2）Vu=S=500*(1-25%)/10%=3750万元\nVL=Vu+B*tc=3750+500*25%=3875万元\nB=500万元  S=3375万元   税盾效应为125万元\n\n备注：本题为简单题。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "normal"
     },
     {
       "id": 86,
@@ -665,7 +718,8 @@
       "options": null,
       "correct_answer": "B/(B+S)=45%   B/S=45/55\nR0=12%\nRs=R0+(R0-Rb)*B/S*(1-tc)=14.45%\nRwacc=0.45*8%*0.75+0.55*14.45%=10.65%\n（1）B/S=0.5\nRs=R0+(R0-Rb)*B/S=15%\nR0=12%\n当公司为全权益时，Rs=R0=12%\n（2）Rs’=R0+(R0-Rb)*B’/S’=12%+(12%-6%)*(15000/15000)=18%\n根据上式，Rb增加会导致Rs降低。\n\n备注：套公式即可。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "normal"
     },
     {
       "id": 87,
@@ -677,7 +731,8 @@
       "options": null,
       "correct_answer": "（1）B公司的权益资本成本：\nRs=rf+β*(rm-rf)=20.75%\n（2）当B公司为全权益融资时的资本成本（R0）\nRs=R0+(R0-Rb)*B/S*(1-tc)=20.75%\n解得R0=18.25%\n（3）R0同样是A公司在全权益融资条件下的资本成本，因此A公司在有杠杆时的权益资本成本为：\nRs’=R0+(R0-Rb)*B/S*(1-tc)=19.9%\n（4）A公司的加权平均资本成本为：\nRwacc=1/4*10%*0.6+3/4*19.9%=16.45%\n\n备注：这道题的逻辑链条非常严密，基本是每年的必考题。值得注意的是，连接两家公司最重要的关系就是R0，即无杠杆时的资本成本，这一类题的解决方法都是利用一家公司的Rs卸杠杆得到R0，再用MM定理加杠杆得到另一家公司的Rs’。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "normal"
     },
     {
       "id": 88,
@@ -689,7 +744,8 @@
       "options": null,
       "correct_answer": "因此Vu+tcB=B+S  得Vu=S+B*(1-tc) ①\nVuR0+tcBRB=BRB+SRS 得RS=(Vu/S)*R0-(1-tc)*(B/S)RB ②\n将①代入②中整理得证\n\n备注：这是MMII的证明过程，虽然证明题在研究生考试中基本不会出现，但是要想理解MM的低层含义，就必须要明确证明过程。这个证明过程虽然正确但略显粗糙。我们将在课上进行严谨的证明。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "normal"
     },
     {
       "id": 89,
@@ -701,7 +757,8 @@
       "options": null,
       "correct_answer": "Rs=R0+(R0-Rb)*B/S*(1-tc)=12.6%\nR0=12.41%\nRs’=R0+(R0-Rb)*B/S*(1-tc)=13.07%\nRwacc=0.25/1.25*8%*(1-40%)+1/1.25*13.07%=11.42%\n（1）B/S=1/2\nR0=12%\nRs=12%+(12%-6%)*1/2=15%\n（2）B/S=3/2\nRs=12%+(12%-8%)*3/2=18%\n（3）根据权衡理论，过高的债务会导致破产成本等间接成本的增加，收益越高的同时风险也随之增加，公司应该在公司资本结构上进行权衡，保证在公司资本结构健康的条件下实现股东利益最大化。\n（1）由于资本市场是完美的，根据MM定理，公司价值不变。因此在消息宣布后公司股价不变，P = 75美元。\n（2）公司发放股利之后，股票价格发生变化\nB=35000万美元\nS=75*1000-(35000-10000)=50000万美元\nP=S/1000=50美元\n（3）Rs=R0+(R0-Rb)*B/S=8.5%\n解得R0 = 8%\nRs’=R0+(R0-Rb’)*B’/S’=8%+(8%-5%)*0.7=10.1%\n（1）B/S=0.5\nRs=R0+(R0-Rb)*B/S=15%\nR0=12%\n当公司为全权益时，Rs=R0=12%\n（2）Rs’=R0+(R0-Rb)*B’/S’=12%+(12%-6%)*(15000/15000)=18%\n根据上式，Rb增加会导致Rs降低。\n\n备注：套公式即可。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "normal"
     },
     {
       "id": 90,
@@ -713,7 +770,8 @@
       "options": null,
       "correct_answer": "TS=B*tc=2.5\nVu=10*(1-25%)/20%=37.5\nVL=Vu+B*tc=40\n其中B=10、S=30\nRs=r0+(r0-rb)*(B/S)*(1-tc)=23%\nRwacc=0.25*8%*0.75+0.75*23%=18.75%\n\n备注：请尝试使用WACC法与FTE法求得公司L的价值。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "normal"
     },
     {
       "id": 91,
@@ -725,7 +783,8 @@
       "options": null,
       "correct_answer": "Vu=10*(1-25%)/20%=37.5\nVL=Vu+B*[1-(1-tc)*(1-ts)/(1-tb)]\nVL=30+10*[1-(1-25%)*(1-20%)/(1-5%)]=41.184\n\n备注：题目中给出了明显的暗示使用米勒模型，套公式即可。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "normal"
     },
     {
       "id": 93,
@@ -737,7 +796,8 @@
       "options": null,
       "correct_answer": "β0=(1.2+1.3+1.4)/3=1.3\nR0=5%+1.3*9%=16.7%\nRs=R0+（R0-Rb）*B/S*(1-tc)=24.4%\nRwacc=B/V*Rb*(1-tc)+S/V*Rs=13.9%\nV=300000/13.9%-1000000=1160000万美元\n\n备注：求Rs有两种方法，求V有三种方法，请思考并作答。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "normal"
     },
     {
       "id": 98,
@@ -749,7 +809,8 @@
       "options": null,
       "correct_answer": "Rwacc=0.5*10%*0.75+0.5*20%=13.75%\nNPV=800*(1-25%)/13.75%-2000=2363.64万元\n\n备注：本题为简单题，请尝试用APV法求得结果。注意区分UCF和LCF。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "normal"
     },
     {
       "id": 102,
@@ -761,7 +822,8 @@
       "options": null,
       "correct_answer": "（1）5%+y*(11%-5%)=8%\\n解得y=0.5\\n即一半投入于风险资产，一半投入于无风险资产。\\n（2）0.5*15%=7.5%\\n\\n备注：如果不懂第一问的做法，请使用常规方法设w1、w2自行推理。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "normal"
     },
     {
       "id": 103,
@@ -773,7 +835,8 @@
       "options": null,
       "correct_answer": "当相关系数为1时，将100%投资于B\n当相关系数为-1时：\nwa=σb/(σa+σb)=40%\nwb=σa/(σa+σb)=60%\n\n备注：此类题画图即可。如不理解ρ=-1时的解法请使用常规方法设w1、w2并求偏导的方法去做。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "normal"
     },
     {
       "id": 104,
@@ -785,7 +848,8 @@
       "options": null,
       "correct_answer": "市场组合的预期收益率为：\nE(Rm)=10%*40%+15%*60%=13%\n市场组合的标准差为：\nσ=(0.4^2*0.2^2+0.6^2*0.28^2+2*0.4*0.6*0.3*0.2*0.28)^(1/2)\nσ=20.66%\n得到资本市场线方程：rp=5%+[(13%-5%)/20.66%]*σp\n即rp=5%+0.39σp\n\n备注：题目中已经给出了市场组合的构成，我们也就无需进行复杂的计算了。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "normal"
     },
     {
       "id": 105,
@@ -797,7 +861,8 @@
       "options": null,
       "correct_answer": "（1）确定无杠杆即全权益公司的β\n（2）利用CAPM确定折现率\n\n备注：注意β的加载与卸载公式必须在负债无风险（βb=0）的情况下才能用。“公司的β”“权益的β”都指的是βs；“无杠杆”、“全权益”都指的是β0。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "normal"
     },
     {
       "id": 106,
@@ -809,7 +874,8 @@
       "options": null,
       "correct_answer": "βs=β0*[1+B/S*(1-tc)]=1.87\nRs=rf+β*(rm-rf)=18.58%\n\n备注：回忆贝塔的加载和卸载公式的使用条件。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "normal"
     },
     {
       "id": 107,
@@ -821,7 +887,8 @@
       "options": null,
       "correct_answer": "β0=βs*S/[S+(1-tc)*B]=1.5\nRs=rf+β*(rm-rf)=22.75%\n\n备注：此题属基础题，重点在于掌握多种做法。请尝试第二种方法并检查结果是否一致。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "normal"
     },
     {
       "id": 108,
@@ -833,7 +900,8 @@
       "options": null,
       "correct_answer": "（1）P=9/1.07+109/1.082=101.86元\n（2）9/(1+r)+109/(1+r)2\n解得r=7.96%\n（3）令远期利率为f\n则，(1+7%)(1+f)=(1+8%)2\n解得f=9.01%\nP=109/1.0901=99.99元\n\n备注：到期收益率就是所谓的“折现率”。但是当题中没有给出一个确定的折现率时，就要用相应年限的零息债券到期收益率来折现。第一年用一年期零息债券收益率折，第二年用两年期零息债券收益率折。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "normal"
     },
     {
       "id": 109,
@@ -845,7 +913,8 @@
       "options": null,
       "correct_answer": "（1）8.47%  8.33%\n（2）11%\n（3）100.9",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "normal"
     },
     {
       "id": 110,
@@ -857,7 +926,8 @@
       "options": null,
       "correct_answer": "（1）当期收益率=70/960=7.29%\n（2）到期收益率\n960=1000*3.5%*PVIFA(r/2,10)+1000/(1+r/2)^10\n根据上式可以解出其收益率r\n（3）实际收益率\n960=1000*3.5%*PVIFA(r1/2,6)+992/(1+r/2)^6\n根据上式可以解出其收益率r1\n\n备注：债券的收益率问题是常考的一类题型，虽然简单也建议大家不要忽视。当期收益率和到期收益率要分清楚，我们将在课上进行专题讲解。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "normal"
     },
     {
       "id": 111,
@@ -869,7 +939,8 @@
       "options": null,
       "correct_answer": "\n\n备注：到期收益率是使债券的支付现值与其价格相等的利率；当期收益率为每年支付的利息支付除以债券价格；复合收益率是假定在所有的利息支付都可以再投资的前提下，使最终收益等于购买债券支付的贴现率。复合收益率也就是CAGR，如果同学们未来进入券商做二级市场研究，将会经常使用到。几个收益率的概念请同学们不要混淆。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "extreme"
     },
     {
       "id": 112,
@@ -881,7 +952,8 @@
       "options": null,
       "correct_answer": "到期收益率y满足：\n85/(1+y)+85/(1+y)^2+1085/(1+y)^3=1040.2\n解得y=6.97%\n(2）如果第一年年底y=8%\n则债券价格P=85/1.08+1085/1.08^2=1008.92美元\n持有期收益率=[85+(1008.92-1040.2)]/1040.2=5.16%\n\n备注：持有期收益率取决于两部分，一是利息收入，二是资本利得，不要忘记任意一项。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "normal"
     },
     {
       "id": 113,
@@ -893,7 +965,8 @@
       "options": null,
       "correct_answer": "（2）到期收益率y满足：\n60/(1+y)+60/(1+y)^2+1060/(1+y)^3=984.14\n解得y=6.6%\n（3）利息再投资与本金的终值\nFV=60*1.07*1.08+60*1.08+1060=1194.14\n复合收益率满足：984.14*(1+y*)^3=1194.14\n解得y*=6.66%\n（4）第二年，债券价格P=60/1.07+1060/1.07^2=981.92美元\n持有期收益率为60+(981.92-984.14)/984.14=5.88%\n\n备注：同上。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "normal"
     },
     {
       "id": 114,
@@ -905,7 +978,8 @@
       "options": null,
       "correct_answer": "（1）P=10000*[1-0.03*(90/360)]=9925美元\n（2）90天收益率=(10000-9925)/9925=0.7557%\n（3）EAR=(1+0.7557%)^(365/90)-1=3.10%\n\n备注：重点为第三问，请注意一年期以下的持有期收益率转化为有效年收益率的方式。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "normal"
     },
     {
       "id": 115,
@@ -917,7 +991,8 @@
       "options": null,
       "correct_answer": "（1）4年期零息债券现在的价格为1000/1.064^4=780.25 美元\n第二年，收益率曲线不变时，现在的4年期债券还有3年到期，价格为1000/1.0633=832.53美元\n所以一年期收益率为6.7%，在这种情况下，4年期零息债券具有较高的预期收益率。\n（2）根据期望假说，所有的债券具有相同的期望持有期收益率。因此，预期4年期的债券持有期收益率为6.1%，与1年期债券相同。\n\n备注：这是一道比较新颖的题。解决这类题要清楚以下几个知识点：",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "normal"
     },
     {
       "id": 116,
@@ -929,7 +1004,8 @@
       "options": null,
       "correct_answer": "",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "normal"
     },
     {
       "id": 117,
@@ -941,7 +1017,8 @@
       "options": null,
       "correct_answer": "（2）到期收益率y满足 9/(1+y)+109/(1+y)^2=101.86\n求得y=7.598%\n（3）根据零息债券收益率曲线，推出第二年的远期利率f1,2满足\n1+f1,2=1.082/1.07=1.0901  得f1,2=9.01%\n明年债券的预期售价P=109/1.0901=99.99美元\n（4）如果流动性溢价为1%\n则预期利率E(r2)=f1,2-流动性溢价=9.01%-1%=8.01%\n预期债券价格为109/1.0801=100.92美元\n\n备注：站在当前时点，只看未来。为什么第四问不能用E(r2)来折现，而要修正成f1,2？这是个很重要的问题，大家先自行思考，我们将在售后答疑群里统一讲解。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "normal"
     },
     {
       "id": 118,
@@ -953,7 +1030,8 @@
       "options": null,
       "correct_answer": "（2）对于现在发行的3年期零息债券来说\n可以用发行收入购买782.92/715=1.095只4年期债券，因此，现金流状况如下\n这是一种从第三年开始的1年期合成贷款，贷款利率为第四年远期利率9.5%\n（3）对于现在发行的4年期零息债券来说\n可以用发行收入购买715/650=1.1只5年期债券，因此，现金流状况如下\n这是一种从第四年开始的1年期合成贷款，贷款利率为第五年远期利率10%\n\n备注：构建远期贷款这一类型的题目比较少见，但经过分析其实也不难。主要在于掌握我们一直强调的“复制”理念。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "normal"
     },
     {
       "id": 119,
@@ -965,7 +1043,8 @@
       "options": null,
       "correct_answer": "（2）\n（3）两年期远期贷款实际利率为1204.5/1000-1=20.45%\n（4）第4年和第5年的1年期远期利率分别为9.5%和10%",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "normal"
     },
     {
       "id": 120,
@@ -977,7 +1056,8 @@
       "options": null,
       "correct_answer": "\n\n备注：同上题，只不过主体改变了，将头寸方向改变至相反就可以了。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "normal"
     },
     {
       "id": 121,
@@ -989,7 +1069,8 @@
       "options": null,
       "correct_answer": "（1）(1+r1)(1+f1,2)=(1+r2)^2\nf1,2=12.01%\n(1+r2)^2*(1+f2,3)=(1+r3)^3\nf2,3=14.03%\n（2）下一年r1’=f1,2=12.01%\n(1+r1)*(1+r2’)^2=(1+r3)^3\nr2’=13.01%\n（3）P0=1000/(1+r3)^3=711.78元\nP1=1000/(1+r2’)^2=783.01元\ny=(P1-P0)/P0=10.01%\n\n备注：这类题属于重点题型，必须严肃对待。远期利率这一类考题在很多学校的真题中都出现过，而且都是作为压轴题。但是如果理解了这一类题的核心思想，就不难得出正确结果。tip：根据无偏预期理论，r2可以视作r1和f1,2的算术平均，如果发现正常求得的结果与算术平均数偏离过大，就需要考虑是不是自己的计算过程出了问题。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "normal"
     },
     {
       "id": 122,
@@ -1001,7 +1082,8 @@
       "options": null,
       "correct_answer": "（1）永久债券的久期为1.05/0.05=21年\nw1*5+w2*21=10   w1+w2=1\n解得w1=11/16  w2=5/16\n（2）零息债券的久期为4年，永久债券的久期依旧为21年\nw1*4+w2*21=9   w1+w2=1\n解得w1=12/17  w2=5/17\n即零息债券的比例增加到12/17，永久债券下降到5/17\n\n备注：注意第二题中一年后零息债券的久期也随之改变。总体来说本题难度不大。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "normal"
     },
     {
       "id": 123,
@@ -1013,7 +1095,8 @@
       "options": null,
       "correct_answer": "（1）P=6/1.05+6/1.052+106/1.053=102.72\nC =1/102.72*(1*2*6/1.05^3+2*3*6/1.05^4+3*4*106/1.06^5)\n=10.09\n同（1）可得 剩余期限为1年时C=1.81\n息票率为10%时，C=9.69\n\n备注：久期怎么算？理论上来说，凸性是债券价格对收益率二阶导数除以价格，相当于一阶泰勒——久期的扩展。大家不妨从最底层也就是DCF来推一遍，只要掌握了推理过程，哪怕在考场上忘记了公式，也可以在一分钟内解决。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "normal"
     },
     {
       "id": 124,
@@ -1025,7 +1108,8 @@
       "options": null,
       "correct_answer": "到期收益率变为8%时，\n债券价格P=70/1.08+70/1.082+……+1070/1.0810=932.9元\n即债券价格下降到原来的93.29%，下降百分比为6.71%\n运用久期法则，△P/P=-△y*D/(1+y)=-0.01*7.515/1.07=-7.02%\n这比实际的价格下跌要多出0.31%\n运用久期—凸性法则，△P/P=-△y*D/(1+y)+1/2*C*△y2=-6.7%\n其估计误差只有0.01%，远远小于使用久期法则的误差\n\n备注：请大家先不要翻看答案，先耐心的算下去，算完之后你会对久期凸性法则有更深刻的理解。本题很好的验证了久期—凸性法则与久期法则相比精确度更高。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "normal"
     },
     {
       "id": 125,
@@ -1037,7 +1121,8 @@
       "options": null,
       "correct_answer": "债务的D=(1+y)/y=1.16/0.16=7.25年\n令五年期债券持有比例为w，则有4w+11(1-w)=7.25 得w=0.5357\n因此5年期债券的持有量为0.5357*1250=670万美元\n20年期的债券持有量为(1-0.5357)*1250=580万美元\n（2）20年期的债券价格\nP=60*PVIFA(16%,20)+1000*PVIF(16%，20)=407.12 美元\n因此债券的售价为面值的0.4071倍，即市场价值=面值*0.4071\n580=面值*0.4071 得出面值=1425万美元\n\n备注：构建免疫组合的关键是令两种组合的久期相等，掌握了思想这类问题也就迎刃而解。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "normal"
     },
     {
       "id": 126,
@@ -1049,7 +1134,8 @@
       "options": null,
       "correct_answer": "因为支付流从5年后开始，而不是第一年，因此我们必须在久期加4年，得到久期为8.7255年\n（2）递延年金的现值为10000*PVIFA(10%, 10)/1.1^4=41968美元\n令5年期零息债券的投资比例为w,则\n5w+20(1-w)=8.7255,w=0.7516\n因此5年期的零息债券投资额为0.7516*41968=31543美元\n20年期的零息债券投资额为(1-0.7516)*41968=10425美元\n这是每笔投资的市值或现值，而面值是投资的未来值。\n5年期零息债券的面值为31543*1.15=50800美元\n20年期零息债券的面值为10425*1.120=70134美元\n\n备注：同上题",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "normal"
     },
     {
       "id": 127,
@@ -1061,7 +1147,8 @@
       "options": null,
       "correct_answer": "久期D=(10000/1.08*1+10000/1.082*2)/17832.65=1.4808年\n（2）要使债务免疫，需要久期为1.4808年的零息债券，面值为\n17832.65*1.08^1.4808=19985.26美元\n（3）如果利率上升到9%，零息债券价值下降到\n19985.26/1.09^1.4808=17590.92美元\n学费债务的现值PV=10000/1.09+10000/1.09^2=17591.11美元\n净头寸下降0.19美元\n\n备注：有一个知识点没在免疫的第一道题就说，而是放在后面，主要是想看看大家是否注意到了一个细节：免疫并不等同于充分融资。也就是说，前面几道题认为免疫组合的现值等于之前资产或负债的现值，只不过是因为给出了“充分融资”这个条件罢了。但是考到免疫题，一般都伴随着充分融资这个条件，不然没什么可考的！例如本题，就事先给出了零息债券和债务相等的条件。\n另外要注意到的是，利率发生变化后，免疫组合的净头寸可能不为零，但是必然变动不大。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "normal"
     },
     {
       "id": 128,
@@ -1073,7 +1160,8 @@
       "options": null,
       "correct_answer": "久期D=(1000/1.1*1+400/1.1^5*5)/1157=1.86年\n（2）零息债券市场价值与债务的市场价值相等为1157万美元\n面值为1157*1.1^1.86=1381万美元\n\n备注：遇到债券久期的计算根本不用怕，我们在研究生招生考试过程中，涉及到的久期题基本只有三类：久期计算、久期法则（利率-债券价格变动关系）、免疫。掌握了定义及公式，基本没有任何难度。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "normal"
     },
     {
       "id": 129,
@@ -1085,7 +1173,8 @@
       "options": null,
       "correct_answer": "（1）r=rf+β*(rm-rf)=16.4%\ng=b*ROE=(1-d)*ROE=12%\nV0=D1/(r-g)=101.82元\n（2）V1=V0*(1+g)=114.04元\ny=(V1+D1-V0)/V0=18.52%\n\n备注：注意题目中给出的股息是什么时候支付的，分清“股票的股东权益收益率”、“股票的投资者要求的必要收益率”、“股东的预计投资回报率”都是什么。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "normal"
     },
     {
       "id": 130,
@@ -1097,7 +1186,8 @@
       "options": null,
       "correct_answer": "（1）利用CAPM模型：\nRa=8%+2*(12%-8%)=16%\nRb=8%+1.5*(12%-8%)=14%\n利用股利折现模型计算股票理论价值：\nPa=5*PVIFA(16%,4)+5/(16%-6%)/(1+16%)^4=41.60元\nPb=2/(14%-4%)=20元\n股票的市价为：\nA的每股盈余=800/100=8元/股\nA的每股市价=5*8=40元\nB的每股盈余=400/100=4元/股\nB的每股市价=5*4=20元\n可以发现，A、B的股价均被低估，可以购买。\n（2）组合的预期收益率和贝塔为：\nE(Rp)=4000/(4000+2000)*16%+2000/(4000+2000)*14%=15.34%\nβ=4000/(4000+2000)*2+2000/(4000+2000)*1.5=1.83\n\n备注：难度较低，按照题目的逻辑一步一步进行下去即可。第一问“是否值得购买”，意思就是求出价格与价值，看有无偏离。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "normal"
     },
     {
       "id": 131,
@@ -1109,7 +1199,8 @@
       "options": null,
       "correct_answer": "（1）Rs=4%+1.2*4%=8.8%\n（2）P=0.18/1.088+0.18*1.02/1.0882+0.18*1.022/(8.8%-6%)/1.0882=5.9706元\n（3）内在价值<市场价值，被高估，故卖出。\n\n备注：注意这道题的时点问题，立足于某一时点后，本时点和之前时点便不再考虑，因此“不到1%”为废条件。另外，只要遇到此类问题必须采用数轴法。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "normal"
     },
     {
       "id": 132,
@@ -1121,7 +1212,8 @@
       "options": null,
       "correct_answer": "（1）预计发放每股股利：=3.2×（1+8%）×25%=0.864（元）\n（2）Rs=0.864/40+8%=10.16%\n\n备注：给大家做道简单题休息一下。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "normal"
     },
     {
       "id": 133,
@@ -1133,7 +1225,8 @@
       "options": null,
       "correct_answer": "（1）股息增长率g=b*ROE=(1-40%)*20%=12%\n折现率r=8%+1.2*(15%-8%)=16.4%\nP0=D1/(r-g)=10*40%*(1+12%)/(16.4%-12%)=101.82元\n（2）一年后股票价值为P1=P0*(1+g)=114.04元\n一年内持有，可获得股利D1=D0*(1+g)=10*40%*(1+12%)=4.4元\n一年后持有的收益率为(114.04+4.48-100)/100*100%=18.52%\n\n备注：注意区分预期收益率、到期收益率、持有期收益率、当期收益率……这是非常容易混淆的知识点。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "normal"
     },
     {
       "id": 134,
@@ -1145,7 +1238,8 @@
       "options": null,
       "correct_answer": "（1）E(Ra)=4.25%+1.35*(12.5%-4.25%)=15.39%\n（2）P0=(D1+P1)/(1+r)=(2.25+23)/(1+0.1539)=21.88美元\n（3）g=r-(D1/P0）)=0.1539-2.25/21.88=5.11%\n\n备注：本题几乎无难度，但是要特别注意的是，第二问有些同学发现没有增长率g，就直接默认g=0，然后用DDM去做了，这样是不对的。P1=23就代表了第二时点开始全部股利的折现，此时再加上第一时点的股利2.25美元进行总体折现。你只有第一时点的股息D1是已知的！\n做完这道题怎么验算呢？大家知道股息增长率和价值增长率是一致的，把g=5.11%代入到21.88美元中，看一年后价格是否为23美元即可。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "normal"
     },
     {
       "id": 135,
@@ -1157,7 +1251,8 @@
       "options": null,
       "correct_answer": "（1）P0=10 E1=2 b=0.5 ROE=0.2\ng=b*ROE=10%\nr=D1/P0+g=2*50%/10+10%=20%\n（2）NPVGO=P0-E1/r=10-2/20%=0\n（3）两种情况股价都不会发生变动，因为股价不再受股利削减和额外收益再投资的影响。\n\n备注：要思考到底什么是“其余收益用于投资年收益率”，理解ROE的深层含义。关于第三问大家可以列式计算一下，看答案是否正确。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "normal"
     },
     {
       "id": 136,
@@ -1169,7 +1264,8 @@
       "options": null,
       "correct_answer": "（1）E0=1 D0=0.5 ROE=20% r=15%\n因此b=0.5  g=b*ROE=10%\nP0=D1/(r-g)=0.5*(1+10%)/(15%-10%)=11美元\n（2）\n因此P1=D2/(r-g)=0.726/(15%-6%)=8.067美元\nP’0=(0.55+8.067)/(1+15%)=7.493美元\n（3）当市场未认识到情况的变化时，公司股价仍按照g=10%增长\nP1=P0*(1+10%)=12.1美元\n在第二年时，市场意识到了情况的变化，\nP2=D3/(r-g)=0.770/(15%-6%)=8.56美元\nP3=P2*(1+6%)=9.07美元\n可以求得，r1=(12.1-11+0.55)/11=15%\nr2=(8.56+0.726-12.1)/12.1=-23.26%\nr3=(9.07+0.770-8.56)/8.56=14.95%\n\n备注：第二问中，为什么D2不等于D1*(1+g1)呢？g不是股利增长率吗？这个时候并不是g失效了，而是此时不能这样去算。请注意，g=b*ROE的推导过程是通过NI实现的，因此如果认为g是股利增长率，就必须有个前提条件——派息比率不变！有关b*ROE的推导大家可以自己先研究一下，试着写在下面。第三问千万不要忘记加上股息！事实上所有求收益率的题都非常类似，且步骤比较固定，按照我们给出的思考框架解答即可。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "normal"
     },
     {
       "id": 137,
@@ -1181,7 +1277,8 @@
       "options": null,
       "correct_answer": "因此\n解得σA=31.3%\n同理σB=69.28%\n（2）A和B的收益率的协方差为（由于残差被假定是不相关的）\n所以相关系数为\n（3）\n\n备注：注意R2的含义，是指系统性风险占总风险的比例，在计算题中体现为βi2σm2与σi2的比值。另外和RA是不同的！前者是回归模型的指标，后者是证券超额收益率。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "normal"
     },
     {
       "id": 138,
@@ -1193,7 +1290,8 @@
       "options": null,
       "correct_answer": "（1）β是股票收益对市场收益的敏感程度，即是市场收益每变动一单位股票收益的相应变化\nβA=(0.38-(-0.02))/(0.25-0.05)=2 同理βB=0.3\n（2）在两种情形可能性相同的情况下，股票的期望收益是两种可能结果的平均数\nE(rA)=0.5*(0.38+(-0.02))=18%\nE(rB)=9%\n（3）证券市场线由市场期望收益0.5*（25%+5%）=15%决定\n此时βM=1, rf=6%, βf=0\n证券市场线的方程E(r)=0.06+β*(0.15-0.06)\n\n备注：SML和CML的横轴大家要区分明确。思考一下，SML上的点都是有效组合吗？",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "normal"
     },
     {
       "id": 139,
@@ -1205,7 +1303,8 @@
       "options": null,
       "correct_answer": "（1）由\n（2）如果存在无限多的资产，即n无限大的时，组合的非系统性风险被充分分散，资产组合将只有系统性风险，\n充分分散化\n充分分散化\n充分分散化\n均值将等于个股（都是相等的）均值\n（3）没有套利机会。因为充分分散化的资产组合都落于证券市场线上，他们都是公平定价的。\n\n备注：充分分散的资产组合中只有系统性风险，非系统性风险全部被分散掉，是为什么？怎么证明？资本市场线上的组合和证券市场线是什么关系？请思考。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "normal"
     },
     {
       "id": 140,
@@ -1217,7 +1316,8 @@
       "options": null,
       "correct_answer": "（1）r=6%+1.25*(14%-6%)=16%\ng=b*ROE=2/3*9%=6%\nD1=3*(1+6%)*1/3=1.06美元\nP0=D1/(r-g)=1.06/10%=10.6美元\n（2）P/E=P0/E0=10.6/3=3.53\n（3）NPVGO=P0-E1/r=10.6-3/16%=-8.15\n（4）调整之后g’=b’*ROE=1/3*9%=3%\nD’1=3*(1+3%)*2/3=2.06美元\nP’=D’1/(r-g)=15.85美元\n企业分配了更多的收益，而非在ROE表现不佳的环境下继续投资，这对于公司的价值来说是个利好。但是该信息并未传导至市场，因此股票的价值是高于价格的。\n\n备注：第二问可用公式P/E=b(1+g)/(r-g)进行验算，确保万无一失。同学们可以试着推一下。第三问可能有一些同学对于增长机会净现值模型不熟，和大家简单讲一下。GO——Growth Opportunities，它的净现值应该是什么呢？其实就是有增长机会的股票（或公司/项目/…）现值，减去没有增长机会的，剩下的自然就是增长机会带来的净现值了！没有增长机会是什么意思呢，也就是公司的收益全部用来分红，用我们的符号语言表达，就是b=0，d=1，g=b*ROE=0，这个时候D自然就是EPS了。最后请大家思考：为什么会出现负的NPVGO呢？这个问题的答案和第二问验算的具体推导过程，我们都将在刷题班课上进行。第四问的文字部分，大家想想和哪一块的知识比较相近？请写在这里。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "normal"
     },
     {
       "id": 141,
@@ -1229,7 +1329,8 @@
       "options": null,
       "correct_answer": "（1）g=5%  D1=8美元  r=10%\nP0=D1/(r-g)=8/(10%-5%)=160美元\n（2）d=8/12=2/3  b=1/3\ng=b*ROE=1/3*ROE=5%\n解得ROE=15%\n（3）NPVGO=P0-E1/(r-g)=160-12/10%=40美元\n\n备注：是否对上一问备注中提出的问题有更深的理解了呢？",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "normal"
     },
     {
       "id": 142,
@@ -1241,7 +1342,8 @@
       "options": null,
       "correct_answer": "（1）P0=EPS/Rs=68.75元\n（2）NPVGO=-1.6/1.12+2.1/1.122+2.45/1.123=1.99\nP’=68.75+1.99=70.74元\n（3）P4=8.25/12%=68.75元\n\n备注：（3）中，立足于未来时点第四年，就无须理会前三年了。只看未来，不看过去，永远记牢！",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "normal"
     },
     {
       "id": 143,
@@ -1253,7 +1355,8 @@
       "options": null,
       "correct_answer": "（1）-650-1500-90=-2240万元\n（2）D=1500/8=187.5万元\n残值=1500-187.5*5=562.5万元\n纳税调整=500-（500-562.5）*0.25=515.625万元\n（3）OCF=[12000*(1-0.9)-40]*0.75+187.5*0.25=916.875万元\n（4）NPV=-2240+916.875*PVIFA（14%，5）+1255.625*PVIF(14%,5)=1559.839万元\n\n备注：本题是人大研究生考试真题，实际上这道题是把求NPV的步骤拆开了，难度不大。但要注意沉没成本和机会成本，不要白白失分。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "normal"
     },
     {
       "id": 144,
@@ -1265,7 +1368,8 @@
       "options": null,
       "correct_answer": "（1）设最高出价x元\nNPV=0=-x+100000*(1-25%)*PVIFA(10%,5)+x/5*0.25*PVIFA(4%,5)\n解得x=365714.36元\n（2）全权益融资时：\nNPV=-380000+100000*0.75*3.7908+380000/5*0.25*4.4518=-11105.8\n债券的连带影响=200000-200000/1.085-200000*8%*(1-25%)*3.9927=15970.96\nAPV=-11105.8+15970.96=4865.16元\nAPV=-11105.8+15970.96=4865.16元\n（3）\n债券的连带影响=-200000-200000/1.085-200000*5%*(1-25%)*3.9927=33938.11\nNPV=-x+100000*0.75*3.7908+x/5*0.25*4.4518+33938.11=0\n解得x=409369.71元\n\n备注：本题是一道经典真题，请同学们认真研习。（1）折旧税盾应当使用无风险利率进行折现。（无复原平衡情况下）（2）有限年债务融资的税盾应当使用类似于NPV法的方式去计算，而不应当简单乘税率。   （3）第二题给出了“债券按8%的利率平价发行”意味着市场上的折现率为8%，因此第三问与第二问相比只需要更改票面利率即可，折现率不变。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "normal"
     },
     {
       "id": 145,
@@ -1277,7 +1381,8 @@
       "options": null,
       "correct_answer": "（1）NPV=-1900000+450000*PVIFA(16%, 10)=274952.37美元\n（2）1300000=50*Q*PVIFA(16%, 9)\n解得Q=5664\n\n备注：此题无难度，注意第二问究竟是在考察什么。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "normal"
     },
     {
       "id": 146,
@@ -1289,7 +1394,8 @@
       "options": null,
       "correct_answer": "（1）上行=11000*50*PVIFA(16%,9)=2533599.13美元\n下行=1300000美元\nNPV=-1900000+[(上行+下行)*50%+450000]/(1+16%)\n=140344.45美元\n（2）若无放弃期权，下行=4000*50*PVIFA(16%,9)=921308.78美元\n放弃期权=50%*(1300000-921308.78)/(1+16%)=163228.98美元\n\n备注：放弃期权求法：（放弃-不放弃）、折现、乘概率。放弃期权的价值看似较难，但实际上若理解了原理，整套步骤做下来会非常流畅，况且此类题型只要出现，往往都是一个套路（这是真的！）。在解决此类问题时一定要会画我们一直要求的“鱼叉图”。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "normal"
     },
     {
       "id": 147,
@@ -1301,7 +1407,8 @@
       "options": null,
       "correct_answer": "（1）NPV=-2500+760*PVIFA(20%,5)=-227.14万元\n（2）上行=1000*PVIFA(20%,4)=2588.7万元\n下行=2000万元\nNPV=[0.6*上行+0.4*下行+760]/(1+20%)-2500=94.35万元\n放弃期权=40%*(2000-400*PVIFA(20%,4))/(1+20%)=321.51万元\n\n备注：当上行下行的期望销售额和初始预期相同时，可以采取（带放弃期权NPV-不带放弃期权NPV）的方式快速求出放弃期权的价值。但当不满足上述条件时，就必须采用答案中的常规做法。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "normal"
     },
     {
       "id": 148,
@@ -1313,7 +1420,8 @@
       "options": null,
       "correct_answer": "（1）Rs=rf+β*(rm-rf)=10%+(0.048/0.04)*(20%-10%)=22%\n（2）NPV重型=-1000+[640*(1-34%)+1000/4*0.34]*PVIFA(22%,4)=265.27\nNPV轻型=-500+[616*(1-34%)+500/2*0.34]*PVIFA(22%,2)+{-500+[616*(1-34%)+500/2*0.34]*PVIFA(22%,2)}/(1+22%)^2=389.84\n因此选择轻型机器。\n（3）VL=Vu+B*tc=1000+200*0.34=1068万元\nS=VL-B=868万元\n\n备注：这道题非常综合，考查到了很多知识点，比较符合考研题型的特点，值得反复研究。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "normal"
     },
     {
       "id": 149,
@@ -1325,7 +1433,8 @@
       "options": null,
       "correct_answer": "（1）OCF=(收入-成本)*（1-t）+折旧*t=54万元\nNPV=-60+54/1.1+54/1.12=33.72万元\n（2）EAC=60/1.7355=34.57万元\nQ=[EAC+F*(1-tc)-D*tc]/(P-C)*(1-tc)=4.57万\n\n备注：此题为简单题，在处理资本预算时采取表格法去做更为清晰。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "normal"
     },
     {
       "id": 150,
@@ -1337,7 +1446,8 @@
       "options": null,
       "correct_answer": "（1）权益的市场价值=850*34=28900万元\n负债的市场价值=20*1000*93%=18600万元\n公司价值=47500万元\n其中债务与权益的比重分别为0.3916和0.6084\n（2）由于该项目风险与公司风险相当，所以选用WACC作为项目的折现率。\nrs=rf+β*(rm-rf)=13.4%\nP=930=37.5*(P/A,r,30)+1000*(P/F,r,30)\nr=4.163%\nrb=2r(1-tc)=5.41%\nWACC=0.134*0.6084+0.0541*0.3916=10.27%\n\n备注：在很多学校的考试中，都曾经出现过在计算中某一步的结果算不出来，又无法使用计算器的情况，遇到这种情况我们应该怎么办呢？最稳妥的方法是把公式列出来，之后对于算不出来的结果用某一标志替代（如题中rb），并在接下来的步骤中把这一标志当做常数来计算。这是因为审题老师是按步骤给分，当结果难以计算时主要看的是同学们的逻辑。一般来说这种做法会扣2-3分，相比于其他使用了大量时间进行计算的同学（大多数都算不出最后结果，浪费了时间又丢了分），可以节省下来时间来应对其他的题。如果比较幸运遇到很nice的老师可能只扣1分甚至不扣分！",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "normal"
     },
     {
       "id": 151,
@@ -1349,7 +1459,8 @@
       "options": null,
       "correct_answer": "（1）P=975=40*(P/A,r,40)+1000*(P/F,r,40)\nr=4.13%\nrb=2r=8.26%\n（2）r0=rf+β0*(rm-rf)=12.7%\nrs=r0+(r0-rb)*(B/S)*(1-tc)=13.87%\n（3）B/S=0.4\n得到：\nB/(B+S)=0.29\nS/(B+S)=0.71\n因此Rwacc=B/(B+S)*(1-tc)*rb+S/(B+S)*rs=11.47%\n\n备注：依然是某步运算求不出结果，使用rb作为常数代替即可。第二问此类题有两种做法：（i）β0→R0→Rs （ii）β0→βs→Rs。请再思考一下为何不能使用第二种做法？",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "normal"
     },
     {
       "id": 152,
@@ -1361,7 +1472,8 @@
       "options": null,
       "correct_answer": "（1）1000*8%*PVIFA(rb,10)+1000/(1+rb)^10=964\n解得rb=6.5%\nrs=4.5%+1.5×5%=12%\n（2）B/V=964*100/(964*100+28.5*10000)=25%\nS/V=28.5*10000/(964*100+28.5*10000)=75%\nRwacc=6.5%×25%*(1-25%)+12%×75%=10.22%\n\n备注：本题没有难度。但是要记住，在实际考试中有极大可能性出现解不出得数、缺条件、题干前后矛盾的情况。这实际上是“系统性风险”（请同学们复习系统性风险的知识点），因此我们唯一能做的就是保持冷静，认真读题找到题目的问题。对于无法得到得数的问题我们可以采用设字母的方法。如果是多条件或少条件，可以在答题之前声明。因为老师考察的并不是我们是否可以得到正确结果（当然得到正确结果更好），而是在整个解题过程中思路是否清晰，逻辑是否严密。因此当我们在考试时发现某道题有问题时一定要放平心态，这种情况是很常见的。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "normal"
     },
     {
       "id": 153,
@@ -1373,7 +1485,8 @@
       "options": null,
       "correct_answer": "（1）EPS=37500/5000=7.5美元\n现金流=7.5*100=750美元\n（2）Vu=65*5000=325000美元\n其中B=130000，S=195000\n现金流=（37500-130000*8%）/3000*100=903美元\n（3）为形成初始的资本结构，布朗女士应该卖出40%的股份，之后将这笔钱以8%的利率借出去。\n\n备注：注意一点，即自制杠杆仅在无税MM下才能成立。此类题型难度低、出题概率小，但仍需要重视。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "normal"
     },
     {
       "id": 154,
@@ -1385,7 +1498,8 @@
       "options": null,
       "correct_answer": "（1）(95000-400000*10%)/400000=13.75%\n（2）借入30000美元，加上本金30000买入A公司的股票。\n（3）A公司的权益资本成本=95000/800000=11.875%\nB公司的权益资本成本=13.75%\n\n备注：本题无难度。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "normal"
     },
     {
       "id": 155,
@@ -1397,7 +1511,8 @@
       "options": null,
       "correct_answer": "（1）Va=10000*20=200000美元\n（2）Vb=Va=200000美元\n（3）B=50000美元，S=200000-50000=150000美元\n（4）购买A公司所有者权益的价格=20%*200000=40000美元\n购买B公司所有者权益的价格=20%*150000=30000美元\n（5）A：55000*20%=11000美元\nB：（55000-50000*12%）*20%=9800美元\n（6）B/S=1/3，投资者持有30000元的本金，在市场上以12%的利率借入10000元资金买入A公司的股票\n\n备注：这道题看起来很麻烦，但实际上非常简单，请大家耐心读题完成。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "normal"
     },
     {
       "id": 156,
@@ -1409,7 +1524,8 @@
       "options": null,
       "correct_answer": "（1）0.4/430=1.4/V\n解得V=1505万美元\n由于不考虑税收，发债回购对公司价值无影响。故回购后公司价值仍为1505万美元\n（2）Rs=(168-430*10%)/1075=11.63%\n（3）Rs=11.63%=R0+（R0-Rb）*B/S\n解得R0=11.16%\n（4）R’=(168-1505*10%/3)/(1505*2/3)=11.74%\n\n备注：第四题还有使用MM定理的第二种做法，请思考作答，并检验两种方法的最后数值是否相同。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "normal"
     },
     {
       "id": 158,
@@ -1421,7 +1537,8 @@
       "options": null,
       "correct_answer": "（1）债务成本=Rb*(1-tc)=3.75%\n权益资本成本20.89%\n（2）目标公司价值3043.83万元\nB=S=1521.92万元",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "normal"
     },
     {
       "id": 159,
@@ -1433,7 +1550,8 @@
       "options": null,
       "correct_answer": "（1）Vu=200/(10.06%-3.8%)=2941.18万元\n（2）利息税盾=200*20%*36%/(10.6%-3.8%)=211.76万元\nVL=2941.18+211.76=3152.94万元\n（3）B*5.8%=200*20%\nB=689.66万元\n（4）689.66/3152.94=21.87%\n\n备注：题干中条件“利息花费为自由现金流的20%”，证明债务与公司整体运营情况是相关的，因此税盾要以无杠杆公司的资本成本（R0）进行折现，这就是负债的“复原平衡”。若未给出该条件，则仍用Rb折现。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "normal"
     },
     {
       "id": 160,
@@ -1445,7 +1563,8 @@
       "options": null,
       "correct_answer": "（1）FCFF=240*(1-25%)+18-50-40=108万元\nVL=FCFF/(Rwacc-g)=1200万元\n（2）1200-1000=200万元\n（3）1200*1/2=600万元\n1000-600=400万元\n（4）600-400=200万元\n（5）R0=1/2*8%+1/2*18%=13%\nVu=108/(13%-3%)=1080万元\n利息税盾现值=600*8%*25%/(13%-3%)=120万元\nVL=Vu+PVTS（注：税盾现值）=1200万元\n\n备注：同上题一样给出了复原平衡的条件，因此应当按照公司整体的风险来折现税盾。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "normal"
     },
     {
       "id": 161,
@@ -1457,7 +1576,8 @@
       "options": null,
       "correct_answer": "（1）Rs=8%+1.2*5%=14%\nRwacc=0.2*8%*0.75+0.8*4%=12.4%\n（2）S=4000*20=80000\nVL=80000*5/4=100000万元\n公告日：\nVL’=100000+20000*0.25=105000万元\nS’=105000-20000=85000万元\nP=85000/4000=21.25元\n发债日：\nB’=40000万元\nS’’=65000万元\n（3）B’/S’’=40000/65000\nRs=14%=R0+(R0-8%)*1/4*0.75\nR0=13.05%\nR’s=13.05%+(13.05%-9%)*40000/65000*0.75=14.92%\nR’wacc=40000/105000*9%*0.75+65000/105000*14.92%=11.81%\n（4）S=80000  B=20000\nS’=80000+20000*0.25=85000万元\nS’’=85000*(1-10%)=76500万元\nP=76500/4000=19.125元\nB=40000万元\nB/S’’=52.29%\n\n备注：本题难度较高。在公告日宣布将进行股票回购时公司价值就提升了，但负债需要在发债日才会增加，因此第二问中的P在公告日求。税盾的价值是附加在权益上的。在第四问中求S’即是求出发债后含税盾的权益价值。此题是人大真题，在公司理财计算题中非常具有代表性，值得同学们反复研读好好吸收。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "normal"
     },
     {
       "id": 162,
@@ -1469,7 +1589,8 @@
       "options": null,
       "correct_answer": "（1）无杠杆现金流=19740000(1-60%)*(1-40%)=4737600美元\n公司价值：4737600/16%=29610000美元\n（2）股东期望收益=16%+(16%-10%)*2/3*(1-40%)=18.4%\n（3）Rwacc=2/5*10%*(1-40%)+3/5*18.4%=13.44%\nVL=4737600/13.44%=35250000美元\n其中B=35250000*2/5=14100000美元 S=21150000美元\n（4）杠杆现金流=[19740000(1-60%)-1410000]*(1-40%)=3891600美元\n公司的权益价值：3891600/18.4%=21150000(美元）\n\n备注：要灵活运用WACC、APV、FTE这三种方法，一方面是防止自己出现知识盲区，另一方面是可以提供检验的方式。当时间充足时可使用另外两种方法的任意一种进行检验。另外在计算UCF和LCF的时候不要忘记税后。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "normal"
     },
     {
       "id": 163,
@@ -1481,7 +1602,8 @@
       "options": null,
       "correct_answer": "（1）无杠杆现金流=19740000*(1-60%)*(1-40%)=4737600美元\n公司价值：4737600/16%=29610000美元\n（2）股东期望收益Rs=16%+2/3*(1-40%)*(16%-10%)=18.4%\n（3）Rwacc=2/5*10%*(1-40%)+3/5*18.4%=13.44%\nVL=4737600/13.44%=35250000美元\n（4）杠杆现金流=[19740000*(1-60%)-1410000]*(1-40%)=3891600美元\n公司的权益价值：3891600/18.4%=21150000美元\n\n备注：公司价值的题有很多算法，检验也非常简单。提供一个检验的思路：做完第四题后可以回到第三题求出B，之后计算第三题的B加第四题的S是否能够得到VL，如果可以则检查成功。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "normal"
     },
     {
       "id": 164,
@@ -1493,7 +1615,8 @@
       "options": null,
       "correct_answer": "（1）5%+y*(11%-5%)=8%\n解得y=0.5\n即一半投入于风险资产，一半投入于无风险资产。\n（2）0.5*15%=7.5%\n\n备注：如果不懂第一问的做法，请使用常规方法设w1、w2自行推理。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "normal"
     },
     {
       "id": 165,
@@ -1505,7 +1628,8 @@
       "options": null,
       "correct_answer": "（1）14%=6%+β*5%\nβ=1.6\n（2）50=D/14%\nD=7元\n（3）\n因此当协方差变为原来2倍时，β值也变为原来2倍\nβ’=3.2\nRs=6%+3.2*5%=22%\nP=7/22%=31.82元\n\n备注：很简单的一道题，协方差变化影响的是贝塔值。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "normal"
     },
     {
       "id": 166,
@@ -1517,7 +1641,8 @@
       "options": null,
       "correct_answer": "（1）Ra=1.8*4%+0.5*10%=12.2%\nRb=-1.0*4%+1.5*10%=11%\nRc=1.5*4%+1.0*10%=16%\n（2）投资比例为：xa=1/3  xb=1/4  xc=5/12\n该组合对因素1的敏感度β1=1.8*1/3-1.0*1/4+1.5*5/12=0.975\n该组合对因素2的敏感度β2=0.5*1/3+1.5*1/4+1.0*5/12=0.958\n该组合预期风险溢价R=12.2%*1/3+11%*1/4+16%*5/12=13.48%\n\n备注：该题属于基础题。同学们可以发现，APT不过是CAPM的一般形式。因此在学习APT时应当从原理上理解，而不应该被复杂的公式所吓倒。最后思考一个问题：什么是风险溢价？",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "normal"
     },
     {
       "id": 167,
@@ -1529,7 +1654,8 @@
       "options": null,
       "correct_answer": "（1）市场超额收益的方差为\nβ=Cov(A,m)/=0.04/0.0592=0.6757\n（2）由单指数模型可知，\n系统性风险==0.0270\n总风险=0.04\n非系统性风险=0.04-0.0270=0.0130\n（3）对总收益率回归的单指数模型\n该模型的截距为0.05，即=0.05，解得=-0.05\n对超额收益率回归的单指数模型\n该模型截距为-0.05\n（4）由于资产组合分散了全部非系统性风险，因此\n40%/25%=1.6\n\n备注：本题看似复杂，但归根结底不过是一道数学题。单指数模型问题是博迪书中经常出现的题型，曾出现在多所学校的多年真题中，也是我们一直强调博迪投资学的核心逻辑所在。要注意的有两点，1、注意贝塔值代表了系统性风险的指标，但并不是系统性风险的具体值！2、注意区分单指数模型是对ri回归还是对Ri回归！有关系统性风险的推导大家可以先自行尝试，完整过程我们将在刷题班课上进行。这是北京大学2004年考研真题，目前网络可以搜索到的答案几乎全错，其中不乏其他一些机构模考卷的所谓“标准答案”！请大家以我们的答案为准。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "normal"
     },
     {
       "id": 168,
@@ -1541,7 +1667,8 @@
       "options": null,
       "correct_answer": "代入数据，\n（2）\n资产组合的方差\n其中是系统性风险，是非系统性风险\n由于残差不相关，所以:\n因此\n\n备注：这类题型看似比较复杂，但实际上难度不大，单因子模型就是数学模型。解题关键在于非系统性风险的不相关性。指数回归模型关于残差项的表示可以用𝜀，也可以用e，这都是无关紧要的。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "hard"
     },
     {
       "id": 169,
@@ -1553,7 +1680,8 @@
       "options": null,
       "correct_answer": "",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "hard"
     },
     {
       "id": 170,
@@ -1565,7 +1693,8 @@
       "options": null,
       "correct_answer": "P+S-PV(D)=C+PV(K)\nP+29-0.5/(1+10%*1/6)-0.5/(1+10%*5/12)=2+30*e^(-10%*1/2)\n解得P=2.51元\n\n备注：此题使用看涨期权和看跌期权之间的平价关系，背熟公式即可。要记住红利要在s上减，成本要在s上加。具体原因请大家先行思考。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "normal"
     },
     {
       "id": 171,
@@ -1577,7 +1706,8 @@
       "options": null,
       "correct_answer": "（1）call的价格为：\nC=P+S-Ke^(-rt)=4+50-50e^(-0.1*3/12)=5.18美元\n（2）由于未来价格波动不确定，可以同时进入一份call和一份put的多头，组成多头跨市期权组合，组合收益如下：\n当未来股票价格P>50，投资者执行call，此期权收益为P-50-5.18；同时放弃put多头，此期权收益为-4，组合收益为P-59.18。\n当未来股票价格P<50，投资者执行put，此期权收益为50-P-4；同时放弃call多头，此期权收益为-5.18，组合收益为40.82-P。\n如果股票价格上涨，理论上投资者可以获得无限收益；如果股票价格下跌，投资者可以获得最大收益是40.82美元。如果股票价格40.82<P<59.18，投资者将蒙受损失，但损失是有限的，最多损失9.18美元\n\n备注：这道题第二问难度颇高，但细细来看，是不是更像是一道数学题？有些像是高中时我们做的分类讨论题型。\n本题的难度主要在于未来股票价格不确定，且题目中给出了约束条件：同时运用call和put。因此我们同时进入看涨和看跌的多头，组成跨式期权。多头跨式期权的好处在于：无论是上涨还是下跌，我们都能获利，且具有无限收益和有限损失，应用环境为后市方向不明确。期权组合的损益平衡点有两个：执行价格加减总期权费，大家看一下答案，是不是这样的呢？我们试着用两条线组合成该组合的损益图：\n当然，如果题目没有给出“同时运用”，这道题就没有任何难度了。但是大家请不要忘记，金融硕士考试中，超纲题的出现已经不是一次两次了！并且我们也希望同学们多做难题，多学知识。毕竟大家未来几乎都要进入金融行业施展拳脚，到那时是没有所谓超不超纲一说的！",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "hard"
     },
     {
       "id": 172,
@@ -1589,7 +1719,8 @@
       "options": null,
       "correct_answer": "（1）\np=(e^rT-d)/(u-d)=(e^6%-0.8)/(1.2-0.8)=0.655\nC=(0.655^2*12)*e^(-6%*2)=4.565\n（2）\nP=(2*0.655*0.345*12+0.345*0.345*28)*e^(-6%*2)=7.7650\n（3）根据期权平价公式：\nC=P+S-Xe^(-rt)=7.765+50-60*e^(-6%*2)=4.556\n可以发现，经过期权平价公式计算出的看涨期权价格与（1）中计算出的看涨期权价格基本相同。误差在可接受范围内，这可能是由于计算精度导致的。\n\n备注：欧式二叉树几乎没有任何难度，不能丢分。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "hard"
     },
     {
       "id": 173,
@@ -1601,7 +1732,8 @@
       "options": null,
       "correct_answer": "组合A：一份欧式看涨期权加上金额为Xe^(-r(T-t))的现金\n组合B：—份有效期和执行价格与组合A 中看涨期权相同的欧式看跌期权加上一单位标的资产。\n在期权到期时，两个组合的价值均为max(ST, X)，由于欧式期权不能提前执行，所以在t时刻的价值也一定相等。\n即C+Xe^(-r(T-t))=P+S\n\n备注：遇到证明公式题，要学会运用逆向思维。比如这一题，可以从公式本身入手，就知道应该构造怎样的组合。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "hard"
     },
     {
       "id": 174,
@@ -1613,7 +1745,8 @@
       "options": null,
       "correct_answer": "过程请同学们自行完成。\n最后C+I+Xe^(-r(T-t))=P+S 得到证明",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "hard"
     },
     {
       "id": 175,
@@ -1625,7 +1758,8 @@
       "options": null,
       "correct_answer": "当含红利时，平价关系为P+S-PV(D)=C+PV(K)\n即P+24-PV(D)=2+25*e^[(-8%)*6/12]\nPV(D)=0.5*e^[(-8%)*2/12]+0.5*e^[(-8%)*5/12]\n解得P=2.997\n\n备注：注意带红利时的看涨看跌平价公式有何变化。同学们只要记住，存在红利或成本时会对标的物价格产生影响，当标的物含红利（给你钱）时要在S中减去红利现值，当标的物含成本（你给钱）时要在S中加上红利现值，因为你的头寸是买股票！",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "hard"
     },
     {
       "id": 176,
@@ -1637,7 +1771,8 @@
       "options": null,
       "correct_answer": "P=[e^(10%*3/12)-0.9]/(1.1-0.9)=0.6266\nV=(0.5*0.6266+0*0.3734)*e^(-0.1*0.25)=0.31\n\n备注：本题属于简单题，重点在于正确画出二叉树。求出风险中性概率后直接按概率折现即可。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "hard"
     },
     {
       "id": 177,
@@ -1649,7 +1784,8 @@
       "options": null,
       "correct_answer": "（1）\n（2）\nd=1/u=0.86\np=(e^rT-d)/(u-d)=0.89\nV= p^3*65.35 *e^(-rT*3)=32.142元\n\n备注：遇到这类题先画出二叉树，找到最后行权的分叉后进行折现即可，总体来说难度不大。不过要注意欧式期权不提前行权，所以只考虑最后的结果，而美式期权每一步都要考虑是否需要提前行权。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "hard"
     },
     {
       "id": 178,
@@ -1661,7 +1797,8 @@
       "options": null,
       "correct_answer": "（1）\np=[e^(r*1/4)-0.9]/(1.2-0.9)\n2*p*e^(-r*1/4)=0.8\n联立得到r=8.98%  P=0.409\n（2）\n2*0.591*e^(-r*1/4)=1.156元\n（3）F=12*0.409+9*0.591=10.227元\n或F=S0*e^rT=10.227元\n\n备注：本题是考试真题，第一题为难点。同学们要注意第一题有r和p两个未知量，所以使用两个等式联立得出，这两个等式都是求P的方法，同学们也要学会不同情况使用不同方法。第二题、第三题均无难度。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "hard"
     },
     {
       "id": 179,
@@ -1673,7 +1810,8 @@
       "options": null,
       "correct_answer": "（1）p=(e^rT-d)/(u-d)=(1.05-0.8)/(1.2-0.8)=5/8\n（2）构建如下二叉树：\nP=2*5/8*3/8*4*e^(-0.05*2)+3/8*3/8*20*e^(-0.05*2)=4.241元\n\n备注：其实期权定价的题目并不难，熟练后应该是必拿分题。关于风险中性概率公式的由来，我们会在课上从头到尾详细地推导一遍，理解底层逻辑，杜绝提笔忘公式的可能性。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "hard"
     },
     {
       "id": 180,
@@ -1685,7 +1823,8 @@
       "options": null,
       "correct_answer": "d=1/u=0.8909\np=(e^rT-d)/(u-d)=0.5076\n股价二叉树：\n期权二叉树：\n其中9.89=(5.45*0.5076+14.64*0.4924)e^(-10%*1/12)\n\n备注：股价二叉树按顺序依次往后算，期权二叉树从后往前倒推着算，注意好时间结点，公式牢记。三步及以上二叉树若最后有“中间树杈”不为0的情况，使用单步折现这种方式，要比直接从最后一期折现到第一期更好。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "hard"
     },
     {
       "id": 181,
@@ -1697,7 +1836,8 @@
       "options": null,
       "correct_answer": "看涨期权价值为4.9元（可以用欧式看涨看跌期权平价关系进行检验）\n\n备注：同上",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "hard"
     },
     {
       "id": 182,
@@ -1709,7 +1849,8 @@
       "options": null,
       "correct_answer": "提前行权二叉树如下所示：\n不行权二叉树如下所示：\n全部节点进行对比，最终的期权二叉树变为：\n\n备注：美式期权和欧式期权的区别在于美式期权可以提前行权，因此美式期权二叉树的计算需要将每个节点提前行权与不提前行权的价值进行对比，记得依然是从后往前，每对比一次，就在最终二叉树上更新一次。提前行权——股票当期价格与行权价差额；不提前行权——后续期权收益折现。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "hard"
     },
     {
       "id": 183,
@@ -1721,7 +1862,8 @@
       "options": null,
       "correct_answer": "\n\n备注：同上题",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "hard"
     },
     {
       "id": 184,
@@ -1733,7 +1875,8 @@
       "options": null,
       "correct_answer": "d=0.9715\nP=0.55\n股价二叉树\n期权二叉树\n即该看跌期权价值为0.466元。\n\n备注：多期二叉树的计算要繁琐很多，同学们在解题时一定要细致，不要以为复杂的计算从来没出现过！",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "hard"
     },
     {
       "id": 185,
@@ -1745,7 +1888,8 @@
       "options": null,
       "correct_answer": "\n\n备注：同上题",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "hard"
     },
     {
       "id": 186,
@@ -1757,7 +1901,8 @@
       "options": null,
       "correct_answer": "存在套利机会，说明如下：\n由于B公司被低估，可以卖空A公司0.8%的股权，获得收益8万元以买入B公司1%的股权和债权。此时0时点投资额为0。\n未来的每年中：\n投资者需要承担公司0.8%股权的股利，即每年付出现金：\n100*0.8%=0.8万元\n另一方面，投资者未来每年可获得来自B公司的收益：\n（100-20）*1%+20*1%=1万元\n即投资者每年可以获得0.2万元的无风险套利收益。\n\n备注：持续经营假设是指，一般我们认为企业将无限期的经营下去（这就是为什么我们在DDM模型中假设股权是永续的）。反映在这道题中，卖空股权是不需要未来某一日全部偿还的，只需要一直履行偿付股利的义务就可以了。这是中国人民大学2006年的一道真题，颇为经典，市面上大多数答案都是错误的，以本答案为准。再度强调一遍无风险套利的条件：一、0时点0投资。二、正的套利收益。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "hard"
     },
     {
       "id": 187,
@@ -1769,7 +1914,8 @@
       "options": null,
       "correct_answer": "（1）首先将各种情况下收益率转化为每股美元收益，如下表：\n确认套利组合需要满足两个条件：组合为零投资组合、且在任何情况下都表现为非负的收入。例如卖空两股A和两股B，买入一股C。\n经过计算，该投资组合在三种情况下的收益分别为1.5、0.5、3（这一步同学们在草稿纸上完成），因此该资产组合满足套利资产组合。\n（2）随套利过程的进行，A和B的价格随卖空而下降，C的价格因为买进而上升。（答到此处即有分）\n恢复平衡后的价格即套利机会被消除，此时持有A、B空头和C多头的套利组合收益为0。那么可以人为地复制出一份资产组合，使得收益为0以模拟套利机会消失后的状态。下面以“平均”列举例：\n假设你现在持有1份C多头，X份A和B空头，可列式：\n12X+16.5X=57.5，解得X=-2.0175份\n即每持有一份C多头，就需要卖空2.0175份A和B。\n此时可以求出资产价格：\n10X+15X-Pc=0，解得Pc=50.4375元\n\n备注：这道题难度较高，步骤复杂，考到的可能性较小，同学们可以不必太过钻牛角尖。不过报考中大、清华、北大、人大等计算题较难学校的同学，建议认真看懂构建套利组合的方法。记住这种“模拟”的做法，将是我们做题中的一个有力武器。核心逻辑为：先打破条件二，令套利组合未来无收益，再反推回条件一，令期初0投资。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "hard"
     },
     {
       "id": 188,
@@ -1781,7 +1927,8 @@
       "options": null,
       "correct_answer": "因为投资组合F的β为0，因此6%为无风险利率\n投资组合A的每单位风险带来的溢价为（12%-6%）/1.2=5%\n投资组合E的每单位风险带来的溢价为（8%-6%）/0.6=3.33%\n承担每单位风险，A资产要大于E资产的收益，所以存在套利机会\n套利策略：全部资金的25%的投资组合A多头、50%投资组合E空头，25%的投资组合F多头。此头寸是无风险的，预期收益为：\nE=0.25*12%+0.25*6%-0.5*8%=0.5%\n\n备注：一般来说，在风险相同收益率不同时即存在套利机会。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "hard"
     },
     {
       "id": 189,
@@ -1793,7 +1940,8 @@
       "options": null,
       "correct_answer": "假设F>(S-I)er(T-t),交割价格高于远期理论价格，这样，套利者就可以借入现金S，买入标的资产并卖出一份远期合约，价格为F。在T时刻，需要还本付息Ser(T-t)，同时他将从t—T期间从标的资产获得的现金收益以无风险利率贷出。T时刻获得收入Ier(T-t),同时交割标的资产得到现金收入F。这样，在T时刻可实现无风险收益F-(S-I)er(T-t)。\n假设F<(S-I)er(T-t)，交割价格低于远期理论价格，这样，套利者就可以借入标的 资产卖出，得到现金收入以无风险利率贷出，同时买入一份交割价格为 F 的远期合约。在T时刻，套利者可得到贷款的本息收入Ser(T-t)，同时付出现金 F 换得一单位标的证券，用于归还标的证券原持有者，并将该标的证券在（T-t）期间的现金终值Ier(T-t)同时归还标的证券原持有者。这样，他在T时刻可实现无风险收益(S-I)er(T-t)-F。\n从以上分析可以看出，若现货一远期平价公式不成立，则会产生套利机会，而套利行为将促成公式的成立。\n\n备注：套利行为会导致价格回归均衡水平，因此我们定价的一个核心思路就是：无套利定价。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "hard"
     },
     {
       "id": 190,
@@ -1805,7 +1953,8 @@
       "options": null,
       "correct_answer": "",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "hard"
     },
     {
       "id": 193,
@@ -1817,7 +1966,8 @@
       "options": null,
       "correct_answer": "167000/1.67*1.04*1.66=172640马克\n172640-167000*(1+3%)=630马克\n盈利了630德国马克。\n\n备注：在做此类题时，一定要搞清楚是乘汇率还是除汇率，是使用远期汇率还是现汇汇率。注意本题时点，借入的德国马克需要按照市场利率付利息。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "hard"
     },
     {
       "id": 194,
@@ -1829,7 +1979,8 @@
       "options": null,
       "correct_answer": "空头头寸，(420-430)*250=-2500美元\n即损失2500美元\n\n备注：注意头寸是多头还是空头，不要把买入卖出弄反了。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "hard"
     },
     {
       "id": 195,
@@ -1841,7 +1992,8 @@
       "options": null,
       "correct_answer": "由于是牛市期权策略，故25美元的期权多头，40美元的期权空头。\n25美元期权盈利：50-25-4=21美元\n40美元期权盈利：-(50-40)+2.5=-7.5美元\n净利润为13.5美元\n\n备注：看涨期权和看跌期权决定的是对标的物的处理，而多头与空头决定的是期权合约本身的买入和卖出。多空双方互为对手方。就本题来说，25美元多头方代表花费4美元买入合约，到期时以合约价买入标的物；40美元空头方代表得到2.5美元卖出的期货合约，而到期时盈亏完全是多头方的相反数。如果大家难以理解就在草稿纸上画出收益图。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "hard"
     },
     {
       "id": 196,
@@ -1853,7 +2005,8 @@
       "options": null,
       "correct_answer": "（1）0时点，远期合约初始价值等于0\nF6=(S0-PV(D))*e^rT\nF6=[30-1*e^[(-6%)*2/12]-1*e^[(-6%)*5/12]]*e^(6%*6/12)\nF6=28.88元\n（2）在三个月时点上，还存在第五个月时点的股息。\n立足于第三时点，设第六个月远期价格为F3,6\n远期价格F3,6=[S0-PV(d)]*e^rT=34.52元\n合约的空头价值=(28.88-34.52)*e^(6%*3/12)=-5.55\n\n备注：建议在做题之前画出时间轴。（1）远期价格F=S*e^rT，存在红利或成本时需要对S进行处理（和107题是不是很像？）。任何合约价值在零时点的初始值一定是0，不然存在套利空间。但随着时间的进行，合约价值会发生变动。（2）空头价值要把时点都统一。由于28.88是空头合约，未来卖出，因此用卖出-买入即（28.88-34.52）。但要注意此时是第六个月时点上的，应折现回当前时点。另外，注意区分合约价值和价格！",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "hard"
     },
     {
       "id": 197,
@@ -1865,7 +2018,8 @@
       "options": null,
       "correct_answer": "（1）根据套补的利率平价理论，一年期的远期汇率为\nf=e*(1+i)/(1+i*)=1.6*1.04/1.08=1.5407\n（2）英镑的实际远期汇率高于理论汇率，因此可以选择如下的套利组合：\n即期借入美元，买入英镑，进入英镑远期合约空头，到期偿还美元债务。\n对于借入的每1美元，期末时可以获得收入：\n1/1.6*(1+8%)*1.58=1.0665美元\n期末归还美元债务=1*(1+4%)=1.04美元\n获得无风险套利收益=1.0665-1.04=0.0265美元\n\n备注：这是一道好题，值得细细品读。第一问问题不大，搞清楚哪个是i哪个是i*就没问题。我们主要来讲述一下第二题的思路。我们可以看到远期的英镑被低估了（只要看数字就行了，不需要考虑直标还是间标），所以我们要卖出远期英镑，即合约空头。倒推回即期，逻辑如下：远期英镑空头——当期现货英镑一定是多头，即买入——买入的钱从哪来？借美元来买。记住！无风险套利组合要满足在0时点0投资，自己的钱一分都不能花，这就是资本家！",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "hard"
     },
     {
       "id": 198,
@@ -1877,7 +2031,8 @@
       "options": null,
       "correct_answer": "根据无套利定价原理，3年到5年期的远期利率f(3,5)应该满足：\n[1+i(0,3)]^3*[1+f(3,5)]^2=[1+i(0,5)]^5\n解得f(3,5)=10%\n对比实际3到5年远期利率，发现实际远期利率被低估，因此要借入。可以构建套利组合为：",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "hard"
     },
     {
       "id": 202,
@@ -1889,7 +2044,8 @@
       "options": null,
       "correct_answer": "即期进入合约多头，\n套期保值合约数=8000万/6.25万=1280张\n到期对冲期货合约，\n远期合约每英镑获利=1.6970-1.6750=0.0220美元\n期货合约总收益=1280*0.0220*6.25=176万美元\n实际支付美元数=8000*1.6950-176=13384万美元\n\n备注：如果感觉外汇套保用谁兑谁搞不明白，教你一招：未来用美元买英镑，那就把美元看成人民币，英镑看成大豆。大豆的套保怎么做？这个都会吧，当期进入大豆期货多头，到期购买大豆现货并对冲期货合约。放到这道题就是：当期进入英镑期货多头，到期用美元购买英镑并对冲英镑期货合约。这么一想是不是简单多了？",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "hard"
     },
     {
       "id": 203,
@@ -1901,7 +2057,8 @@
       "options": null,
       "correct_answer": "",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "hard"
     },
     {
       "id": 204,
@@ -1913,7 +2070,8 @@
       "options": null,
       "correct_answer": "其中I=2e^(-4%*1)=1.92美元\n故 F=(733+1.92)e^(4%*1)=764.91 美元\n\n备注：黄金的存储成本可看成负收益，I是收益的现值。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "hard"
     },
     {
       "id": 205,
@@ -1925,7 +2083,8 @@
       "options": null,
       "correct_answer": "当资产组合收益率上升1.5个bp，国债期货上升1个bp时，\n资产组合的损失=1000000*Δy*D*=1000000*0.00015*4=600美元\n每100美元国债期货多头的损失=95*0.0001*9=0.0855美元\n因此想对冲风险敞口，需要卖空国债期货合约，张数为：\n600/85.5=7张\n\n备注：本题实际上仍属于套期保值的范畴，难度不高",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "hard"
     },
     {
       "id": 206,
@@ -1937,7 +2096,8 @@
       "options": null,
       "correct_answer": "（1）由平价公式，英镑远期价格为：\nF0=E0*e^(rus-ruk) =2*e^(0.04-0.06)=1.960美元/英镑\n（2）如果实际的远期价格为2.03美元/英镑，则在远期市场，英镑被高估。因此构建资产组合：借入2/1.06美元，卖空1英镑的远期，当期买入现货1/1.06英镑。到期交割，如表格所示：\n\n备注：首先平价公式不能错，搞清楚是谁减谁。其次不要忘了上面提到的解题框架：美元=钱=“人民币”，英镑=商品=“大豆”，简化思考方式。未来需要还1英镑来平仓，因此考虑利率，当期要多头1/1.06个英镑。整体来看，到期时是用多头换空头。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "hard"
     },
     {
       "id": 207,
@@ -1949,7 +2109,8 @@
       "options": null,
       "correct_answer": "理论期货价值F=950*(1+5%-2%)=978.5点，低于实际期货价格。\n因此构建头寸：指数现货多头，指数期货空头，借款。\n在当前时点上，\n\n备注：首先，用期货套利和期权套利是不同的：注意期货是没有“期货费”的！还有，我们可以发现，我们构建的套利组合在一年后的收益正好等于期货被错误定价的值——这就是套利，可以迅速纠正错误定价。但行为金融学并不这么认为，他们提出了有限套利理论，攻击了传统金融学关于套利的假设。有关这一部分希望大家能够结合着来学。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "hard"
     },
     {
       "id": 208,
@@ -1961,7 +2122,8 @@
       "options": null,
       "correct_answer": "（1）S0*(1+rm)-D=(1425*1.06)-15=1495.50\n（2）S0*(1+rf)-D=(1425*1.03)-15=1452.75\n（3）期货实际价格低于理论价格，因此买入期货，卖空指数并投资于国库券。\n\n备注：本题难度不高。但要注意第一小问问的并不是远期价格，而是满足市场收益率时未来需要达到的预期价格。这两问为什么要减D呢？这又涉及到股利政策章节相关的知识点，大家看到这里时回忆一下：发放股利对股价有什么影响？不同的理论是怎么解释的？",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "hard"
     },
     {
       "id": 209,
@@ -1973,7 +2135,8 @@
       "options": null,
       "correct_answer": "（1）卖出股指期货合约。如果股票价格下降，可于期货空头获利以弥补损失。\n（2）每份合约中股票的价值=250*1650=412500美元\n为对冲1650万美元的资产组合，需要合约空头份数为：\n16500000/412500=40份\n（3）资产组合的β值为0.6，即资产组合对市场指数价格变动的敏感度为0.6，因此需要（2）中合约数的0.6倍来完全的对冲风险，即：",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "hard"
     },
     {
       "id": 211,
@@ -1985,7 +2148,8 @@
       "options": null,
       "correct_answer": "（1）由平价公式可得：\nF0=E0*e^[(rjp-rus)*0.5]=124.30*e^[(0.0010-0.0380)*0.5]=122.0193\n（2）\nF’0=E0* e^[(rjp-rus)*0.5]=124.30* e^[(0.0005-0.0350)*0.5]=122.1721\n美元远期价格被低估，因此套利组合为：\n借入1000000美元卖空，获得日元投资于无风险债券，买入远期合约（到期以123.2605日元的价格买入1美元），贷出日元\n如下表所示：\n\n备注：本题稍微复杂，总体难度不是很高，但是比较容易弄混。建议同学们依然使用我们给出的解题框架进行，会大大缩减难度和解题时间！",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "hard"
     },
     {
       "id": 212,
@@ -1997,7 +2161,8 @@
       "options": null,
       "correct_answer": "不妨假设股票价格持续上升，最终涨到x，此时两者收益相同。则有：\n第一种方法收益=(x-94)*(9400/94)美元\n第二种方法收益=(x-95)*2000-4.7*2000美元\n令两式相等，解得x=100美元\n即当x超过100美元/股时，购入期权的收益大于购买股票的收益。因此我的建议是：当预期股价上涨不超过100美元时购入股票，当预期股价上涨超过100美元时购入期权。\n\n备注：一道简单的题。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "hard"
     },
     {
       "id": 213,
@@ -2009,7 +2174,8 @@
       "options": null,
       "correct_answer": "（1）P+S=C+PV(K)\n即69.53+350=280+150/(1+rf)  rf=7.5%\n（2）当r=8%时，\nP+S>C+PV(K)，方向为“卖左买右”，即：\n买入看涨期权，卖出看跌期权，借入股票卖空，剩余现金放贷（投资无风险债券）\n\n备注：期权套利有两种情况：\n1、有多有空。此时按照PCP公式看大小，卖大的买小的，剩下的缺口用借钱/贷款补上，让头寸为0。和远期套利不同的是，期权可以选择是否行权，因此到期日要两种情况分类讨论。\n2、或多或空。请看下一题。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "hard"
     },
     {
       "id": 214,
@@ -2021,7 +2187,8 @@
       "options": null,
       "correct_answer": "（1）\np=(e^rt-d)/(u-d)=[e^(4%*3/12)-0.75]/(1.15-0.75)=0.650\nC=p*4*e^(-rt)=0.650*4*e^(-4%*3/12)=2.57元\n（2）h=(4-0)/(46-30)=1/4，头寸为：\n1份看涨期权多头+1/4股股票卖空+买债券，收益如下图所示：\n\n备注：关于对冲比例h，我们将在课上详细推导，大家现在仍不理解的话，记住步骤即可。现在我们来看看期权套利的第二种情况：或多或空。这种情况套利组合只有一种期权，资产包括期权、股票和无风险债券（现金借贷）。其中若期权是看涨期权，则期权与股票“多空对立”，即要么期权多股票空，要么期权空股票多；若期权是看跌期权，则期权与股票“多空同时”，即期权多股票也多，期权空股票也空。第三个无风险债券看的是股票的多空，是单纯为了让期初投资为0的。如果股票多，则借钱；如果股票空，则剩下没花完的钱投资于无风险债券。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "hard"
     },
     {
       "id": 215,
@@ -2033,7 +2200,8 @@
       "options": null,
       "correct_answer": "\n\n备注：为让同学们有更深一层的理解，本题仅提供答案。请感受何为“多空同时”。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "hard"
     },
     {
       "id": 216,
@@ -2045,7 +2213,8 @@
       "options": null,
       "correct_answer": "C+Xe^(-r(T-t))=3+30e^(-10%*0.25)=32.259\n所以正确的套利过程应该是买入看涨期权，卖空标的和看跌期权，并将得到的净收入30.25元进行3个月的无风险投资，到期获得31.02元。如果到期股票价格高于30元将执行看涨期权；低于30元将执行看跌期权。因此无论如何投资者都能以30元购买股票，用于平仓卖空的股票，因此获得净收益1.02。\n\n备注：欧式看涨看跌平价关系不成立时就会导致套利行为的发生，记住投资者是逐利的，套利方向都是低买高卖。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "hard"
     },
     {
       "id": 217,
@@ -2057,7 +2226,8 @@
       "options": null,
       "correct_answer": "代入数据左边=3+1*e^(-10%/12)+20*e^(-10%/4)=23.4979\n右边=3+19=22\n因此存在套利机会\n套利策略：\n买入一单位标的资产19美元，同时买入一份看跌期权3美元；\n卖出一份看涨期权3美元，再以无风险利率10%借入0.992美元1个月，由1个月后股票多头的股利1美元连本带息偿还，再借入18.008美元现金，3个月后偿还。\n套利结果：首先1个月后支付的红利用于偿还1元的借款；三个月后如果ST>20,将执行看涨期权，即套利者以20美元卖掉标的资产，还剩余借款18.4582美元，最终收益为20-18.4582=1.5418美元；若ST<20,看跌期权将被执行，以20美元卖掉标的,归还剩余借款18.4582美元，最终收益为20-18.4582=1.5418美元。即三个月后无论股价处于何种价位，总能实现无风险收益1.5418美元。\n\n备注：同上题",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "hard"
     },
     {
       "id": 218,
@@ -2069,7 +2239,8 @@
       "options": null,
       "correct_answer": "设下半年的远期利率为f2、互换利率为x\nr1=9%/2=4.5%  r2=10%/2=5%\n(1+r1)(1+f2)=(1+5%)2\n解得f2=5.5%\n(x/2)/(1+4.5%)+(x/2)/(1+5%)^2=4.5%/(1+4.5%)+5.5%/(1+5%)^2\n解得x=9.98%\n\n备注：此题为重点题。在遇到互换题型时应马上想到使用“债券法”，即浮动利率债券现值等于固定利率债券现值。在实际操作过程中名义本金往往省略。本题初始采用了预期假设理论求出远期利率，之后列“债券法”的方程求出x。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "hard"
     },
     {
       "id": 219,
@@ -2081,7 +2252,8 @@
       "options": null,
       "correct_answer": "A公司的相对优势是借英镑，B公司的相对优势是借美元，因此令A公司在市场上借入英镑、B公司借入美元并进行互换。\n互换总收益为0.8%-0.4%=0.4，扣除金融机构需要赚的0.1%利差，A、B各需要获得0.15%的利益。\n期初互换方式如下：\n期末令箭头方向相反即可。\n由上表可知，A公司在借欧元固定利率时有优势，而B公司在借浮动利率美元时有优势，如果两个公司进行利率互换，即A公司借入固定利率欧元交换B公司的浮动利率美元，将使双方的总筹资成本降低。即Libor+1%+6.5%-Libor-0.5%-6.5%=2%\n由于中介机构需要60点差价，因此双方各分享0.7%的收益。互换方式如下图：\n\n备注：互换的方法实际上非常简单，只要最终结果正确的过程都可给分。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "hard"
     },
     {
       "id": 220,
@@ -2093,7 +2265,8 @@
       "options": null,
       "correct_answer": "Bfixed=[30000*e^(-0.054*0.25)]+[30000*e^(-0.056*0.75)]+[1030000*e^(-0.058*1.25)]=1016332元\nBfloating=[1000000+(1000000*5%/2)]*e^(-0.054*0.25)=1011255元\nVswap=Bfixed-Bfloating=5077元\n\n备注：重要知识点,请务必牢记！浮动利率债券在每个付息日的价值都等于其面值。因此在付息日之后的所有本金和利息折现到付息日之和为面值1000000元，再加上付息日当天的利息一同折现至0时点，这就是Bfloating。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "hard"
     },
     {
       "id": 221,
@@ -2105,7 +2278,8 @@
       "options": null,
       "correct_answer": "将外汇互换协议分解为3个独立的远期合约，远期价格为\n第一年：1.50*(1.04/1.03)^1*100=151.46万美元\n第二年：1.50*(1.04/1.03)^2*100=152.93万美元\n第三年：1.50*(1.04/1.03)^3*100=154.41万美元\n令每年互换交割的美元数为CF，可以得到：\t\tCF/1.04+CF/1.04^2+CF/1.04^3=1.5146/1.04+1.5293/1.04^2+1.5441/1.04^3=4.2430\n解得CF=152.90万美元，互换比率为1.5299\n\n备注：互换双方不是同一种资产，因此要通过远期汇率进行替换。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "hard"
     },
     {
       "id": 222,
@@ -2117,7 +2291,8 @@
       "options": null,
       "correct_answer": "在本题中，Bfl=10000万美元\n令Bfix=k/4[e^(-0.048*0.25)+e^(-0.05*0.5)+e^(-0.051*0.75)+e^(-0.052*1)+e^(-0.0515*1.25)+e^(-0.053*1.5)+e^(-0.053*1.75))+(10000+k/4)e^(-0.054*2)]\n=10000\n求出k=543,即固定利率水平应定为5.43%（3个月计一次复利）。\n\n备注：浮动债券：付息日面值+票息，用Libor折现；固定债券：固定票息率，用Libor折现。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "hard"
     },
     {
       "id": 223,
@@ -2129,7 +2304,8 @@
       "options": null,
       "correct_answer": "Bfix=120e^(-0.048*0.25)+120e^(-0.05*0.5)+10120e^(-0.051*0.75)\n=9975.825万美元\n由于互换还有9个月期限，处于重新确定利率的时刻，因此Bfl=1亿美元\n所以对该金融机构来说V=Bfix-Bfl=9975.825-10000=-24.175万美元\n\n备注：在浮动利率债券新发行时，债券价值等于面值；在任一重新确定利率的时刻，付息之后的浮动利率债券价值就等于新发行的同期限的浮动利率债券面值，付息之前的浮动利率债券价值就等于面值A 加上应付利息K",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "hard"
     },
     {
       "id": 224,
@@ -2141,7 +2317,8 @@
       "options": null,
       "correct_answer": "Bfix=400e-0.1*0.25+400e-0.105*0.75+10400e-0.11*1.25=0.9824亿美元\nBfl=(10000+510)e-0.1*0.25=1.0251亿美元\n因此对金融机构来说此笔利率互换V=Bfix-Bfl=0.9824-1.0251=-427万美元\n\n备注：互换定价同学们应该没有什么问题了吧？要注意的是搞清楚现在所处到底是不是浮动债券的付息日，否则要进行折现。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "hard"
     },
     {
       "id": 225,
@@ -2153,7 +2330,8 @@
       "options": null,
       "correct_answer": "BD=65e^(-0.06*1)+65e^(-0.06*2)+1065e^(-0.06*3)=1008.427万美元\nBF=3600e^(-0.02*1)+3600e^(-0.02*2)+123600e^(-0.02*3)\n=123389.7万日元\n货币互换的价值为123389.7/110-1008.427=113.30万美元\n如果该金融机构支付日元,收入美元，那么对他来说V=-113.30万美元\n\n备注：和利率互换相比，货币互换可谓是0难度。货币互换的计算，首先规定好以哪一国家货币为本币，这一题同学们也可以尝试以日元为本币进行解答。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "hard"
     },
     {
       "id": 226,
@@ -2165,7 +2343,8 @@
       "options": null,
       "correct_answer": "（1）两种资产组合的𝛼为：\n𝛼A=12%-[5%+0.7*(13%-5%)]=1.4%\n𝛼B=16%-[5%+1.4*(13%-5%)]=-0.2%\n选择资产组合A。\n（2）如果只持有两种资产组合的一种，使用夏普比率衡量。\nSRA=(12%-5%)/12%=0.583\nSRB=(16%-5%)/31%=0.355\nA资产表现更好。\n\n备注：请大家现在思考一个问题：夏普比率的分子，究竟是E(Rp)还是Rp？如果不能在第一时间想到正确的公式，那就马上去翻书，然后把公式写在这里__________。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "hard"
     },
     {
       "id": 227,
@@ -2177,7 +2356,8 @@
       "options": null,
       "correct_answer": "要找出更擅长选择个股的投资者，先考虑他们的异常收益即事后的α\n由于缺少市场利率和无风险利率的数值，所以无法计算α，也就没有办法判断哪个投资者更适合选择个股。\nrf=6%，rm=15%时\nα1=19%-[6%+1.5*(14%-6%)]=1%\n解得α2=16%-[6%+1*(14%-6%)]=2%\n因此第二个投资顾问选股能力更出色。\nα1=19%-[3%+1.5*(15%-3%)]=-2%\nα2=16%-[3%+1*(15%-3%)]=1%\n因此第二个投资者能更好的发现个股的错误定价。\n\n备注：请同学们区分每种业绩评价指标使用条件。个股用什么？充分分散的组合用什么？未分散的组合用什么？",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "hard"
     },
     {
       "id": 228,
@@ -2189,7 +2369,8 @@
       "options": null,
       "correct_answer": "（1）根据CAPM，股票X的期望收益率=5%+0.8*(14%-5%)=12.2%\n股票X的α=14%-12.2%=1.8%\n股票Y的期望收益率=5%+1.5*(14%-5%)=18.5%\n股票Y的α=17%-18.5%=-1.5%\n（2）a.风险被充分分散的投资组合中仅有系统风险，因此按照特雷诺比率的思想。\nX每单位β的期望收益=(14%-5%)/0.8=11.25%\nY每单位β的期望收益=(17%-5%)/1.5=8%\n选择股票X。\nb.作为单一组合持有考虑夏普比率。\nX每单位标准差的期望收益=(14%-5%)/0.36=0.25\nY每单位标准差的期望收益=(17%-5%)/0.25=0.48\n选择股票Y。\n\n备注：在解答第二问时，要注意不同的资产组合分别对应着什么绩效评价指标。",
       "grading_points": null,
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "hard"
     },
     {
       "id": 229,
@@ -2201,7 +2382,8 @@
       "options": null,
       "correct_answer": "（1）对于个股预测来说主要考察投资顾问的阿尔法值，但因为没有相关信息，无法得出投资顾问的阿尔法值是多少。\n（2）如果r1=6%  rm=14%，则：\nα1=19%-[6%+1.5*(14%-6%)]=1%\nα2=16%-[6%+1*(14%-6%)]=2%\n第二个投资者具有更高的非正常收益，能够在资产组合中添加定价过低的股票。\n\n备注：本题属于常规难度。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "hard"
     },
     {
       "id": 230,
@@ -2213,7 +2395,8 @@
       "options": null,
       "correct_answer": "（1）σa=1%  σb=2%\nIRa=1%/10.3%=9.71%\nIRb=2%/19.1%=10.47%\nSRa=(1%+1.2*8%)/21.6%=0.49\nSRb=(2%+0.8*8%)/24.9%=0.34\nTRa=(1%+1.2*8%)/1.2=0.088\nTRb=(2%+0.8*8%)/0.8=0.105\n（2）a.选择夏普测度最大的A\nb.选择特雷诺指数最大的B\nc.选择α值最大的B\n\n备注：这道题一定要反复做熟练。此类题已经在很多学校的考研真题中出现过多次了。对于第二问，应当明白不同的资产组合应当使用哪种评价指标。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "hard"
     },
     {
       "id": 231,
@@ -2225,7 +2408,8 @@
       "options": null,
       "correct_answer": "（1）NI=750万元\nEBIT=750/75%+5000*40%*5%=1100\nDOL=(1100+200)/1100=1.18\nDFL=1100/(1100-100)=1.1\nDTL=1.298\n（2）每股收益增长=20%*DTL=25.96%\n\n备注：此类题目无难度，公式背熟即可。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "hard"
     },
     {
       "id": 232,
@@ -2237,7 +2421,8 @@
       "options": null,
       "correct_answer": "Rwacc=0.5*10%*0.75+0.5*20%=13.75%\nNPV=800*(1-25%)/13.75%-2000=2363.64万元\n\n备注：背熟财务比率公式，特别是资本密集度这种不常用的。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "hard"
     },
     {
       "id": 233,
@@ -2249,7 +2434,8 @@
       "options": null,
       "correct_answer": "（1）全权益：10000/1400=7.14\n情况I：(10000-16500*10%)/1100=7.59\n情况II：(10000-2750)/900=8.06\n情况II最高，全权益最低。\n（2）EPS=(EBIT-利息)/流通股数\n完全权益和I的无差别点EBIT为：\n(EBIT-1650)/1100=EBIT/1400\n解得EBIT=7700\n完全权益和II的无差别点EBIT为：\n(EBIT-2750)/900=EBIT/1400\n解得EBIT=7700\n两个计划的每股收益无差别点的EBIT相等。\n\n备注：从原理层面理解每股收益无差别点EBIT的真实含义，而不要死记硬背公式。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "hard"
     },
     {
       "id": 234,
@@ -2261,7 +2447,8 @@
       "options": null,
       "correct_answer": "经济正常时，EPS=1.4/0.25=5.6美元/股\n经济扩张时，EPS=1.4*1.3/0.25=7.28美元/股\n变动百分比为(7.28-5.6)/5.6=30%\n经济衰退时，EPS=1.4*0.4/0.25=2.24美元/股\n变动百分比为(2.24-5.6)/5.6=-60%\n（2）进行资本重组时，需要回购股票\n股票价格=总市值/发行在外股份数=150000/2500=60美元\n回购数量=债务发行额/股票价格=60000/60=1000 股\n股票数量=2500-1000=1500 股\n利息I=60000*0.05=3000 美元\n经济正常时，EPS=(1.4-0.3)/0.15=7.33美元/股\n经济扩张时，EPS=(1.4*1.3-0.3)/0.15=10.13美元/股\n变动百分比为(10.13-7.33)/7.33=38.2%\n经济衰退时，EPS=(1.4*0.4-0.3)/0.15=1.73美元/股\n变动百分比为(1.73-7.33)/7.33=-76.4%\n\n备注：发债通常是用于回购股票，首先发行在外股票数会发生变化，其次在计算EPS时不要忘记利息I，最好的方法就是记熟利润表。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "hard"
     },
     {
       "id": 235,
@@ -2273,7 +2460,8 @@
       "options": null,
       "correct_answer": "经济扩张时，EPS=1.4*1.3*(1-0.4)/0.25=4.368美元/股\n变动百分比为(4.368-3.36)/3.36=30%\n经济衰退时，EPS=1.4*0.4*(1-0.4)/0.25=1.344美元/股\n变动百分比为(1.344-3.36)/3.36=-60%\n（2）进行资本重组时，需要回购股票\n股票价格=总市值/发行在外股份数=150000/2500=60美元\n回购数量=债务发行额/股票价格=60000/60=1000 股\n股票数量=2500-1000=1500 股\n利息I=60000*0.05=3000 美元\n经济正常时，EPS=(1.4-0.3)*(1-0.4)/0.15=4.398美元/股\n经济扩张时，EPS=(1.4*1.3-0.3)*(1-0.4)/0.15\n=6.08美元/股\n变动百分比为(6.08-4.398)/4.398=38.2%\n经济衰退时，EPS=(1.4*0.4-0.3)*(1-0.4)/0.15=1.038美元/股\n变动百分比为(1.038-4.398)/4.398=-76.4%\n\n备注：请大家思考存在公司税时为什么EPS的变动率和无公司税时相等。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "hard"
     },
     {
       "id": 236,
@@ -2285,7 +2473,8 @@
       "options": null,
       "correct_answer": "计划Ⅱ，利息I=300*0.12=36万美元\nEPS=(80-36)/15=2.93美元/股\n此时，计划Ⅰ对应的EPS更高\n（2）计划Ⅰ，EPS=160/25=6.4美元/股\n计划Ⅱ，利息I=300*0.12=36万美元\nEPS=(160-36)/15=8.27美元/股\n此时，计划Ⅱ对应的EPS更高\n（3）EBIT/25=(EBIT-36)/15  得EBIT=90万美元\n\n备注：简单题",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "hard"
     },
     {
       "id": 237,
@@ -2297,7 +2486,8 @@
       "options": null,
       "correct_answer": "计划Ⅱ的EPS最高\n（2）全权益资本结构和计划Ⅰ的盈亏平衡点的EBIT为\nEBIT/2300=(EBIT-0.1*20000)/1500   EBIT=5750美元\n全权益资本结构和计划Ⅱ的盈亏平衡点的EBIT为\nEBIT/2300=(EBIT-0.1*30000)/1100   EBIT=5750美元\n这两种情况下EBIT相等。\n（3)(EBIT-0.1*20000)/1500=(EBIT-0.1*30000)/1100  EBIT=5750美元\n\n备注：请大家思考为什么三个问题的答案都相等？可以用什么理论来解释？",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "hard"
     },
     {
       "id": 238,
@@ -2309,7 +2499,8 @@
       "options": null,
       "correct_answer": "计划ⅠEPS=4美元/股 计划ⅡEPS=4.91美元/股\n全权益EPS=3.31美元/股\n两种情况下EBIT=5750美元\nEBIT=5750美元\n\n备注：存在公司所得税时，盈亏平衡点的EBIT不发生改变，这是因为几种情况下净收入因税收而同比例减少。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "hard"
     },
     {
       "id": 239,
@@ -2321,7 +2512,8 @@
       "options": null,
       "correct_answer": "（1）\n每份纯债券价值=1000*7%*PVIFA(8%,10)+1000/(1+8%)^10=932.91\n（2）\n每份认股权证的价值=(1000-932.91)/20=3.35\n（3）在第五年年末，\n行权前公司价值V前=(1000*22+10000)*(1+8%)^5=47017.6万元\n每张债券价值=1000*7%*PVIFA(8%,5)+1000/(1+8%)^5=960.09元\n债务总价值B=960.09*1=9600.9万元\n权益价值S=V前-B=47017.6-9600.9=37416.7万元\n股票价格=37416.7/1000=37.42元\n行权后的股东权益价值=37416.7+10*20*25=42416.7万元\n股票价格=42416.7/(1000+10*20)=35.35万元\n（4）\nNPV=-1000+70*PVIFA(9%,10)+1000/(1+9%)^10+20*(35.35-25)/1.09^5\nNPV=6.17>0，可行。\n\n备注：这道题比较复杂，但全部都基于我们学过的知识点，大家耐心算下去。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "hard"
     },
     {
       "id": 240,
@@ -2333,7 +2525,8 @@
       "options": null,
       "correct_answer": "（1）(500*75-20000)/500*75=46.67%\n不会受到追缴保证金的通知。\n（2）(500P-20000)/500P=35%\n解得P=61.54元\n\n备注：牢记公式，套公式就可以了。注意保证金比例低于维持保证金水平后要补充到初始保证金。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "hard"
     },
     {
       "id": 241,
@@ -2345,7 +2538,8 @@
       "options": null,
       "correct_answer": "（1）当股票为88元时：\n250*80=20000元  借入5000元\n(88-80)*250/15000=13.33%\n当股票为80元时：\n价格不变，净价值不变，收益百分比=0\n当股票为72美元时：\n(72-80)*250/15000=-13.33%\n（2）(250P-5000)/250P=25%\nP=26.67元\n（3）(250P-10000)/250P=25%\nP=53.33元\n（4）保证金贷款在一年后为5000*1.08=5400美元。\n当股票为88元时：\n(8*250-400)/15000=10.67%\n当股票为80元时：\n-400/15000=-2.62%\n当股票为72美元时：\n[(-8)*250-400]/15000=-16%\n（5）[250P-5000*(1+8%)]/250P=25%\nP=28.8元\n\n备注：牢记公式，注意保证金贷款是存在利息的。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "hard"
     },
     {
       "id": 242,
@@ -2357,7 +2551,8 @@
       "options": null,
       "correct_answer": "D＝R／(r1+r2)＝100／(10％+10％)＝ 100／20％＝500亿元\n500-100＝400亿元\n该商业银行能创造400亿元的派生存款。\nB＝C+R\nRd＝4000*10％＝400\nC＝4000*2％＝80\n超额存款准备金：E＝B-C-Rd＝1000-80-400＝520\n实际存款准备金率＝(400+520)÷4000*100％＝23％\n法定存款准备金=10000*8％＝800元\n可供贷款＝9200元\n货帀乘数=1/R=1/8%=12.5\n创造存款总额D＝Mb*m=10000*12.5=125000元\n\n备注：简单题。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "hard"
     },
     {
       "id": 243,
@@ -2369,7 +2564,8 @@
       "options": null,
       "correct_answer": "H=R+C=400亿元\n存款乘数=1/(rd+e+k+rt*t)=1/(15%+50%*10%+5%+25%)=2\n货币乘数=(1+k)/(rd+e+k+rt*t)=2.5\nM1=D+C=D+KD=(1+k)D =［(1+k)/(rd+e+k+rt*t)］*H=250亿元\n\n备注：本题求M1的方法没有直接写出公式M=m*H，而是推出最终公式的过程，感觉记不住这两个公式的同学不妨自己推导一下。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "hard"
     },
     {
       "id": 244,
@@ -2381,7 +2577,8 @@
       "options": null,
       "correct_answer": "10000/(1+3.06%*30/360)=9974.666万元\n\n备注：请同学们自行分析为何采用除法。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "hard"
     },
     {
       "id": 245,
@@ -2393,7 +2590,8 @@
       "options": null,
       "correct_answer": "贴现利息＝票面金额*贴现率*时间=10000*6％*3/12=150元\n贴现金额＝票面金额-贴现利息=10000-150=9850元\n银行应付给该企业9850元，扣除了150元的贴息。\n\n备注：很多同学对于货币银行学的计算题不是很上心，要注意很多学校都曾把货币银行学计算作为一到完成的大计算，难度很低，因此一定不要忽视。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "hard"
     },
     {
       "id": 246,
@@ -2405,7 +2603,8 @@
       "options": null,
       "correct_answer": "贴现额=10000*(1-12％*50/365)=9835.6元\n该公司可得到9835.6元。\n\n备注：同上。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "hard"
     },
     {
       "id": 247,
@@ -2417,7 +2616,8 @@
       "options": null,
       "correct_answer": "第四年的股票价格=26*1.1^4=38.067元\n第四年的转换价值=38.067*40=1522.68元\n纯粹价值=1080/1.09=990.83元\n底线价值是纯粹价值和转换价值较高者，即1522.68元\n\n备注：虽然可转债考的可能性不是很大，但也要尽量记住公式。但注意不要死记硬背，而是要思考公式中的深层逻辑。可转债的纯粹价值就是债券价值，即作为普通债权的价值。转换价值指的是转换成普通股后所得到普通股的市场价值。底线价值是两者取最高。可转债的计算一题足矣。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "hard"
     },
     {
       "id": 248,
@@ -2429,7 +2629,8 @@
       "options": null,
       "correct_answer": "（1）根据CAPM，股票X的期望收益率=5%+0.8*(14%-5%)=12.2%\n股票X的α=14%-12.2%=1.8%\n股票Y的期望收益率=5%+1.5*(14%-5%)=18.5%\n股票Y的α=17%-18.5%=-1.5%\n（2）a.风险被充分分散的投资组合中仅有系统风险，因此按照特雷诺比率的思想。\nX每单位β的期望收益=(14%-5%)/0.8=11.25%\nY每单位β的期望收益=(17%-5%)/1.5=8%\n选择股票X。\nb.作为单一组合持有考虑夏普比率。\nX每单位标准差的期望收益=(14%-5%)/0.36=0.25\nY每单位标准差的期望收益=(17%-5%)/0.25=0.48\n选择股票Y。\n\n备注：在解答第二问时，要注意不同的资产组合分别对应着什么绩效评价指标。",
       "grading_points": "",
-      "ai_explanation": ""
+      "ai_explanation": "",
+      "difficulty_level": "hard"
     }
   ]
 }

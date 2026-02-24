@@ -6,11 +6,12 @@ from django.conf import settings
 from .models import ChatMessage
 from users.models import DailyPlan
 from .serializers import ChatMessageSerializer
+from users.views import IsMember
 
 class ChatMessageListView(generics.ListCreateAPIView):
     queryset = ChatMessage.objects.all().order_by('timestamp')
     serializer_class = ChatMessageSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [IsMember]
 
     def perform_create(self, serializer):
         related_plan_id = self.request.data.get('related_plan_id')
@@ -24,7 +25,7 @@ class ChatMessageListView(generics.ListCreateAPIView):
         serializer.save(user=self.request.user, related_plan=related_plan)
 
 class UndoBroadcastView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [IsMember]
 
     def post(self, request, pk):
         try:
@@ -43,7 +44,7 @@ class UndoBroadcastView(APIView):
             return Response({'error': 'Message not found'}, status=404)
 
 class ImageUploadView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [IsMember]
     def post(self, request):
         file = request.FILES.get('image')
         if not file:

@@ -3,11 +3,13 @@ from rest_framework.response import Response
 from .models import Article
 from .serializers import ArticleSerializer
 from django.db.models import Count
+from users.views import IsMember
 
 class IsAdminUserOrReadOnly(permissions.BasePermission):
     def has_permission(self, request, view):
         if request.method in permissions.SAFE_METHODS:
-            return True
+            # 修改这里：GET 请求也需要是会员
+            return bool(request.user and request.user.is_authenticated and (request.user.is_member or request.user.role == 'admin'))
         return bool(request.user and request.user.is_authenticated and request.user.is_staff)
 
 class ArticleListCreateView(generics.ListCreateAPIView):
@@ -19,7 +21,7 @@ class ArticleListCreateView(generics.ListCreateAPIView):
         tag = self.request.query_params.get('tag')
         q = self.request.query_params.get('search')
         kp = self.request.query_params.get('kp')
-        if tag: qs = qs.filter(tags__contains=tag)
+        if tag: qs = qs.filter(tags__icontains=tag)
         if q: qs = qs.filter(title__icontains=q)
         if kp: qs = qs.filter(knowledge_point_id=kp)
         return qs
@@ -28,16 +30,23 @@ class ArticleListCreateView(generics.ListCreateAPIView):
         queryset = self.get_queryset()
         serializer = self.get_serializer(queryset, many=True)
         
-        # 标签统计逻辑保持，仅统计当前过滤结果相关的更好（可选，这里保持全量）
         all_articles = Article.objects.all()
-        tag_counts = {}
+        tag_data = {} # {tag_name: {count: X, views: Y}}
         for art in all_articles:
             if isinstance(art.tags, list):
-                for t in art.tags: tag_counts[t] = tag_counts.get(t, 0) + 1
+                for t in art.tags:
+                    if t not in tag_data:
+                        tag_data[t] = {'count': 0, 'views': 0}
+                    tag_data[t]['count'] += 1
+                    tag_data[t]['views'] += (art.views or 0)
+        
+        # 按点击量之和由高到低排序
+        sorted_tags = sorted(tag_data.items(), key=lambda item: item[1]['views'], reverse=True)
+        tag_stats = [{'name': k, 'count': v['count'], 'views': v['views']} for k, v in sorted_tags]
         
         return Response({
             'articles': serializer.data,
-            'tag_stats': tag_counts
+            'tag_stats': tag_stats
         })
 
     def perform_create(self, serializer):
@@ -50,7 +59,7 @@ class ArticleDetailView(generics.RetrieveUpdateDestroyAPIView):
 
 class ArticleIncrementViewView(generics.GenericAPIView):
     queryset = Article.objects.all()
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [IsMember]
 
     def post(self, request, *args, **kwargs):
         instance = self.get_object()

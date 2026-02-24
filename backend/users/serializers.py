@@ -1,11 +1,18 @@
 from rest_framework import serializers
-from .models import User, SystemConfig, DailyPlan
+from .models import User, SystemConfig, DailyPlan, ActivationCode
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ('id', 'username', 'nickname', 'role', 'elo_score', 'avatar_url', 'avatar_style', 'avatar_seed', 'avatar_options', 'bio', 'is_online', 'current_task', 'current_timer_end', 'today_focused_minutes', 'today_completed_tasks', 'allow_broadcast', 'show_others_broadcast', 'has_completed_initial_assessment', 'elo_reset_count')
-        read_only_fields = ('id', 'username', 'role', 'elo_score', 'avatar_url', 'is_online')
+        fields = ('id', 'username', 'nickname', 'role', 'elo_score', 'avatar_url', 'avatar_style', 'avatar_seed', 'avatar_options', 'bio', 'is_online', 'current_task', 'current_timer_end', 'today_focused_minutes', 'today_completed_tasks', 'allow_broadcast', 'show_others_broadcast', 'has_completed_initial_assessment', 'elo_reset_count', 'is_member')
+        read_only_fields = ('id', 'username', 'role', 'elo_score', 'avatar_url', 'is_online', 'is_member')
+
+class ActivationCodeSerializer(serializers.ModelSerializer):
+    used_by_username = serializers.CharField(source='used_by.username', read_only=True)
+    
+    class Meta:
+        model = ActivationCode
+        fields = '__all__'
 
 class DailyPlanSerializer(serializers.ModelSerializer):
     class Meta:
@@ -20,31 +27,12 @@ class SystemConfigSerializer(serializers.ModelSerializer):
 
 class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
-    invite_code = serializers.CharField(write_only=True, required=False)
 
     class Meta:
         model = User
-        fields = ("username", "password", "invite_code")
-
-    def validate(self, attrs):
-        # 如果是第一个用户，不强制要求邀请码
-        if User.objects.count() == 0:
-            return attrs
-            
-        invite_code = attrs.get("invite_code")
-        if not invite_code:
-            raise serializers.ValidationError({"invite_code": "请填写邀请码"})
-            
-        config = SystemConfig.objects.first()
-        if config and invite_code != config.invite_code:
-            raise serializers.ValidationError({"invite_code": "邀请码无效"})
-            
-        return attrs
+        fields = ("username", "password")
 
     def create(self, validated_data):
-        # 移除邀请码，因为模型中没有该字段
-        validated_data.pop("invite_code", None)
-        
         # 如果是第一个用户，设为管理员且具有后台权限
         if User.objects.count() == 0:
             user = User.objects.create_superuser(

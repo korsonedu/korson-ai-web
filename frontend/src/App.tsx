@@ -23,6 +23,7 @@ import api from '@/lib/api';
 import { Toaster } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { WeeklyReportDialog } from './components/WeeklyReportDialog';
 
 // Auth Guard with Persistence
 const RequireAuth = ({ children }: { children: JSX.Element }) => {
@@ -63,9 +64,10 @@ const RequireAuth = ({ children }: { children: JSX.Element }) => {
 // Simplified Article Center (independent page navigation)
 const ArticleCenter = () => {
   const [articles, setArticles] = useState<any[]>([]);
-  const [tagStats, setTagStats] = useState<Record<string, number>>({});
+  const [tagStats, setTagStats] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
+  const [showAllTags, setShowAllTags] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -89,8 +91,11 @@ const ArticleCenter = () => {
       <div className="flex flex-col gap-8 w-full text-left">
         
         {/* Tags */}
-        <div className="flex items-center justify-between px-2">
-          <div className="flex flex-wrap gap-2">
+        <div className="flex flex-col gap-3 px-2">
+          <div className={cn(
+            "flex flex-wrap gap-2 overflow-hidden transition-all duration-500",
+            !showAllTags ? "max-h-[32px]" : "max-h-[500px]"
+          )}>
             <Button 
               onClick={() => setSelectedTag(null)}
               variant={selectedTag === null ? "default" : "outline"}
@@ -98,17 +103,31 @@ const ArticleCenter = () => {
             >
               全部
             </Button>
-            {Object.entries(tagStats).map(([name, count]) => (
+            {tagStats.map((tag) => (
               <Button 
-                key={name}
-                onClick={() => setSelectedTag(name)}
-                variant={selectedTag === name ? "default" : "outline"}
+                key={tag.name}
+                onClick={() => setSelectedTag(tag.name)}
+                variant={selectedTag === tag.name ? "default" : "outline"}
                 className="rounded-full h-7 px-4 text-[9px] font-bold uppercase tracking-widest transition-all border-black/5"
               >
-                {name} · {count}
+                {tag.name} · {tag.count}
               </Button>
             ))}
           </div>
+          {tagStats.length > 4 && (
+            <div className="flex justify-start mt-1">
+              <Button 
+                onClick={() => setShowAllTags(!showAllTags)}
+                variant="ghost"
+                className="h-6 px-2 text-[9px] font-bold text-indigo-600 hover:bg-indigo-50 flex items-center gap-1 group"
+              >
+                {showAllTags ? "收起全部分类" : `查看更多分类 (${tagStats.length - 4})`}
+                <div className={cn("transition-transform duration-300", showAllTags ? "rotate-180" : "rotate-0")}>
+                  <ChevronRight className={cn("w-3 h-3 transform rotate-90")} />
+                </div>
+              </Button>
+            </div>
+          )}
         </div>
 
         {/* List Content */}
@@ -229,6 +248,7 @@ function App() {
   return (
     <>
       <Toaster position="top-center" richColors />
+      <WeeklyReportDialog />
       <RouterProvider router={router} />
     </>
   );

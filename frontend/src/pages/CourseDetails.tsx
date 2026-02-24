@@ -9,6 +9,7 @@ import {
 import { cn } from '@/lib/utils';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/useAuthStore';
+import { APP_VERSION, COPYRIGHT_YEAR, COPYRIGHT_ENTITY } from '@/constants/version';
 
 const FeatureItem = ({ icon: Icon, title, description }: any) => (
   <div className="flex gap-6 p-8 rounded-[2.5rem] bg-slate-50 dark:bg-white/[0.02] border border-slate-100 dark:border-white/5 transition-all hover:shadow-lg">
@@ -48,8 +49,8 @@ export const CourseDetails: React.FC = () => {
             
             <div className="flex flex-col items-center pt-6">
               <div className="flex items-baseline gap-4">
-                <span className="text-xl md:text-2xl font-bold text-slate-200 dark:text-slate-800 line-through">¥9500</span>
-                <span className="text-5xl md:text-[64px] font-black tracking-tighter text-slate-900 dark:text-white leading-none">¥8150</span>
+                <span className="text-xl md:text-2xl font-bold text-slate-200 dark:text-slate-800 line-through">¥9,799</span>
+                <span className="text-5xl md:text-[64px] font-black tracking-tighter text-slate-900 dark:text-white leading-none">¥8,150</span>
               </div>
               <p className="text-sm font-bold text-pink-500 uppercase tracking-[0.3em] mt-4">K2 全程班计划 · 限时优惠</p>
             </div>
@@ -202,8 +203,8 @@ export const CourseDetails: React.FC = () => {
       </section>
 
       {/* Footer */}
-      <footer className="py-20 border-t border-slate-100 dark:border-slate-900 text-center text-slate-400 text-sm">
-        <p>© 2026 UniMind.ai. Designed with precision.</p>
+      <footer className="py-20 border-t border-slate-100 dark:border-slate-900 text-center space-y-2">
+        <p className="text-slate-400 text-sm">© {COPYRIGHT_YEAR} {COPYRIGHT_ENTITY}</p>
       </footer>
     </div>
   );

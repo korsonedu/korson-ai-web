@@ -3,10 +3,68 @@ from rest_framework.response import Response
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.models import Token
 from rest_framework.permissions import AllowAny
-from .serializers import UserSerializer, RegisterSerializer, SystemConfigSerializer, DailyPlanSerializer
-from .models import User, SystemConfig, DailyPlan
+from rest_framework.views import APIView
+from .serializers import UserSerializer, RegisterSerializer, SystemConfigSerializer, DailyPlanSerializer, ActivationCodeSerializer
+from .models import User, SystemConfig, DailyPlan, ActivationCode
 from django.utils import timezone
 import datetime
+
+class IsMember(permissions.BasePermission):
+    """
+    仅允许会员访问。
+    """
+    message = "您需要先成为学员（激活会员）才能使用此功能。"
+
+    def has_permission(self, request, view):
+        return bool(request.user and request.user.is_authenticated and request.user.is_member)
+
+class ActivateMembershipView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        code_str = request.data.get('code')
+        if not code_str:
+            return Response({'error': '请输入激活码'}, status=400)
+        
+        try:
+            code_obj = ActivationCode.objects.get(code=code_str, is_used=False)
+        except ActivationCode.DoesNotExist:
+            return Response({'error': '无效或已被使用的激活码'}, status=400)
+        
+        # 激活会员
+        user = request.user
+        user.is_member = True
+        user.save()
+        
+        # 标记激活码已使用
+        code_obj.is_used = True
+        code_obj.used_by = user
+        code_obj.used_at = timezone.now()
+        code_obj.save()
+        
+        return Response({'status': 'ok', 'message': '会员已成功激活', 'user': UserSerializer(user).data})
+
+class ActivationCodeListView(generics.ListCreateAPIView):
+    queryset = ActivationCode.objects.all().order_by('-created_at')
+    serializer_class = ActivationCodeSerializer
+    permission_classes = [permissions.IsAdminUser]
+
+    def perform_create(self, serializer):
+        # 可以在这里增加逻辑自动生成 code，或者由前端传入
+        serializer.save()
+
+class ActivationCodeDetailView(generics.DestroyAPIView):
+    queryset = ActivationCode.objects.all()
+    serializer_class = ActivationCodeSerializer
+    permission_classes = [permissions.IsAdminUser]
+
+    def perform_destroy(self, instance):
+        # 如果已被使用，需要收回用户的会员权限
+        if instance.is_used and instance.used_by:
+            user = instance.used_by
+            user.is_member = False
+            user.save()
+        instance.delete()
 
 class RegisterView(generics.CreateAPIView):
     queryset = User.objects.all()
@@ -58,6 +116,89 @@ class DailyPlanDetailView(generics.UpdateAPIView, generics.DestroyAPIView):
                 serializer.save(completed_at=None)
         else:
             serializer.save()
+
+from django.db.models import Sum, Count, Q
+from quizzes.models import UserQuestionStatus, KnowledgePoint
+from courses.models import VideoProgress, Course
+
+class BIAnalyticsView(APIView):
+    permission_classes = [permissions.IsAdminUser]
+
+    def get(self, request):
+        # 1. 知识点错题热力图 (取前10)
+        kp_errors = UserQuestionStatus.objects.values(
+            'question__knowledge_point__name'
+        ).annotate(
+            total_errors=Sum('wrong_count')
+        ).filter(
+            question__knowledge_point__name__isnull=False
+        ).order_by('-total_errors')[:10]
+
+        # 2. 课程完播率统计
+        course_stats = VideoProgress.objects.values(
+            'course__title'
+        ).annotate(
+            total_views=Count('user', distinct=True),
+            completions=Count('id', filter=Q(is_finished=True))
+        ).order_by('-total_views')[:10]
+
+        # 3. 活跃用户概览
+        total_users = User.objects.count()
+        member_users = User.objects.filter(is_member=True).count()
+
+        return Response({
+            'kp_errors': list(kp_errors),
+            'course_stats': list(course_stats),
+            'user_overview': {
+                'total': total_users,
+                'members': member_users,
+                'member_rate': round(member_users / total_users * 100, 1) if total_users > 0 else 0
+            }
+        })
+
+class WeeklyCognitiveReportView(APIView):
+    permission_classes = [IsMember]
+
+    def get(self, request):
+        user = request.user
+        now = timezone.now()
+        
+        # 计算上周的起止时间 (周一 00:00:00 到 周日 23:59:59)
+        # weekday(): 0 是周一, 6 是周日
+        current_weekday = now.weekday()
+        # 本周一的凌晨
+        start_of_this_week = (now - datetime.timedelta(days=current_weekday)).replace(hour=0, minute=0, second=0, microsecond=0)
+        # 上周一的凌晨
+        start_of_last_week = start_of_this_week - datetime.timedelta(days=7)
+        # 上周日的深夜
+        end_of_last_week = start_of_this_week - datetime.timedelta(seconds=1)
+
+        # 1. 认知资产转化 (基于上周数据)
+        # 统计上周复习过且稳定性提升到长期的题目 (稳定性 > 21天视为初步进入永久资产)
+        last_week_qs = UserQuestionStatus.objects.filter(user=user, last_review__range=(start_of_last_week, end_of_last_week))
+        total_attempted = last_week_qs.count()
+        permanent_assets = last_week_qs.filter(stability__gte=21).count()
+        conversion_rate = round(permanent_assets / total_attempted * 100, 1) if total_attempted > 0 else 0
+
+        # 2. ELO 战胜率
+        all_active_users = User.objects.filter(is_active=True).order_by('elo_score')
+        total_active = all_active_users.count()
+        below_me = all_active_users.filter(elo_score__lt=user.elo_score).count()
+        percentile = round(below_me / total_active * 100, 1) if total_active > 0 else 0
+
+        # 3. 核心统计
+        week_reviews = last_week_qs.aggregate(total_reps=Sum('reps'))['total_reps'] or 0
+        
+        return Response({
+            'user_nickname': user.nickname or user.username,
+            'conversion_rate': conversion_rate,
+            'permanent_count': permanent_assets,
+            'elo_percentile': percentile,
+            'week_reviews': week_reviews,
+            'current_elo': user.elo_score,
+            'report_date': f"{start_of_last_week.strftime('%Y.%m.%d')} - {end_of_last_week.strftime('%m.%d')}",
+            'week_label': f"{start_of_last_week.isocalendar()[0]}-W{start_of_last_week.isocalendar()[1]}"
+        })
 
 class OnlineUserListView(generics.ListAPIView):
     serializer_class = UserSerializer

@@ -96,7 +96,7 @@
 
 /* Fix Radix UI layout shift */
 body {
-  padding-right: 0px !important;
+  /* Let Radix UI handle scrollbar padding compensation */
 }
 html {
   overflow-y: scroll;

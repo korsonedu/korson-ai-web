@@ -42,16 +42,30 @@ export const VideoLesson: React.FC = () => {
 
   const handleVideoEnd = async () => {
     if (hasAwarded) return;
+    
+    // Report finished status and get reward in one go
     try {
-      const res = await api.post(`/courses/${id}/award-elo/`);
-      setHasAwarded(true);
-      toast.success(`观看完成！奖励 ${res.data.elo_added} ELO`, {
-        description: `当前积分: ${res.data.new_score}`
-      });
-      // 更新全局用户信息以反映分数变化
-      const me = await api.get('/users/me/');
-      updateUser(me.data);
-    } catch (e) {}
+      const res = await api.post(`/courses/${id}/progress/`, { is_finished: true });
+      if (res.data.elo_added > 0) {
+        setHasAwarded(true);
+        toast.success(`观看完成！奖励 ${res.data.elo_added} ELO`, {
+          description: `当前积分: ${res.data.new_score}`
+        });
+        // 更新全局用户信息以反映分数变化
+        const me = await api.get('/users/me/');
+        updateUser(me.data);
+      }
+    } catch (e) {
+      console.error("Failed to update progress/award ELO", e);
+    }
+  };
+
+  const handleTimeUpdate = (e: React.SyntheticEvent<HTMLVideoElement>) => {
+    const video = e.currentTarget;
+    // 每 10 秒上报一次进度
+    if (Math.floor(video.currentTime) % 10 === 0) {
+      api.post(`/courses/${id}/progress/`, { position: video.currentTime }).catch(() => {});
+    }
   };
 
   if (loading) return (
@@ -90,7 +104,15 @@ export const VideoLesson: React.FC = () => {
         <div className="lg:col-span-9 space-y-8">
            <div className="bg-black overflow-hidden relative aspect-video flex items-center justify-center rounded-[2rem] shadow-2xl">
              {course.video_file ? (
-               <video onEnded={handleVideoEnd} src={course.video_file} controls className="w-full h-full" preload="metadata" poster={course.cover_image || undefined} />
+               <video 
+                 onEnded={handleVideoEnd} 
+                 onTimeUpdate={handleTimeUpdate}
+                 src={course.video_file} 
+                 controls 
+                 className="w-full h-full" 
+                 preload="metadata" 
+                 poster={course.cover_image || undefined} 
+               />
              ) : (
                <div className="flex flex-col items-center gap-4 opacity-20"><div className="h-24 w-24 rounded-full border-4 border-white/10 flex items-center justify-center"><Play className="h-10 w-10 text-white fill-white"/></div><p className="text-xs font-bold uppercase tracking-widest">No Stream Available</p></div>
              )}
