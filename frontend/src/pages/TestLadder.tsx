@@ -1,13 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
-import { Trophy, ArrowRight, BrainCircuit, Activity, ChevronLeft, ChevronRight, Star, Loader2, ChevronDown, CheckCircle2 } from 'lucide-react';
+import { ArrowRight, BrainCircuit, Activity, ChevronLeft, ChevronRight, Star, Loader2, ChevronDown, CheckCircle2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -34,7 +33,6 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { useSearchParams } from 'react-router-dom';
 
 export const TestLadder: React.FC = () => {
-  const { user, updateUser } = useAuthStore();
   const { primaryColor } = useSystemStore();
   const [searchParams, setSearchParams] = useSearchParams();
   const [leaderboard, setLeaderboard] = useState<any[]>([]);
@@ -262,7 +260,6 @@ export const TestLadder: React.FC = () => {
                             setQCount("");
                             return;
                           }
-                          const n = parseInt(val);
                           // 允许用户正在输入的过程中暂时小于1（比如清空后输入），但在确认或失焦时强制校验
                           setQCount(val);
                         }}

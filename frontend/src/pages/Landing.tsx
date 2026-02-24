@@ -2,14 +2,11 @@ import React from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { 
-  CheckCircle2, ArrowRight, Zap, HelpCircle, 
-  BookOpen, BrainCircuit, Monitor, Cpu, Target, 
-  Mountain, Globe, Layers, ChevronRight,
-  ShieldCheck, Activity, Boxes, Sparkles,
-  GraduationCap, Library, BookText, Lightbulb,
-  Award, BarChart3, Users, Clock, ShieldAlert,
-  Briefcase, Hexagon, PieChart, TrendingUp, Play, FileText, ClipboardList, LifeBuoy,
-  Network, Trophy, Swords, BarChart, Database, Timer
+  ArrowRight, 
+  BookOpen, BrainCircuit, Target, 
+  ShieldCheck, Sparkles,
+  Trophy, Users, Play, ClipboardList, LifeBuoy,
+  Network
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useNavigate } from 'react-router-dom';
@@ -233,7 +230,7 @@ export const Landing: React.FC = () => {
               <p className="font-bold text-lg text-slate-900 dark:text-white tracking-tighter uppercase">UniMind.ai</p>
               <div className="flex flex-col gap-1 mt-1">
                 <p className="text-[10px] font-medium text-slate-400 tracking-wide">© {COPYRIGHT_YEAR} {COPYRIGHT_ENTITY}</p>
-                <p className="text-[9px] font-bold text-slate-300 dark:text-slate-700 uppercase tracking-[0.2em]">{APP_VERSION} · </p>
+                <p className="text-[9px] font-bold text-slate-300 dark:text-slate-700 uppercase tracking-[0.2em]">{APP_VERSION} · PRECISION ACADEMIC OS</p>
               </div>
             </div>
           </div>

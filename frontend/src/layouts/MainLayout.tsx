@@ -10,10 +10,8 @@ import {
   ShieldCheck,
   ChevronLeft,
   ChevronRight,
-  Settings as SettingsIcon,
   Sparkles,
   Settings2,
-  Bell,
   BrainCircuit,
   Home,
   Info,
@@ -21,8 +19,6 @@ import {
   MessageCircleQuestion,
   Loader2,
   Lock,
-  Menu,
-  TrendingUp
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -45,11 +41,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import {
-  Sheet,
-  SheetContent,
-  SheetTrigger,
-} from "@/components/ui/sheet";
 import {
   AlertDialog,
   AlertDialogAction,

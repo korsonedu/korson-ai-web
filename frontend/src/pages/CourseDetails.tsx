@@ -2,13 +2,11 @@ import React, { useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { 
-  CheckCircle2, ArrowRight, Play, BookOpen, 
+  CheckCircle2, Play, BookOpen, 
   ClipboardList, Cpu, MessageSquare, Users, 
-  Trophy, GraduationCap, ShieldCheck, Zap
+  Trophy, GraduationCap, Zap
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
 import { useNavigate } from 'react-router-dom';
-import { useAuthStore } from '../store/useAuthStore';
 import { APP_VERSION, COPYRIGHT_YEAR, COPYRIGHT_ENTITY } from '@/constants/version';
 
 const FeatureItem = ({ icon: Icon, title, description }: any) => (
@@ -205,6 +203,7 @@ export const CourseDetails: React.FC = () => {
       {/* Footer */}
       <footer className="py-20 border-t border-slate-100 dark:border-slate-900 text-center space-y-2">
         <p className="text-slate-400 text-sm">© {COPYRIGHT_YEAR} {COPYRIGHT_ENTITY}</p>
+        <p className="text-[10px] font-bold text-slate-200 dark:text-slate-800 uppercase tracking-[0.3em]">{APP_VERSION} · PRECISION ACADEMIC OS</p>
       </footer>
     </div>
   );

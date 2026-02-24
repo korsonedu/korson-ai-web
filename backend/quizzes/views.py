@@ -529,7 +529,7 @@ class AIPreviewParseView(APIView):
         
         if file_obj:
             if file_obj.name.endswith('.docx'):
-                import docx # 延迟导入
+                import docx  # type: ignore # 延迟导入
                 doc = docx.Document(file_obj)
                 raw_text = "\n".join([p.text for p in doc.paragraphs])
             else:
