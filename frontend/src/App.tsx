@@ -103,7 +103,7 @@ const ArticleCenter = () => {
             >
               全部
             </Button>
-            {tagStats.map((tag) => (
+            {tagStats && Array.isArray(tagStats) && tagStats.map((tag) => (
               <Button 
                 key={tag.name}
                 onClick={() => setSelectedTag(tag.name)}
