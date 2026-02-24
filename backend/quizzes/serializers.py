@@ -19,16 +19,16 @@ class QuestionSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
     def get_is_favorite(self, obj):
-        user = self.context.get('request').user
-        if user.is_authenticated:
-            status = UserQuestionStatus.objects.filter(user=user, question=obj).first()
+        request = self.context.get('request')
+        if request and request.user.is_authenticated:
+            status = UserQuestionStatus.objects.filter(user=request.user, question=obj).first()
             return status.is_favorite if status else False
         return False
 
     def get_is_mastered(self, obj):
-        user = self.context.get('request').user
-        if user.is_authenticated:
-            status = UserQuestionStatus.objects.filter(user=user, question=obj).first()
+        request = self.context.get('request')
+        if request and request.user.is_authenticated:
+            status = UserQuestionStatus.objects.filter(user=request.user, question=obj).first()
             return status.is_mastered if status else False
         return False
 

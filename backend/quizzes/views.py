@@ -485,8 +485,6 @@ class GenerateFromTextView(APIView):
                 created_count += 1
         return Response({'status': 'success', 'count': created_count})
 
-import docx # 导入 Word 解析库
-
 import threading
 from django.core.cache import cache
 
@@ -531,6 +529,7 @@ class AIPreviewParseView(APIView):
         
         if file_obj:
             if file_obj.name.endswith('.docx'):
+                import docx # 延迟导入
                 doc = docx.Document(file_obj)
                 raw_text = "\n".join([p.text for p in doc.paragraphs])
             else:

@@ -82,7 +82,7 @@ class UpdateProfileView(generics.UpdateAPIView):
     
     def perform_update(self, serializer):
         user = serializer.save()
-        user.avatar_url = f"https://api.dicebear.com/7.x/{user.avatar_style}/svg?seed={user.avatar_seed}"
+        # 移除了对 avatar_url 的手动赋值，因为它现在是动态属性
         user.save()
 
 from django.db.models import Q

@@ -6,7 +6,7 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ('id', 'username', 'nickname', 'role', 'elo_score', 'avatar_url', 'avatar_style', 'avatar_seed', 'bio', 'current_task', 'current_timer_end', 'today_focused_minutes', 'today_completed_tasks', 'allow_broadcast', 'show_others_broadcast', 'has_completed_initial_assessment', 'elo_reset_count', 'is_member')
-        read_only_fields = ('id', 'username', 'role', 'elo_score', 'is_member')
+        read_only_fields = ('id', 'username', 'role', 'elo_score', 'avatar_url', 'is_member')
 
 class ActivationCodeSerializer(serializers.ModelSerializer):
     used_by_username = serializers.CharField(source='used_by.username', read_only=True)
