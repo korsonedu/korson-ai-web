@@ -28,10 +28,19 @@ class ArticleListCreateView(generics.ListCreateAPIView):
 
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
-        serializer = self.get_serializer(queryset, many=True)
         
+        # 分页逻辑 (每页 20 条)
+        page = int(request.query_params.get('page', 1))
+        page_size = 20
+        total = queryset.count()
+        
+        offset = (page - 1) * page_size
+        paged_queryset = queryset[offset:offset + page_size]
+        serializer = self.get_serializer(paged_queryset, many=True)
+        
+        # 计算标签统计 (基于全部文章，不随搜索变化，提供全局概览)
         all_articles = Article.objects.all()
-        tag_data = {} # {tag_name: {count: X, views: Y}}
+        tag_data = {} 
         for art in all_articles:
             if isinstance(art.tags, list):
                 for t in art.tags:
@@ -40,13 +49,15 @@ class ArticleListCreateView(generics.ListCreateAPIView):
                     tag_data[t]['count'] += 1
                     tag_data[t]['views'] += (art.views or 0)
         
-        # 按点击量之和由高到低排序
         sorted_tags = sorted(tag_data.items(), key=lambda item: item[1]['views'], reverse=True)
         tag_stats = [{'name': k, 'count': v['count'], 'views': v['views']} for k, v in sorted_tags]
         
         return Response({
             'articles': serializer.data,
-            'tag_stats': tag_stats
+            'tag_stats': tag_stats,
+            'total': total,
+            'page': page,
+            'total_pages': (total + page_size - 1) // page_size
         })
 
     def perform_create(self, serializer):

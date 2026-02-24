@@ -12,6 +12,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
 import { useAuthStore } from '@/store/useAuthStore';
+import { useSystemStore } from '@/store/useSystemStore';
 import api from '@/lib/api';
 import {
   Popover,
@@ -62,7 +63,13 @@ interface Plan { id: number; content: string; is_completed: boolean; }
 
 export const StudyRoom: React.FC = () => {
   const { user, updateUser } = useAuthStore();
+  const { setPageHeader } = useSystemStore();
   const [timeLeft, setTimeLeft] = useState(25 * 60);
+
+  useEffect(() => {
+    setPageHeader("STUDY ROOM", "沉浸式自学室 · 保持专注，学术进化");
+  }, [setPageHeader]);
+
   const [isActive, setIsActive] = useState(false);
   const [activePlanId, setActivePlanId] = useState<number | null>(null);
   const [duration, setDuration] = useState(25);

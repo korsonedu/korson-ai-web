@@ -12,7 +12,7 @@ import { cn } from '@/lib/utils';
 import { useNavigate } from 'react-router-dom';
 import { Avatar, AvatarImage } from '@/components/ui/avatar';
 import { useAuthStore } from '../store/useAuthStore';
-import { APP_VERSION, COPYRIGHT_YEAR, COPYRIGHT_ENTITY } from '@/constants/version';
+import { APP_VERSION, COPYRIGHT_YEAR, COPYRIGHT_ENTITY, BRAND_DESC } from '@/constants/version';
 
 const Glow = ({ className }: { className?: string }) => (
   <div className={cn("absolute -z-10 w-[500px] h-[500px] bg-gradient-to-tr from-pink-500/5 to-purple-600/5 blur-[120px] rounded-full pointer-events-none", className)} />
@@ -230,7 +230,7 @@ export const Landing: React.FC = () => {
               <p className="font-bold text-lg text-slate-900 dark:text-white tracking-tighter uppercase">UniMind.ai</p>
               <div className="flex flex-col gap-1 mt-1">
                 <p className="text-[10px] font-medium text-slate-400 tracking-wide">© {COPYRIGHT_YEAR} {COPYRIGHT_ENTITY}</p>
-                <p className="text-[9px] font-bold text-slate-300 dark:text-slate-700 uppercase tracking-[0.2em]">{APP_VERSION} · PRECISION ACADEMIC OS</p>
+                <p className="text-[9px] font-bold text-slate-300 dark:text-slate-700 uppercase tracking-[0.2em]">{APP_VERSION} · {BRAND_DESC}</p>
               </div>
             </div>
           </div>

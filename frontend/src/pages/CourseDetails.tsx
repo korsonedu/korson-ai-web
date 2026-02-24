@@ -7,7 +7,7 @@ import {
   Trophy, GraduationCap, Zap
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { APP_VERSION, COPYRIGHT_YEAR, COPYRIGHT_ENTITY } from '@/constants/version';
+import { APP_VERSION, COPYRIGHT_YEAR, COPYRIGHT_ENTITY, BRAND_DESC } from '@/constants/version';
 
 const FeatureItem = ({ icon: Icon, title, description }: any) => (
   <div className="flex gap-6 p-8 rounded-[2.5rem] bg-slate-50 dark:bg-white/[0.02] border border-slate-100 dark:border-white/5 transition-all hover:shadow-lg">
@@ -203,7 +203,7 @@ export const CourseDetails: React.FC = () => {
       {/* Footer */}
       <footer className="py-20 border-t border-slate-100 dark:border-slate-900 text-center space-y-2">
         <p className="text-slate-400 text-sm">© {COPYRIGHT_YEAR} {COPYRIGHT_ENTITY}</p>
-        <p className="text-[10px] font-bold text-slate-200 dark:text-slate-800 uppercase tracking-[0.3em]">{APP_VERSION} · PRECISION ACADEMIC OS</p>
+        <p className="text-[10px] font-bold text-slate-200 dark:text-slate-800 uppercase tracking-[0.3em]">{APP_VERSION} · {BRAND_DESC}</p>
       </footer>
     </div>
   );

@@ -68,20 +68,32 @@ const ArticleCenter = () => {
   const [loading, setLoading] = useState(true);
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
   const [showAllTags, setShowAllTags] = useState(false);
+  
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetchArticles();
+    setPage(1);
+    fetchArticles(1);
   }, [selectedTag]);
 
-  const fetchArticles = async () => {
+  const fetchArticles = async (p = page) => {
     setLoading(true);
     try {
-      const res = await api.get('/articles/', { params: { tag: selectedTag } });
+      const res = await api.get('/articles/', { params: { tag: selectedTag, page: p } });
       setArticles(res.data.articles);
       setTagStats(res.data.tag_stats);
+      setTotalPages(res.data.total_pages);
     } catch (e) {}
     finally { setLoading(false); }
+  };
+
+  const handlePageChange = (newPage: number) => {
+    setPage(newPage);
+    fetchArticles(newPage);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   if (loading && articles.length === 0) return <div className="h-[60vh] flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-black/10" /></div>;
@@ -172,6 +184,33 @@ const ArticleCenter = () => {
               </div>
             ))}
           </div>
+
+          {/* Pagination Controls */}
+          {totalPages > 1 && (
+            <div className="p-6 border-t border-border/50 flex items-center justify-between bg-muted/10">
+              <Button 
+                disabled={page === 1} 
+                onClick={() => handlePageChange(page - 1)}
+                variant="ghost"
+                className="rounded-xl font-bold text-[10px] uppercase tracking-widest gap-2"
+              >
+                <ChevronLeft className="w-3 h-3" /> Previous
+              </Button>
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Page</span>
+                <span className="h-7 px-3 bg-card border border-border rounded-lg flex items-center justify-center text-xs font-black tabular-nums">{page}</span>
+                <span className="text-[10px] font-bold text-muted-foreground">/ {totalPages}</span>
+              </div>
+              <Button 
+                disabled={page === totalPages} 
+                onClick={() => handlePageChange(page + 1)}
+                variant="ghost"
+                className="rounded-xl font-bold text-[10px] uppercase tracking-widest gap-2"
+              >
+                Next <ChevronRight className="w-3 h-3" />
+              </Button>
+            </div>
+          )}
         </div>
       </div>
     </PageWrapper>
