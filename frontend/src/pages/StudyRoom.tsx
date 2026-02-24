@@ -67,7 +67,7 @@ export const StudyRoom: React.FC = () => {
   const [timeLeft, setTimeLeft] = useState(25 * 60);
 
   useEffect(() => {
-    setPageHeader("STUDY ROOM", "沉浸式自学室 · 保持专注，学术进化");
+    setPageHeader("自习室", "保持专注，学术进化");
   }, [setPageHeader]);
 
   const [isActive, setIsActive] = useState(false);
@@ -304,7 +304,7 @@ export const StudyRoom: React.FC = () => {
   const lastSystemMsgId = mySystemMessages.length > 0 ? mySystemMessages[mySystemMessages.length - 1].id : null;
 
   return (
-    <div className="h-[calc(100vh-8.5rem)] flex gap-6 animate-in fade-in duration-300 text-left text-foreground">
+    <div className="h-[calc(100vh-6.5rem)] flex gap-6 animate-in fade-in duration-300 text-left text-foreground">
       <div 
         className={cn("flex-1 flex flex-col bg-card rounded-3xl shadow-sm border border-border overflow-hidden relative transition-all duration-300", isDragging && "ring-4 ring-primary/20 bg-primary/5 border-primary border-dashed z-50")}
         onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); setIsDragging(true); }}
@@ -315,7 +315,7 @@ export const StudyRoom: React.FC = () => {
         <header className="px-8 py-3 border-b border-border flex items-center justify-between bg-card/80 backdrop-blur-md sticky top-0 z-20">
           <div className="flex items-center gap-4">
             <div className="h-9 w-9 rounded-xl bg-primary flex items-center justify-center shadow-lg text-primary-foreground"><MessageSquare className="h-4 w-4" /></div>
-            <h2 className="text-sm font-bold tracking-tight">讨论区</h2>
+            <h2 className="text-sm font-bold tracking-tight">学习咖啡厅</h2>
           </div>
           <div className="flex items-center gap-2">
             <Popover open={isTimerOpen} onOpenChange={setIsTimerOpen}>

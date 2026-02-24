@@ -179,7 +179,7 @@ export const AIAssistant: React.FC = () => {
 
   if (isInitialLoading) return (
     <PageWrapper title="AI 实验室" subtitle="与您的专属数字导师进行深度学术对话。">
-      <div className="h-[calc(100vh-8.5rem)] flex flex-col items-center justify-center gap-4 opacity-20">
+      <div className="h-[calc(100vh-6.5rem)] flex flex-col items-center justify-center gap-4 opacity-20">
         <Loader2 className="h-8 w-8 animate-spin text-foreground" />
         <p className="text-[10px] font-bold uppercase tracking-widest leading-none text-foreground">Initializing AI Laboratory...</p>
       </div>
@@ -188,7 +188,7 @@ export const AIAssistant: React.FC = () => {
 
   return (
     <PageWrapper title="AI 实验室" subtitle="与您的专属数字导师进行深度学术对话。">
-      <div className="h-[calc(100vh-8.5rem)] flex flex-col animate-in fade-in duration-300 max-w-5xl mx-auto text-left relative text-foreground px-4">
+      <div className="h-[calc(100vh-6.5rem)] flex flex-col animate-in fade-in duration-300 max-w-5xl mx-auto text-left relative text-foreground px-4">
         <Card className="flex-1 flex flex-col bg-card rounded-3xl shadow-sm border border-border overflow-hidden relative">
         <header className="px-8 py-3 border-b border-border flex items-center justify-between bg-card/80 backdrop-blur-md sticky top-0 z-10">
           <div className="flex items-center gap-4">
