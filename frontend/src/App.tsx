@@ -276,7 +276,7 @@ const router = createBrowserRouter([
       { path: "knowledge-map", element: <RequireAuth><KnowledgeMap /></RequireAuth> },
       { path: "settings", element: <RequireAuth><Settings /></RequireAuth> },
       { path: "system-settings", element: <RequireAuth><SystemSettings /></RequireAuth> },
-      { path: "admin", element: <RequireAuth><Maintenance /></RequireAuth> },
+      { path: "management", element: <RequireAuth><Maintenance /></RequireAuth> },
       { path: "course/:id", element: <RequireAuth><VideoLesson /></RequireAuth> },
     ],
   },

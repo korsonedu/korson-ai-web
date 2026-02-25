@@ -121,7 +121,7 @@ export const MainLayout: React.FC = () => {
   const [isActivating, setIsActivating] = useState(false);
   const [schoolConfig, setSchoolConfig] = useState({ name: '科晟智慧', desc: 'KORSON ACADEMY', logo: '' });
 
-  const isFullPage = ['/intro', '/course-details', '/admin'].includes(location.pathname);
+  const isFullPage = ['/intro', '/course-details', '/management'].includes(location.pathname);
 
   useEffect(() => {
     document.documentElement.style.setProperty('--primary-override', primaryColor);
@@ -160,7 +160,7 @@ export const MainLayout: React.FC = () => {
     { to: '/ai', icon: Sparkles, label: 'AI 实验室', restricted: true },
   ];
 
-  if (user?.role === 'admin') navItems.push({ to: '/admin', icon: ShieldCheck, label: '维护中心', restricted: false });
+  if (user?.role === 'admin') navItems.push({ to: '/management', icon: ShieldCheck, label: '维护中心', restricted: false });
 
   return (
     <TooltipProvider delayDuration={0}>

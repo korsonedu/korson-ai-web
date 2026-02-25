@@ -21,7 +21,7 @@ export const CourseCenter: React.FC = () => {
 
   const ActionBtn = user?.role === 'admin' ? (
     <Button 
-      onClick={() => navigate('/admin')}
+      onClick={() => navigate('/management')}
       className="bg-black text-white hover:bg-black/90 rounded-2xl px-6 h-11 font-bold shadow-xl shadow-black/10 transition-all hover:scale-[1.02]"
     >
       <PlusCircle className="mr-2 h-4 w-4" /> 发布新课程
