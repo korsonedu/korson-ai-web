@@ -67,7 +67,7 @@ export const CourseCenter: React.FC = () => {
                    {course.cover_image ? (
                      <img src={course.cover_image} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
                    ) : (
-                     <div className="w-full h-full flex items-center justify-center text-black/5 font-bold uppercase tracking-widest text-[8px]">No Preview</div>
+                     <div className="w-full h-full flex items-center justify-center text-black/5 font-bold uppercase tracking-widest text-[11px]">No Preview</div>
                    )}
                    <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                       <div className="h-8 w-8 rounded-full bg-white flex items-center justify-center shadow-2xl scale-75 group-hover:scale-100 transition-transform">
@@ -79,7 +79,7 @@ export const CourseCenter: React.FC = () => {
                    <div className="flex justify-between items-start gap-2">
                       <h3 className="font-bold text-sm leading-tight group-hover:text-emerald-600 transition-colors line-clamp-1 flex-1">{course.title}</h3>
                    </div>
-                   <p className="text-[10px] text-[#86868B] line-clamp-2 font-medium leading-relaxed min-h-[28px]">{course.description}</p>
+                   <p className="text-[11px] text-[#86868B] line-clamp-2 font-medium leading-relaxed min-h-[28px]">{course.description}</p>
                 </CardContent>
              </Card>
            ))}

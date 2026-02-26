@@ -148,7 +148,7 @@ export const Settings: React.FC = () => {
               </Sheet>
             </div>
             <h3 className="mt-6 text-xl font-bold text-foreground">{user?.nickname || user?.username}</h3>
-            <p className="text-xs text-muted-foreground font-bold mt-1 uppercase tracking-widest leading-none text-emerald-600">Active Academic Rank: {user?.elo_score}</p>
+            <p className="text-xs text-muted-foreground font-bold mt-1 uppercase tracking-widest leading-none text-emerald-600">ELO Rank: {user?.elo_score}</p>
           </Card>
 
           <Card className="border-none shadow-sm rounded-3xl bg-white p-8 space-y-6 border border-black/[0.03]">

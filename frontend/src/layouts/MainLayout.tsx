@@ -183,7 +183,7 @@ export const MainLayout: React.FC = () => {
                   </div>
                   <div className="flex flex-col animate-in fade-in duration-500 min-w-0">
                     <h1 className="text-[14px] font-bold tracking-tight truncate w-24">{schoolConfig.name}</h1>
-                    <p className="text-[9px] text-muted-foreground font-bold uppercase tracking-widest truncate w-24">{schoolConfig.desc}</p>
+                    <p className="text-[11px] text-muted-foreground font-bold uppercase tracking-wider truncate w-24">{schoolConfig.desc}</p>
                   </div>
                 </div>
                 <Button variant="ghost" size="icon" onClick={() => setCollapsed(true)} className="h-6 w-6 text-muted-foreground hover:bg-muted rounded-full">
@@ -225,21 +225,21 @@ export const MainLayout: React.FC = () => {
                   <div className={cn("group flex items-center gap-2.5 p-2 rounded-xl cursor-pointer transition-all duration-300 hover:bg-muted border border-transparent hover:border-border", collapsed && "justify-center")}>
                     <Avatar className={cn("h-8 w-8 border border-border shadow-sm group-hover:scale-105 transition-transform")}>
                       <AvatarImage src={user?.avatar_url} />
-                      <AvatarFallback className="bg-muted text-[10px] font-bold">{user?.username?.[0]}</AvatarFallback>
+                      <AvatarFallback className="bg-muted text-[11px] font-bold">{user?.username?.[0]}</AvatarFallback>
                     </Avatar>
                     {!collapsed && (
                       <div className="flex-1 min-w-0 animate-in fade-in">
                         <div className="flex items-center gap-1.5">
-                          <p className="text-[11px] font-bold truncate">{user?.nickname || user?.username}</p>
+                          <p className="text-[12px] font-bold truncate">{user?.nickname || user?.username}</p>
                           {user.is_member && <ShieldCheck className="h-3 w-3 text-amber-500" />}
                         </div>
-                        <p className="text-[8px] font-bold text-muted-foreground uppercase tracking-tighter">{user.is_member ? 'Pro Member' : 'Free Scholar'}</p>
+                        <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-tight">{user.is_member ? 'Pro Member' : 'Free Scholar'}</p>
                       </div>
                     )}
                   </div>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" side={collapsed ? "right" : "top"} className="w-52 rounded-2xl p-2 bg-card/95 backdrop-blur-xl border-border shadow-2xl">
-                  <DropdownMenuLabel className="px-3 py-2 text-[9px] font-bold text-muted-foreground uppercase tracking-wider">账户与偏好</DropdownMenuLabel>
+                  <DropdownMenuLabel className="px-3 py-2 text-[11px] font-bold text-muted-foreground uppercase tracking-wider">账户与偏好</DropdownMenuLabel>
                   {user && !user.is_member && (
                     <DropdownMenuItem onClick={() => setShowActivateDialog(true)} className="rounded-xl px-3 py-2 gap-3 cursor-pointer bg-amber-50 text-amber-700 focus:bg-amber-100 focus:text-amber-800 transition-colors">
                       <Sparkles className="h-3.5 w-3.5" />
@@ -279,7 +279,7 @@ export const MainLayout: React.FC = () => {
                   {pageTitle && (
                     <div className="flex flex-col md:flex-row md:items-baseline md:gap-3 animate-in fade-in slide-in-from-top-1 duration-300">
                       <h2 className="text-sm font-black tracking-tight text-foreground uppercase">{pageTitle}</h2>
-                      <span className="text-[9px] font-bold text-muted-foreground/60 uppercase tracking-widest truncate max-w-[400px]">
+                      <span className="text-[12px] font-bold text-muted-foreground/60 uppercase tracking-widest truncate max-w-[400px]">
                         {pageSubtitle}
                       </span>
                     </div>

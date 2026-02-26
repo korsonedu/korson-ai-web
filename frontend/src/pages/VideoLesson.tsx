@@ -145,9 +145,8 @@ export const VideoLesson: React.FC = () => {
              </div>
              <div className="space-y-6">
                 <Card className="border-none shadow-sm rounded-3xl bg-white p-8 border border-black/[0.03] space-y-6 text-left">
-                   <div className="space-y-1"><h4 className="text-xs font-bold uppercase tracking-widest text-black/30">学习奖励</h4><p className="text-2xl font-bold">+{course.elo_reward} ELO</p></div>
+                   <div className="space-y-1"><h4 className="text-xs font-bold uppercase tracking-widest text-black/80">学习奖励</h4><p className="text-2xl font-bold text-green-700">+{course.elo_reward} ELO</p></div>
                    <p className="text-xs font-medium text-[#86868B] leading-relaxed">完整观看教学内容后，系统将自动结算并同步至您的学术分位。</p>
-                   <div className="pt-4 border-t border-black/[0.03] flex items-center gap-3"><ShieldCheck className="h-5 w-5 text-emerald-500"/><span className="text-[10px] font-bold uppercase tracking-widest text-emerald-600">Verified Path</span></div>
                 </Card>
              </div>
           </div>

@@ -36,7 +36,7 @@ export const CourseDetails: React.FC = () => {
         <div className="max-w-5xl mx-auto space-y-10">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10">
             <Zap className="h-4 w-4 text-amber-500" />
-            <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-[0.3em]">2026 全程班 · 深度重构</span>
+            <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-[0.3em]">2026 全程班 · 深度重构</span>
           </div>
           
           <div className="space-y-4">
@@ -203,7 +203,7 @@ export const CourseDetails: React.FC = () => {
       {/* Footer */}
       <footer className="py-20 border-t border-slate-100 dark:border-slate-900 text-center space-y-2">
         <p className="text-slate-400 text-sm">© {COPYRIGHT_YEAR} {COPYRIGHT_ENTITY}</p>
-        <p className="text-[10px] font-bold text-slate-200 dark:text-slate-800 uppercase tracking-[0.3em]">{APP_VERSION} · {BRAND_DESC}</p>
+        <p className="text-[11px] font-bold text-slate-200 dark:text-slate-800 uppercase tracking-[0.3em]">{APP_VERSION} · {BRAND_DESC}</p>
       </footer>
     </div>
   );

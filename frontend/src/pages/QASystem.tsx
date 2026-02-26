@@ -107,8 +107,8 @@ const AnswerItem = ({ answer, isFirst, onReplyClick, onRefresh }: { answer: any,
             <span className={cn("text-[11px] font-bold", answer.is_teacher ? "text-indigo-600" : "text-foreground")}>
               {answer.user_detail.nickname || answer.user_detail.username}
             </span>
-            {answer.is_teacher && <Badge variant="secondary" className="h-4 px-1 text-[8px] bg-indigo-50 text-indigo-600 border-indigo-100">TEACHER</Badge>}
-            <span className="text-[9px] text-muted-foreground tabular-nums">
+            {answer.is_teacher && <Badge variant="secondary" className="h-4 px-1 text-[11px] bg-indigo-50 text-indigo-600 border-indigo-100">TEACHER</Badge>}
+            <span className="text-[11px] text-muted-foreground tabular-nums">
               {new Date(answer.created_at).toLocaleString('zh-CN', {month: '2-digit', day: '2-digit', hour: '2-digit', minute:'2-digit'})}
             </span>
           </div>
@@ -176,7 +176,7 @@ const AnswerItem = ({ answer, isFirst, onReplyClick, onRefresh }: { answer: any,
             </div>
             {/* Like Button */}
             <div className="flex items-center gap-2 mt-1 ml-1">
-                <button onClick={handleLike} className={cn("flex items-center gap-1.5 text-[10px] font-bold transition-all px-2 py-0.5 rounded-full hover:bg-muted/50", isLiked ? "text-pink-500" : "text-muted-foreground/40 hover:text-pink-500/70")}>
+                <button onClick={handleLike} className={cn("flex items-center gap-1.5 text-[11px] font-bold transition-all px-2 py-0.5 rounded-full hover:bg-muted/50", isLiked ? "text-pink-500" : "text-muted-foreground/40 hover:text-pink-500/70")}>
                     <ThumbsUp className={cn("h-3 w-3", isLiked && "fill-current")} />
                     {likesCount > 0 && <span>{likesCount}</span>}
                 </button>
@@ -295,12 +295,12 @@ const ThreadCard = ({ question, onRefresh, isAdmin }: { question: any, onRefresh
               {question.user_detail.nickname || question.user_detail.username}
               {question.is_starred && <Star className="h-3 w-3 text-orange-500 fill-orange-500" />}
               {question.is_solved ? (
-                <Badge variant="outline" className="text-[9px] h-4 px-1.5 bg-emerald-50 text-emerald-600 border-emerald-200">已解决</Badge>
+                <Badge variant="outline" className="text-[11px] h-4 px-1.5 bg-emerald-50 text-emerald-600 border-emerald-200">已解决</Badge>
               ) : (
-                <Badge variant="outline" className="text-[9px] h-4 px-1.5 bg-slate-50 text-slate-500 border-slate-200">待解答</Badge>
+                <Badge variant="outline" className="text-[11px] h-4 px-1.5 bg-slate-50 text-slate-500 border-slate-200">待解答</Badge>
               )}
             </h4>
-            <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest mt-0.5 tabular-nums">
+            <p className="text-[11px] text-muted-foreground font-bold uppercase tracking-widest mt-0.5 tabular-nums">
               {new Date(question.created_at).toLocaleString('zh-CN', {month: '2-digit', day: '2-digit', hour: '2-digit', minute:'2-digit'})}
             </p>
           </div>
@@ -396,7 +396,7 @@ const ThreadCard = ({ question, onRefresh, isAdmin }: { question: any, onRefresh
         {/* Like Button */}
         {!isEditing && (
             <div className="flex items-center gap-2 mt-4">
-                <button onClick={handleLike} className={cn("flex items-center gap-1.5 text-[10px] font-bold transition-all px-2 py-0.5 rounded-full hover:bg-muted/50 border border-transparent hover:border-border/50", isLiked ? "text-pink-500 bg-pink-50 hover:bg-pink-100 border-pink-100" : "text-muted-foreground hover:text-pink-500/70")}>
+                <button onClick={handleLike} className={cn("flex items-center gap-1.5 text-[11px] font-bold transition-all px-2 py-0.5 rounded-full hover:bg-muted/50 border border-transparent hover:border-border/50", isLiked ? "text-pink-500 bg-pink-50 hover:bg-pink-100 border-pink-100" : "text-muted-foreground hover:text-pink-500/70")}>
                     <ThumbsUp className={cn("h-3 w-3", isLiked && "fill-current")} />
                     {likesCount > 0 && <span>{likesCount}</span>}
                 </button>
@@ -434,7 +434,7 @@ const ThreadCard = ({ question, onRefresh, isAdmin }: { question: any, onRefresh
           <Button 
             variant="ghost" 
             onClick={() => setIsExpanded(!isExpanded)}
-            className="h-8 text-[10px] font-bold text-muted-foreground uppercase tracking-widest hover:text-foreground ml-4"
+            className="h-8 text-[12px] font-bold text-muted-foreground uppercase tracking-widest hover:text-foreground ml-4"
           >
             {isExpanded ? <ChevronUp className="mr-2 h-3 w-3" /> : <CornerDownRight className="mr-2 h-3 w-3" />}
             {isExpanded ? "收起回复" : `查看 ${otherAnswers.length} 条追问回复`}
@@ -537,7 +537,7 @@ export const QASystem: React.FC = () => {
             <textarea 
               value={qContent}
               onChange={e => setQContent(e.target.value)}
-              placeholder="请详细描述你的学术疑问..."
+              placeholder="请详细描述你的疑问..."
               className="w-full min-h-[100px] p-4 rounded-2xl bg-[#F5F5F7] border-none text-sm font-medium resize-none focus:ring-2 focus:ring-black/5 transition-all placeholder:text-muted-foreground/40"
             />
             <div className="flex justify-between items-center">

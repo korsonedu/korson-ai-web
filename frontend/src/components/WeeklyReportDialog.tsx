@@ -112,7 +112,7 @@ export const WeeklyReportDialog: React.FC = () => {
               <div className="flex items-start gap-5">
                 <div className="h-10 w-10 rounded-2xl bg-slate-900 flex items-center justify-center shrink-0 shadow-lg shadow-indigo-200/20"><Zap className="w-5 h-5 text-indigo-400 fill-indigo-400" /></div>
                 <p className="text-sm font-bold text-slate-700 leading-relaxed pt-1">
-                  上周你将 <span className="text-indigo-600">{report.permanent_count}</span> 道题目从短期记忆转化为了“永久资产”，复习密度已超过系统内 <span className="text-emerald-600">{report.elo_percentile}%</span> 的学者。
+                  上周你将 <span className="text-indigo-600">{report.permanent_count}</span> 道题目从短期记忆转化为了“永久资产”，复习密度已超过系统内 <span className="text-emerald-600">{report.elo_percentile}%</span> 的学员。
                 </p>
               </div>
               <div className="pt-6 border-t border-slate-50 flex items-center justify-between">

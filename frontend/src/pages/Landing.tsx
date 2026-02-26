@@ -22,7 +22,7 @@ const SectionHeader = ({ title, subtitle, centered = false, label = "Academic Pr
   <div className={cn("mb-16 relative z-10", centered ? "text-center" : "text-left")}>
     <div className={cn("flex items-center gap-2 mb-4", centered && "justify-center")}>
       <div className="h-[1px] w-6 bg-slate-200 dark:bg-slate-800" />
-      <span className="text-[10px] font-bold text-pink-500 uppercase tracking-[0.4em]">{label}</span>
+      <span className="text-[11px] font-bold text-pink-500 uppercase tracking-[0.4em]">{label}</span>
     </div>
     <h2 className="text-3xl md:text-4xl lg:text-5xl font-black tracking-tight text-slate-900 dark:text-white leading-[1.1]">{title}</h2>
     {subtitle && <p className="mt-6 text-sm md:text-base text-slate-500 dark:text-slate-400 max-w-3xl mx-auto font-medium leading-relaxed">{subtitle}</p>}
@@ -78,9 +78,9 @@ export const Landing: React.FC = () => {
               { l: '二战提分', v: '+50', d: 'K2 战略核心成果' }
             ].map((item, i) => (
               <div key={i} className="text-center space-y-1">
-                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-[0.2em] leading-none">{item.l}</p>
+                <p className="text-[11px] font-bold text-slate-400 uppercase tracking-[0.2em] leading-none">{item.l}</p>
                 <p className="text-3xl font-black text-slate-900 dark:text-white tracking-tighter leading-none">{item.v}</p>
-                <p className="text-[10px] font-medium text-slate-500 leading-none">{item.d}</p>
+                <p className="text-[11px] font-medium text-slate-500 leading-none">{item.d}</p>
               </div>
             ))}
           </div>
@@ -161,7 +161,7 @@ export const Landing: React.FC = () => {
               <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:rotate-12 transition-transform pointer-events-none"><Sparkles className="h-60 w-60 text-pink-500" /></div>
               <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-8">
                 <div className="space-y-4">
-                  <div className="inline-flex px-3 py-1 rounded-full bg-pink-500 text-[9px] font-bold uppercase tracking-widest">Recommended Enrollment</div>
+                  <div className="inline-flex px-3 py-1 rounded-full bg-pink-500 text-[11px] font-bold uppercase tracking-widest">Recommended Enrollment</div>
                   <h3 className="text-4xl md:text-5xl font-black tracking-tighter uppercase leading-none">K2 全程班计划</h3>
                   <p className="text-slate-400 text-sm font-medium max-w-md mt-4 leading-relaxed">一站式全周期深度辅导，重构金融 431 应试效率极限。包含 AMR 核心课程体系的所有模块与增值服务。</p>
                 </div>
@@ -170,7 +170,7 @@ export const Landing: React.FC = () => {
                   <div className="flex items-baseline justify-start md:justify-end gap-1">
                     <span className="text-6xl font-black tracking-tighter text-white">¥8,150</span>
                   </div>
-                  <p className="text-[10px] font-bold text-pink-500 uppercase tracking-widest mt-2">全程班限时优惠</p>
+                  <p className="text-[11px] font-bold text-pink-500 uppercase tracking-widest mt-2">全程班限时优惠</p>
                 </div>
               </div>
 
@@ -182,7 +182,7 @@ export const Landing: React.FC = () => {
                     { id: 'Module.C', t: '习题训练专项', d: '自建核心题库，含历年高校真题、模拟题与国外顶级高校Text Bank，配合 8 次阶段/模拟考试，随时追踪掌握水平，掌握考试节奏。' }
                   ].map(stat => (
                     <div key={stat.id} className="space-y-2">
-                      <p className="text-[9px] font-bold text-pink-500 uppercase tracking-widest">{stat.id}</p>
+                      <p className="text-[11px] font-bold text-pink-500 uppercase tracking-widest">{stat.id}</p>
                       <p className="text-base font-bold text-white leading-none">{stat.t}</p>
                       <p className="text-[16px] text-slate-400 font-medium leading-relaxed">{stat.d}</p>
                     </div>
@@ -204,7 +204,7 @@ export const Landing: React.FC = () => {
               ].map(item => (
                 <Card key={item.t} className="bg-slate-50 dark:bg-[#0A0A0B] border border-slate-100 dark:border-white/5 p-8 rounded-[2.5rem] flex flex-col items-start text-left space-y-5 group hover:border-pink-500/30 transition-all justify-between">
                   <div className="space-y-3">
-                    <p className="text-[9px] font-bold text-pink-500 uppercase tracking-widest leading-none">{item.id}</p>
+                    <p className="text-[11px] font-bold text-pink-500 uppercase tracking-widest leading-none">{item.id}</p>
                     <h4 className="font-black text-xl text-slate-900 dark:text-white uppercase leading-tight">{item.t}</h4>
                   </div>
                   <div className="w-full pt-5 border-t border-slate-200 dark:border-white/10 flex items-center justify-between mt-4">
@@ -229,8 +229,8 @@ export const Landing: React.FC = () => {
             <div className="text-left leading-tight">
               <p className="font-bold text-lg text-slate-900 dark:text-white tracking-tighter uppercase">UniMind.ai</p>
               <div className="flex flex-col gap-1 mt-1">
-                <p className="text-[10px] font-medium text-slate-400 tracking-wide">© {COPYRIGHT_YEAR} {COPYRIGHT_ENTITY}</p>
-                <p className="text-[9px] font-bold text-slate-300 dark:text-slate-700 uppercase tracking-[0.2em]">{APP_VERSION} · {BRAND_DESC}</p>
+                <p className="text-[11px] font-medium text-slate-400 tracking-wide">© {COPYRIGHT_YEAR} {COPYRIGHT_ENTITY}</p>
+                <p className="text-[11px] font-bold text-slate-300 dark:text-slate-700 uppercase tracking-[0.2em]">{APP_VERSION} · {BRAND_DESC}</p>
               </div>
             </div>
           </div>

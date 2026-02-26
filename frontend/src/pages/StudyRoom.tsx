@@ -235,23 +235,12 @@ export const StudyRoom: React.FC = () => {
   const handleStartTask = async () => {
     if (!taskName.trim()) return toast.error("请输入任务名称");
     setIsActive(true);
-    // Only close on first start
-    if (timeLeft === duration * 60) {
-      setIsTimerOpen(false);
-      if (allowBroadcast) {
-        try {
-          await api.post('/study/messages/', { content: `💪 开始了“${taskName}”任务 (计划 ${duration} 分钟)` });
-          fetchMessages();
-        } catch (e) {}
-      }
-    }
-  };
-
-  const toggleTimer = () => {
-    if (isActive) {
-      setIsActive(false);
-    } else {
-      handleStartTask();
+    setIsTimerOpen(false);
+    if (allowBroadcast) {
+      try {
+        await api.post('/study/messages/', { content: `💪 开始了“${taskName}”任务 (计划 ${duration} 分钟)` });
+        fetchMessages();
+      } catch (e) {}
     }
   };
 
@@ -326,7 +315,7 @@ export const StudyRoom: React.FC = () => {
         <header className="px-8 py-3 border-b border-border flex items-center justify-between bg-card/80 backdrop-blur-md sticky top-0 z-20">
           <div className="flex items-center gap-4">
             <div className="h-9 w-9 rounded-xl bg-primary flex items-center justify-center shadow-lg text-primary-foreground"><MessageSquare className="h-4 w-4" /></div>
-            <h2 className="text-sm font-bold tracking-tight">讨论区</h2>
+            <h2 className="text-sm font-bold tracking-tight">学习咖啡厅</h2>
           </div>
           <div className="flex items-center gap-2">
             <Popover open={isTimerOpen} onOpenChange={setIsTimerOpen}>
@@ -336,15 +325,15 @@ export const StudyRoom: React.FC = () => {
                     <div className="text-5xl font-mono font-bold tracking-tighter text-foreground tabular-nums">{formatTime(timeLeft)}</div>
                     <div className="space-y-4 text-left">
                       <div className="space-y-2">
-                        <div className="flex justify-between items-center mb-1"><label className="text-[10px] font-bold uppercase tracking-widest opacity-30 text-foreground">时长设定</label>
-                        <div className="flex items-center gap-1"><Input type="number" disabled={isActive || timeLeft < duration * 60} value={duration} onChange={e => handleDurationChange(parseInt(e.target.value) || 0)} className="w-12 h-6 p-0 text-center border-none bg-muted rounded-md text-[10px] font-bold text-foreground" /><span className="text-[10px] font-bold opacity-30 uppercase text-foreground">Min</span></div></div>
-                        <Slider disabled={isActive || timeLeft < duration * 60} value={[duration]} onValueChange={v => handleDurationChange(v[0])} max={120} min={1} step={1}/>
+                        <div className="flex justify-between items-center mb-1"><label className="text-[11px] font-bold uppercase tracking-widest opacity-30 text-foreground">时长设定</label>
+                        <div className="flex items-center gap-1"><Input type="number" disabled={isActive} value={duration} onChange={e => handleDurationChange(parseInt(e.target.value) || 0)} className="w-12 h-6 p-0 text-center border-none bg-muted rounded-md text-[11px] font-bold text-foreground" /><span className="text-[11px] font-bold opacity-30 uppercase text-foreground">Min</span></div></div>
+                        <Slider disabled={isActive} value={[duration]} onValueChange={v => handleDurationChange(v[0])} max={120} min={1} step={1}/>
                       </div>
-                      <div className="space-y-2"><label className="text-[10px] font-bold uppercase tracking-widest opacity-30 ml-1 text-foreground">任务目标</label><Input value={taskName} disabled={isActive || timeLeft < duration * 60} onChange={e => setTaskName(e.target.value)} placeholder="你想完成什么？" className="bg-muted border-none h-11 rounded-xl text-center font-bold text-sm text-foreground" /></div>
+                      <div className="space-y-2"><label className="text-[11px] font-bold uppercase tracking-widest opacity-30 ml-1 text-foreground">任务目标</label><Input value={taskName} onChange={e => setTaskName(e.target.value)} placeholder="你想完成什么？" className="bg-muted border-none h-11 rounded-xl text-center font-bold text-sm text-foreground" /></div>
                     </div>
                     <div className="flex justify-center gap-2.5 pt-1">
-                      <Button size="lg" onClick={toggleTimer} className={cn("rounded-2xl flex-1 font-bold h-12 shadow-lg transition-all", isActive ? "bg-slate-100 text-slate-900 hover:bg-slate-200" : "bg-primary text-primary-foreground shadow-primary/10")}>{isActive ? <Pause className="mr-2 h-4 w-4" /> : <Play className="mr-2 h-4 w-4" />}{isActive ? '暂停' : (timeLeft < duration * 60 ? '继续' : '开始学习')}</Button>
-                      {(isActive || timeLeft < duration * 60) && <Button variant="destructive" onClick={() => setShowStopAlert(true)} className="rounded-2xl h-12 w-12 shadow-xl shadow-red-500/20"><XCircle className="h-5 w-5" /></Button>}
+                      <Button size="lg" onClick={isActive ? () => setIsActive(false) : handleStartTask} className={cn("rounded-2xl flex-1 font-bold h-12 shadow-lg", isActive ? "bg-muted text-foreground" : "bg-primary text-primary-foreground shadow-primary/10")}>{isActive ? <Pause className="mr-2 h-4 w-4" /> : <Play className="mr-2 h-4 w-4" />}{isActive ? '暂停' : '开始学习'}</Button>
+                      {isActive && <Button variant="destructive" onClick={() => setShowStopAlert(true)} className="rounded-2xl h-12 w-12 shadow-xl shadow-red-500/20"><XCircle className="h-5 w-5" /></Button>}
                     </div>
                  </div>
               </PopoverContent>
@@ -356,8 +345,8 @@ export const StudyRoom: React.FC = () => {
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-64 rounded-2xl p-4 space-y-4 bg-card border-border shadow-2xl">
                 <div className="space-y-1">
-                  <h4 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">隐私与模式</h4>
-                  <p className="text-[10px] text-muted-foreground/50">控制任务状态在共学区的可见性</p>
+                  <h4 className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">隐私与模式</h4>
+                  <p className="text-[11px] text-muted-foreground/50">控制任务状态在共学区的可见性</p>
                 </div>
                 <div className="space-y-3 pt-2">
                   <div className="flex items-center justify-between">
@@ -406,7 +395,7 @@ export const StudyRoom: React.FC = () => {
                               fetchPlans();
                             } catch (e) { toast.error("撤销失败"); }
                           }}
-                          className="ml-3 text-[9px] font-bold text-muted-foreground/50 hover:text-red-500 underline decoration-dotted underline-offset-2 transition-colors cursor-pointer"
+                          className="ml-3 text-[11px] font-bold text-muted-foreground/50 hover:text-red-500 underline decoration-dotted underline-offset-2 transition-colors cursor-pointer"
                         >
                           撤销
                         </button>
@@ -418,9 +407,9 @@ export const StudyRoom: React.FC = () => {
               
               return (
                 <div key={msg.id} className={cn("flex gap-4 group animate-in fade-in slide-in-from-bottom-2 duration-300", isMe ? "flex-row-reverse text-right" : "flex-row text-left")}>
-                  <Avatar className="h-9 w-9 border border-border shadow-sm shrink-0 group-hover:scale-105 transition-transform"><AvatarImage src={msg.user_detail.avatar_url} /><AvatarFallback className="text-[10px] font-bold bg-muted">{(msg.user_detail.nickname || msg.user_detail.username)[0]}</AvatarFallback></Avatar>
+                  <Avatar className="h-9 w-9 border border-border shadow-sm shrink-0 group-hover:scale-105 transition-transform"><AvatarImage src={msg.user_detail.avatar_url} /><AvatarFallback className="text-[11px] font-bold bg-muted">{(msg.user_detail.nickname || msg.user_detail.username)[0]}</AvatarFallback></Avatar>
                   <div className={cn("flex flex-col gap-1 max-w-[70%] w-fit", isMe ? "items-end" : "items-start")}>
-                    <div className="flex items-center gap-2 px-1 text-muted-foreground"><span className="text-[9px] font-bold uppercase tracking-widest">{msg.user_detail.nickname || msg.user_detail.username}</span></div>
+                    <div className="flex items-center gap-2 px-1 text-muted-foreground"><span className="text-[11px] font-bold uppercase tracking-widest">{msg.user_detail.nickname || msg.user_detail.username}</span></div>
                     <div 
                       className={cn(
                         "text-[13px] leading-relaxed break-words overflow-hidden text-left w-fit h-fit", 
@@ -441,7 +430,7 @@ export const StudyRoom: React.FC = () => {
                       </ReactMarkdown>
                     </div>
                     {/* User Message Timestamp - Outside */}
-                    <span className="text-[9px] text-muted-foreground/40 mt-0.3 block px-1 font-medium">
+                    <span className="text-[11px] text-muted-foreground/40 mt-0.3 block px-1 font-medium">
                       {new Date(msg.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
                     </span>
                   </div>
@@ -489,28 +478,28 @@ export const StudyRoom: React.FC = () => {
                       </div>
                     )}
                   </div>
-                  <p className="text-[8px] text-center text-muted-foreground font-bold opacity-50 uppercase tracking-tighter">Powered by GIPHY · 无限下滑</p>
+                  <p className="text-[11px] text-center text-muted-foreground font-bold opacity-50 uppercase tracking-tighter">Powered by GIPHY</p>
                 </PopoverContent>
               </Popover>
               <Button variant="ghost" size="icon" onClick={() => fileInputRef.current?.click()} className="h-8 w-8 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"><ImageIcon className="h-4 w-4"/></Button>
               <input type="file" ref={fileInputRef} onChange={(e) => handleFileUpload(e)} className="hidden" accept="image/*" />
             </div>
-                                    <div className="flex gap-3 bg-muted rounded-2xl p-1 focus-within:bg-card focus-within:ring-2 focus-within:ring-primary/5 transition-all shadow-inner border border-border">
-                                      <Input value={chatInput} onChange={e => setChatInput(e.target.value)} onCompositionStart={() => setIsComposing(true)} onCompositionEnd={() => setIsComposing(false)} onKeyDown={e => { if (e.key === 'Enter' && !isComposing) { e.preventDefault(); sendMessage(); } }} placeholder="发送消息 (支持拖入图片)..." className="bg-transparent border-none shadow-none focus-visible:ring-0 text-[13px] h-10 px-4 text-foreground placeholder:text-muted-foreground/50" />
-                                      <Button onClick={sendMessage} size="icon" className="rounded-xl h-10 w-10 bg-primary text-primary-foreground shadow-xl shrink-0 hover:opacity-90 active:scale-95 transition-transform"><Send className="h-4 w-4" /></Button>
-                                    </div>
-                                  </div>
-                                </footer>
-                              </div>
-                        
-                              <div className="w-72 flex flex-col gap-6 shrink-0 text-foreground">
-                                <Card className="border-none shadow-sm rounded-3xl bg-card overflow-hidden p-6 flex-1 min-h-0 flex flex-col border border-border">
-                                  <header className="mb-4 flex items-center justify-between"><CardTitle className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">实时共学</CardTitle><Users className="h-4 w-4 text-muted-foreground opacity-20" /></header>
-                                  <div className="flex-1 overflow-y-auto space-y-3 pr-2 scrollbar-none">
-                                    {onlineUsers.map((u, i) => (<HoverCard key={i}><HoverCardTrigger asChild><div className="flex items-center gap-3 p-2.5 rounded-2xl hover:bg-muted transition-all cursor-pointer border border-transparent hover:border-border group"><div className="relative shrink-0"><Avatar className="h-9 w-9 border border-border shadow-sm group-hover:ring-2 ring-emerald-500/20 transition-all"><AvatarImage src={u.avatar_url}/></Avatar><span className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full bg-emerald-500 border-2 border-background shadow-sm"/></div><div className="flex-1 min-w-0"><p className="text-xs font-bold text-foreground truncate">{u.nickname || u.username} {u.username === user?.username && "(你)"}</p><p className="text-[9px] text-emerald-600 font-bold truncate mt-0.5 uppercase tracking-tight">{u.current_task || '在线中'}</p></div></div></HoverCardTrigger><HoverCardContent side="left" className="w-80 rounded-[2rem] p-6 border-none shadow-2xl bg-card/95 backdrop-blur-xl z-50 text-left text-foreground"><div className="flex space-x-4"><Avatar className="h-12 w-12 border border-border shadow-sm"><AvatarImage src={u.avatar_url}/></Avatar><div className="space-y-3 flex-1 text-left"><div className="flex justify-between items-center"><h4 className="text-sm font-bold">{u.nickname || u.username}</h4><Badge variant="outline" className="text-[10px] border-emerald-500/20 text-emerald-600 rounded-full">ELO {u.elo_score}</Badge></div><div className="space-y-2 pt-2 border-t border-border"><div className="flex items-center gap-2 text-muted-foreground"><Clock className="h-3.5 w-3.5"/><span className="text-[10px] font-bold uppercase tracking-widest">今日专注: {u.today_focused_minutes} min</span></div><div className="flex items-center gap-2 text-muted-foreground"><CheckCircle2 className="h-3.5 w-3.5"/><span className="text-[10px] font-bold uppercase tracking-widest">今日已完成: {u.today_completed_tasks?.length || 0} tasks</span></div></div></div></div></HoverCardContent></HoverCard>))}</div>
+            <div className="flex gap-3 bg-muted rounded-2xl p-1 focus-within:bg-card focus-within:ring-2 focus-within:ring-primary/5 transition-all shadow-inner border border-border">
+              <Input value={chatInput} onChange={e => setChatInput(e.target.value)} onCompositionStart={() => setIsComposing(true)} onCompositionEnd={() => setIsComposing(false)} onKeyDown={e => { if (e.key === 'Enter' && !isComposing) { e.preventDefault(); sendMessage(); } }} placeholder="发送消息 (支持拖入图片)..." className="bg-transparent border-none shadow-none focus-visible:ring-0 text-[13px] h-10 px-4 text-foreground placeholder:text-muted-foreground/50" />
+              <Button onClick={sendMessage} size="icon" className="rounded-xl h-10 w-10 bg-primary text-primary-foreground shadow-xl shrink-0 hover:opacity-90 active:scale-95 transition-transform"><Send className="h-4 w-4" /></Button>
+            </div>
+          </div>
+        </footer>
+      </div>
+
+      <div className="w-72 flex flex-col gap-6 shrink-0 text-foreground">
+        <Card className="border-none shadow-sm rounded-3xl bg-card overflow-hidden p-6 flex-1 min-h-0 flex flex-col border border-border">
+          <header className="mb-4 flex items-center justify-between"><CardTitle className="text-[13px] font-bold uppercase tracking-widest text-muted-foreground">实时共学</CardTitle><Users className="h-4 w-4 text-muted-foreground opacity-20" /></header>
+          <div className="flex-1 overflow-y-auto space-y-3 pr-2 scrollbar-none">
+            {onlineUsers.map((u, i) => (<HoverCard key={i}><HoverCardTrigger asChild><div className="flex items-center gap-3 p-2.5 rounded-2xl hover:bg-muted transition-all cursor-pointer border border-transparent hover:border-border group"><div className="relative shrink-0"><Avatar className="h-9 w-9 border border-border shadow-sm group-hover:ring-2 ring-emerald-500/20 transition-all"><AvatarImage src={u.avatar_url}/></Avatar><span className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full bg-emerald-500 border-2 border-background shadow-sm"/></div><div className="flex-1 min-w-0"><p className="text-xs font-bold text-foreground truncate">{u.nickname || u.username} {u.username === user?.username && "(你)"}</p><p className="text-[11px] text-emerald-600 font-bold truncate mt-0.5 uppercase tracking-tight">{u.current_task || '在线中'}</p></div></div></HoverCardTrigger><HoverCardContent side="left" className="w-80 rounded-[2rem] p-6 border-none shadow-2xl bg-card/95 backdrop-blur-xl z-50 text-left text-foreground"><div className="flex space-x-4"><Avatar className="h-12 w-12 border border-border shadow-sm"><AvatarImage src={u.avatar_url}/></Avatar><div className="space-y-3 flex-1 text-left"><div className="flex justify-between items-center"><h4 className="text-sm font-bold">{u.nickname || u.username}</h4><Badge variant="outline" className="text-[11px] border-emerald-500/20 text-emerald-600 rounded-full">ELO {u.elo_score}</Badge></div><div className="space-y-2 pt-2 border-t border-border"><div className="flex items-center gap-2 text-muted-foreground"><Clock className="h-3.5 w-3.5"/><span className="text-[11px] font-bold uppercase tracking-widest">今日专注: {u.today_focused_minutes} min</span></div><div className="flex items-center gap-2 text-muted-foreground"><CheckCircle2 className="h-3.5 w-3.5"/><span className="text-[11px] font-bold uppercase tracking-widest">今日已完成: {u.today_completed_tasks?.length || 0} tasks</span></div></div></div></div></HoverCardContent></HoverCard>))}</div>
         </Card>
         <Card className="border-none shadow-sm rounded-3xl bg-card overflow-hidden p-6 flex-1 min-h-0 flex flex-col border border-border">
-          <header className="mb-4 flex items-center justify-between border-b border-border pb-4"><CardTitle className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">计划清单</CardTitle><ListTodo className="h-4 w-4 text-muted-foreground opacity-20" /></header>
+          <header className="mb-4 flex items-center justify-between border-b border-border pb-4"><CardTitle className="text-[13px] font-bold uppercase tracking-widest text-muted-foreground">计划清单</CardTitle><ListTodo className="h-4 w-4 text-muted-foreground opacity-20" /></header>
           <div className="flex-1 overflow-y-auto space-y-1.5 pr-2 scrollbar-none">
             {plans.map(p => (
               <div key={p.id} className={cn("group flex items-center gap-3 p-2 rounded-2xl transition-all border border-transparent", p.is_completed ? "bg-muted/30 opacity-60" : "hover:bg-muted hover:border-border")}>
@@ -573,7 +562,7 @@ export const StudyRoom: React.FC = () => {
                 }
               }} 
               placeholder="ADD TARGET..." 
-              className="bg-muted border-none h-8 rounded-lg text-[9px] font-bold px-3 text-foreground focus-visible:ring-1 focus-visible:ring-primary/20" 
+              className="bg-muted border-none h-8 rounded-lg text-[11px] font-bold px-3 text-foreground focus-visible:ring-1 focus-visible:ring-primary/20" 
             />
             <Button 
               onClick={async () => { 

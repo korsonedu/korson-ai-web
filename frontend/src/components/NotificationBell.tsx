@@ -72,14 +72,14 @@ export const NotificationBell = () => {
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-80 rounded-2xl p-2 bg-card/95 backdrop-blur-xl border-border shadow-2xl z-[100]">
         <DropdownMenuLabel className="flex items-center justify-between px-3 py-2">
-          <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">通知中心 ({unreadCount})</span>
+          <span className="text-[13px] font-bold uppercase tracking-widest text-muted-foreground">通知中心 ({unreadCount})</span>
           <div className="flex gap-1">
             {unreadCount > 0 && (
                 <Button 
                 variant="ghost" 
                 size="sm" 
                 onClick={(e) => { e.stopPropagation(); markAsRead(); }} 
-                className="h-6 px-2 text-[9px] font-bold text-indigo-600 gap-1 hover:bg-indigo-50 rounded-lg"
+                className="h-6 px-2 text-[11px] font-bold text-indigo-600 gap-1 hover:bg-indigo-50 rounded-lg"
                 >
                 已读
                 </Button>
@@ -88,7 +88,7 @@ export const NotificationBell = () => {
               variant="ghost" 
               size="sm" 
               onClick={(e) => { e.stopPropagation(); setShowClearAlert(true); }} 
-              className="h-6 px-2 text-[9px] font-bold text-red-600 gap-1 hover:bg-red-50 rounded-lg"
+              className="h-6 px-2 text-[11px] font-bold text-red-600 gap-1 hover:bg-red-50 rounded-lg"
             >
               清除
             </Button>
