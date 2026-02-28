@@ -1,133 +1,103 @@
 import os
-import requests
 import json
 import re
+import requests
 from django.conf import settings
+from quizzes.models import Question, KnowledgePoint
 
 class AIService:
-    """
-    UniMind AI 核心服务类
-    统一管理 SiliconFlow API 调用、提示词加载与个性化配置
-    """
-    
-    @staticmethod
-    def get_template(scene, filename):
-        path = os.path.join(settings.BASE_DIR, scene, 'templates', filename)
-        if os.path.exists(path):
-            with open(path, 'r', encoding='utf-8') as f:
-                return f.read()
-        return ""
+    DIRECTION_RULES = {
+        'BASE': {'prefixes': ['MB', 'IF', 'MA'], 'title': "基础理论组", 'rule': "强调传导机制。主观题要求逻辑严密，名词解释需包含背景、内涵、评价。"},
+        'CALC': {'prefixes': ['CF', 'IV', 'DR'], 'title': "计算与实务组", 'rule': "必须包含具体财务数据情境。计算题要求分步骤给出标准计算流程。"},
+        'REAL': {'prefixes': ['CE'], 'title': "论述与现实组", 'rule': "结合最新政策（如化债、LPR、PSL）。要求答案展现政策的宏观背景与微观传导。"},
+        'ADV': {'prefixes': ['AF', 'AD'], 'title': "压轴拔高组", 'rule': "涉及金融科技、行为金融。答案需展现前沿学术视野，逻辑链条极长。"}
+    }
 
-    @staticmethod
-    def extract_json(raw_content):
-        """
-        全能提取器：优先尝试标签提取，兼容旧版 JSON。
-        这种方式能 100% 保留 LaTeX 源码，不被转义符干扰。
-        """
-        content = raw_content.strip()
+    @classmethod
+    def build_smart_generate_prompt(cls, kps_data, target_types=None):
+        types_desc = "、".join(target_types) if target_types else "单项选择题、计算题、名词解释、简答题、论述题"
         
-        # 1. 尝试标签提取 (新版推荐格式)
-        analysis_m = re.search(r'\[ANALYSIS\](.*?)(\[|$)', content, re.I | re.S)
-        score_m = re.search(r'\[SCORE\]\s*([\d\.]+)', content, re.I)
-        feedback_m = re.search(r'\[FEEDBACK\](.*?)(\[|$)', content, re.I | re.S)
-        rating_m = re.search(r'\[RATING\]\s*(\d)', content, re.I)
+        specific_direction_hints = []
+        for kp in kps_data:
+            code = kp.get('code', '')
+            prefix = code.split('-')[0].upper() if '-' in code else ''
+            for key, config in cls.DIRECTION_RULES.items():
+                if prefix in config['prefixes']:
+                    specific_direction_hints.append(f"针对 [{code}]：{config['rule']}")
 
-        if analysis_m or score_m:
-            return {
-                "score": float(score_m.group(1)) if score_m else 0,
-                "feedback": feedback_m.group(1).strip() if feedback_m else "已评阅",
-                "analysis": analysis_m.group(1).strip() if analysis_m else "解析生成中...",
-                "fsrs_rating": int(rating_m.group(1)) if rating_m else 2
-            }
+        directions_text = "\n".join(specific_direction_hints)
 
-        # 2. 兼容性：如果 AI 还是输出了 JSON
-        content = re.sub(r'^```json\s*', '', content)
-        content = re.sub(r'^```\s*', '', content).rstrip('`')
-        
+        prompt = f"""你是一位顶尖的中国金融硕士（431）考研命题专家。请针对以下知识点命制高质量题目。
+
+【核心任务】
+题型范围：{types_desc}。
+
+【前缀驱动规则】
+{directions_text}
+
+【答案质量硬性要求（非常重要）】
+1. 客观题：'answer' 仅填 A/B/C/D。'explanation' 需详细说明正确项逻辑及干扰项陷阱。
+2. 主观题（名词解释、简答、计算、论述）：
+   - 'answer' 必须是【满分范文级】解答！禁止只有一两句话。
+   - 名词解释：要求涵盖 定义 + 核心要素 + 理论意义。不少于 150 字。
+   - 简答题：要求逻辑分点（1. 2. 3.）。不少于 300 字。
+   - 论述题：要求展现【背景 + 理论分析 + 现实联系 + 结论建议】的完整论文结构。不少于 600 字。
+   - 计算题：'answer' 必须包含完整的【已知条件 + 适用公式 + 逐步计算过程 + 最终结论】。
+3. 'explanation' 字段在出题阶段用于记录【评分要点与判分权重】，作为后续 AI 批改的依据。
+
+【输入数据】
+{json.dumps(kps_data, ensure_ascii=False)}
+
+【输出格式】
+返回严格的 JSON 数组。禁止 Markdown 标记。
+JSON Schema:
+[
+  {{
+    "q_type": "objective | subjective",
+    "subjective_type": "noun | short | essay | calculate",
+    "question": "题干内容（严谨学术）",
+    "options": {{ "A": "...", "B": "...", "C": "...", "D": "..." }},
+    "answer": "极高质量的满分标准答案",
+    "explanation": "本题的评分要点、踩分点及命题逻辑",
+    "related_knowledge_id": "知识点 code",
+    "difficulty_level": "easy | normal | hard | extreme"
+  }}
+]"""
+        return prompt
+
+    @classmethod
+    def preview_generate_questions(cls, kp_ids, count_per_kp=1, target_types=None):
+        kps = KnowledgePoint.objects.filter(id__in=kp_ids)
+        if not kps: return []
+        kps_data = [{"code": kp.code, "name": kp.name, "description": kp.description} for kp in kps]
+        user_prompt = cls.build_smart_generate_prompt(kps_data, target_types)
+        if count_per_kp > 1: user_prompt += f"\n每个知识点生成 {count_per_kp} 道题。"
+        res = cls.call_ai([{"role": "system", "content": "你直接输出 JSON 数组。"}, {"role": "user", "content": user_prompt}])
+        if not res: return []
         try:
-            data = json.loads(content)
-            return {k.lower(): v for k, v in data.items()}
-        except:
-            # 最后的正则兜底提取 (针对损坏的 JSON)
-            score_match = re.search(r'"score":\s*([\d\.]+)', content, re.I)
-            feedback_match = re.search(r'"feedback":\s*"(.*?)"', content, re.I | re.S)
-            analysis_match = re.search(r'"analysis":\s*"(.*)', content, re.I | re.S)
-            
-            score_val = float(score_match.group(1)) if score_match else 0
-            analysis_text = analysis_match.group(1) if analysis_match else "解析生成中..."
-            analysis_text = re.sub(r'"\s*}\s*$', '', analysis_text).replace('\\n', '\n').replace('\\"', '"')
-            
-            return {
-                "score": score_val,
-                "feedback": feedback_match.group(1) if feedback_match else "评分完成",
-                "analysis": analysis_text,
-                "fsrs_rating": 2
-            }
+            content = res['choices'][0]['message']['content']
+            json_str = re.sub(r'^```json\s*', '', content.strip(), flags=re.I)
+            json_str = re.sub(r'\s*```$', '', json_str).strip()
+            data = json.loads(json_str)
+            for q in data:
+                kp = KnowledgePoint.objects.filter(code=q.get('related_knowledge_id')).first()
+                q['kp_name'] = kp.name if kp else "未知"; q['kp_id'] = kp.id if kp else None
+            return data
+        except: return []
 
-    @staticmethod
-    def call_ai(messages, model="deepseek-ai/DeepSeek-V3.2", max_tokens=8192, temperature=0.1, response_format=None):
-        api_key = os.getenv('DEEPSEEK_API_KEY')
-        if not api_key: return None
-
-        url = "https://api.siliconflow.cn/v1/chat/completions"
-        payload = {
-            "model": model,
-            "messages": messages,
-            "stream": False,
-            "max_tokens": max_tokens, 
-            "temperature": temperature
-        }
-        # 当使用标签模式时，不再强制 response_format
-        if response_format: payload["response_format"] = response_format
-
+    @classmethod
+    def call_ai(cls, messages, temperature=0.7):
+        config = cls.get_llm_config()
+        if not config['api_key']: return None
         try:
-            res = requests.post(url, headers={"Authorization": f"Bearer {api_key.strip()}", "Content-Type": "application/json"}, json=payload, timeout=120)
-            return res.json() if res.status_code == 200 else None
+            r = requests.post(config['base_url'], headers={"Authorization": f"Bearer {config['api_key'].strip()}", "Content-Type": "application/json"}, json={"model": config['model'], "messages": messages, "temperature": temperature, "max_tokens": 8192}, timeout=120)
+            return r.json()
         except: return None
 
     @classmethod
-    def grade_question(cls, question_text, user_answer, correct_answer, q_type, max_score, grading_points="", subjective_type=""):
-        prompt = cls.get_template('quizzes', 'grading_prompt.txt')
-        prompt = prompt.format(
-            question_text=question_text,
-            subjective_type=subjective_type or "客观选择题",
-            max_score=max_score,
-            grading_points=grading_points or "准确选择正确选项",
-            correct_answer=correct_answer,
-            user_answer=user_answer
-        )
-        
-        system_msg = (
-            "你是一位专业的学术导师。请直接输出以下标记格式（不要输出 JSON）：\n"
-            "[SCORE] 这里填写实得分数\n"
-            "[FEEDBACK] 这里填写具体的得分或扣分原因点评（严禁使用开场白）\n"
-            "[RATING] 这里填写 1-4 的记忆等级\n"
-            "[ANALYSIS] 这里填写深度的学术解析，以“以下对题目进行分析：”开头，详细展示推导过程。控制在 2000 字内。"
-        )
-        
-        messages = [{"role": "system", "content": system_msg}, {"role": "user", "content": prompt}]
-        # 使用标签模式，不再受 JSON 对象模式的限制
-        res = cls.call_ai(messages, max_tokens=8192)
-        if not res: return None
-        
-        return cls.extract_json(res['choices'][0]['message']['content'])
-
-    @classmethod
-    def chat_with_assistant(cls, bot, history_msgs, user_message, student_context=""):
-        base_system_prompt = bot.system_prompt if (bot and bot.system_prompt) else cls.get_template('ai_assistant', 'base_assistant_prompt.txt')
-        if bot and bot.is_exclusive:
-            mentor_template = cls.get_template('ai_assistant', 'exclusive_mentor_prompt.txt')
-            context_prompt = mentor_template.format(student_context=student_context)
-            full_system_prompt = f"{base_system_prompt}\n\n{context_prompt}"
-        else:
-            full_system_prompt = base_system_prompt
-
-        messages = [{"role": "system", "content": full_system_prompt}] + history_msgs + [{"role": "user", "content": user_message}]
-        res = cls.call_ai(messages, max_tokens=3000, temperature=0.7)
-        return res
-
-    @classmethod
-    def simple_chat(cls, system_prompt, user_message, max_tokens=2000):
-        """用于题目生成、文本解析等通用场景"""
-        messages = [{"role": "system", "content": system_prompt}, {"role": "user", "content": user_message}]
-        return cls.call_ai(messages, max_tokens=max_tokens)
+    def get_llm_config(cls):
+        return {
+            "api_key": getattr(settings, 'LLM_API_KEY', os.getenv('DEEPSEEK_API_KEY', '')),
+            "base_url": getattr(settings, 'LLM_BASE_URL', os.getenv('LLM_BASE_URL', 'https://api.siliconflow.cn/v1/chat/completions')),
+            "model": getattr(settings, 'LLM_MODEL', os.getenv('LLM_MODEL', 'deepseek-ai/DeepSeek-V3'))
+        }

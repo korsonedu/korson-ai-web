@@ -6,7 +6,8 @@ from .views import (
     KnowledgePointListView, KnowledgePointDetailView, GenerateBulkQuestionsView,
     GenerateFromTextView, AIPreviewParseView, BulkImportQuestionsView,
     AdminQuestionListView, ExportStructuredQuestionsView, ImportCSVQuestionsView,
-    SubmitExamView, LatestExamReportView, ExamDetailView
+    SubmitExamView, LatestExamReportView, ExamDetailView,
+    AIPreviewGenerateView, AIConfirmSaveQuestionsView
 )
 
 urlpatterns = [
@@ -26,6 +27,10 @@ urlpatterns = [
     path('knowledge-points/', KnowledgePointListView.as_view(), name='knowledge-point-list'),
     path('knowledge-points/<int:pk>/', KnowledgePointDetailView.as_view(), name='knowledge-point-detail'),
     path('knowledge-points/<int:pk>/generate/', GenerateBulkQuestionsView.as_view(), name='knowledge-point-generate'),
+    # 智能出题工作流
+    path('ai-smart-generate-preview/', AIPreviewGenerateView.as_view(), name='ai-smart-generate-preview'),
+    path('ai-smart-generate-confirm/', AIConfirmSaveQuestionsView.as_view(), name='ai-smart-generate-confirm'),
+    
     path('ai-generate-from-text/', GenerateFromTextView.as_view(), name='ai-generate-from-text'),
     path('ai-parse-raw-text/', AIPreviewParseView.as_view(), name='ai-parse-raw-text'),
     path('ai-bulk-import/', BulkImportQuestionsView.as_view(), name='ai-bulk-import'),

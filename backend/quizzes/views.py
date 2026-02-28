@@ -268,7 +268,8 @@ class IsAdminUserOrReadOnly(permissions.BasePermission):
         return bool(request.user and request.user.is_authenticated and request.user.is_staff)
 
 class KnowledgePointListView(generics.ListCreateAPIView):
-    queryset = KnowledgePoint.objects.all().order_by('-created_at')
+    # 只返回 parent__isnull=True 的顶层，序列化器会通过 children 把下面所有的全拉出来。
+    queryset = KnowledgePoint.objects.filter(parent__isnull=True).order_by('id')
     serializer_class = KnowledgePointSerializer
     permission_classes = [IsAdminUserOrReadOnly]
 
@@ -445,17 +446,64 @@ class ExamDetailView(generics.RetrieveAPIView):
 class GenerateBulkQuestionsView(APIView):
     permission_classes = [permissions.IsAdminUser]
     def post(self, request, pk):
-        try: kp = KnowledgePoint.objects.get(pk=pk)
-        except KnowledgePoint.DoesNotExist: return Response({'error': '知识点不存在'}, status=404)
-        template = AIService.get_template('quizzes', 'bulk_generate_prompt.txt')
-        prompt = template.format(kp_name=kp.name, kp_description=kp.description, count=5)
-        res = AIService.simple_chat("你是一位专业的出题官。", prompt)
-        if not res: return Response({'error': 'AI 生成失败'}, status=500)
-        content = res['choices'][0]['message']['content']
-        questions_data = AIService.extract_json(content)
+        try: 
+            kp = KnowledgePoint.objects.get(pk=pk)
+        except KnowledgePoint.DoesNotExist: 
+            return Response({'error': '知识点不存在'}, status=404)
+        
+        # 使用最新的解耦后的批量生成逻辑
+        # 这会自动应用前缀动态 Prompt (MB, IF, CF等规则)
+        count = AIService.batch_generate_questions(KnowledgePoint.objects.filter(id=kp.id), count_per_kp=3)
+        
+        if count == 0:
+            return Response({'error': 'AI 生成失败或未生成任何题目'}, status=500)
+            
+        return Response({'status': 'success', 'count': count})
+
+class AIPreviewGenerateView(APIView):
+    """
+    智能出题预览：返回生成的数据但不存库
+    """
+    permission_classes = [permissions.IsAdminUser]
+    def post(self, request):
+        kp_ids = request.data.get('kp_ids', [])
+        count = int(request.data.get('count', 1))
+        target_types = request.data.get('types', []) # 新增题型过滤
+        
+        if not kp_ids:
+            return Response({'error': '未提供知识点 ID'}, status=400)
+        
+        questions = AIService.preview_generate_questions(kp_ids, count_per_kp=count, target_types=target_types)
+        if not questions:
+            return Response({'error': 'AI 生成失败，请重试'}, status=500)
+            
+        return Response({'questions': questions})
+
+class AIConfirmSaveQuestionsView(APIView):
+    """
+    确认入库：保存前端编辑后的题目
+    """
+    permission_classes = [permissions.IsAdminUser]
+    def post(self, request):
+        questions_data = request.data.get('questions', [])
+        created_count = 0
         for q_data in questions_data:
-            Question.objects.create(knowledge_point=kp, **q_data)
-        return Response({'status': 'success', 'count': len(questions_data)})
+            kp_id = q_data.get('kp_id')
+            if not kp_id: continue
+            
+            # 数据映射
+            Question.objects.create(
+                knowledge_point_id=kp_id,
+                text=q_data.get('question', ''),
+                q_type='objective',
+                options=q_data.get('options', {}),
+                correct_answer=q_data.get('answer', ''),
+                ai_answer=q_data.get('explanation', ''),
+                difficulty_level=q_data.get('difficulty_level', 'normal')
+            )
+            created_count += 1
+            
+        return Response({'status': 'success', 'count': created_count})
 
 class GenerateFromTextView(APIView):
     permission_classes = [permissions.IsAdminUser]

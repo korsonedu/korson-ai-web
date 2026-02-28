@@ -2,13 +2,30 @@ from django.db import models
 from django.conf import settings
 
 class KnowledgePoint(models.Model):
+    LEVEL_CHOICES = (
+        ('sub', '模块(SUB)'),
+        ('ch', '篇章(CH)'),
+        ('sec', '小节(SEC)'),
+        ('kp', '考点(KP)'),
+    )
+    code = models.CharField(max_length=50, blank=True, null=True, verbose_name="唯一编码(如MB-1001)")
     name = models.CharField(max_length=100, verbose_name="知识点名称")
+    level = models.CharField(max_length=10, choices=LEVEL_CHOICES, default='kp', verbose_name="层级")
+    prefix_category = models.CharField(max_length=20, blank=True, null=True, verbose_name="学科前缀", help_text="如 MB, IF, CF 等")
     description = models.TextField(blank=True, verbose_name="知识点描述")
     parent = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, related_name='children', verbose_name="上级知识点")
     created_at = models.DateTimeField(auto_now_add=True)
 
+    def save(self, *args, **kwargs):
+        # 自动提取前缀，例如从 "MB-1001" 提取 "MB"
+        if self.level == 'kp' and self.code:
+            parts = self.code.split('-')
+            if len(parts) > 1:
+                self.prefix_category = parts[0].strip().upper()
+        super().save(*args, **kwargs)
+
     def __str__(self):
-        return self.name
+        return f"[{self.code}] {self.name}" if self.code else self.name
 
 class Question(models.Model):
     QUESTION_TYPES = (
