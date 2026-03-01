@@ -3,6 +3,7 @@ import json
 import datetime
 import csv
 import io
+import logging
 from django.utils import timezone
 from rest_framework import generics, permissions
 from rest_framework.response import Response
@@ -32,6 +33,8 @@ from .services.ai_parse_service import (
     init_parse_task,
 )
 from .services.task_dispatcher import dispatch_ai_parse_task, dispatch_exam_grading
+
+logger = logging.getLogger(__name__)
 
 class QuestionListView(generics.ListCreateAPIView):
     serializer_class = QuestionSerializer
@@ -361,7 +364,40 @@ class AIConfirmSaveQuestionsView(APIView):
     permission_classes = [permissions.IsAdminUser]
     def post(self, request):
         questions_data = request.data.get('questions', [])
-        created_count = save_confirmed_questions(questions_data)
+        if not isinstance(questions_data, list) or not questions_data:
+            return Response({'error': '未提供可入库题目'}, status=400)
+
+        created_count = 0
+        failed_items = []
+
+        for idx, q_data in enumerate(questions_data, start=1):
+            text = str((q_data or {}).get('question') or (q_data or {}).get('text') or '').strip()
+            if not text:
+                failed_items.append({'index': idx, 'error': '题干为空'})
+                continue
+
+            try:
+                created = save_confirmed_questions([q_data])
+                if created <= 0:
+                    failed_items.append({'index': idx, 'error': '题目格式无效，未写入'})
+                else:
+                    created_count += created
+            except Exception as exc:  # noqa: BLE001
+                logger.exception("ai-smart-generate confirm save failed at item=%s", idx)
+                error_msg = str(exc).strip() or exc.__class__.__name__
+                failed_items.append({'index': idx, 'error': error_msg[:200]})
+
+        if failed_items:
+            msg = f"成功 {created_count} 题，失败 {len(failed_items)} 题"
+            payload = {
+                'status': 'partial_success' if created_count > 0 else 'failed',
+                'count': created_count,
+                'failed_count': len(failed_items),
+                'errors': failed_items[:10],
+                'error': msg,
+            }
+            return Response(payload, status=207 if created_count > 0 else 500)
+
         return Response({'status': 'success', 'count': created_count})
 
 class GenerateFromTextView(APIView):

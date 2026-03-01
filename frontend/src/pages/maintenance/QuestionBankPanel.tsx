@@ -185,12 +185,27 @@ export const QuestionBankPanel = ({ kpList, onEdit, onDelete }: { kpList: any[],
   const handleConfirmSave = async () => {
     setIsSaving(true);
     try {
-      await api.post('/quizzes/ai-smart-generate-confirm/', { questions: previewQuestions });
-      toast.success("题目已成功入库");
-      setShowPreview(false);
-      setPreviewQuestions([]);
+      const res = await api.post('/quizzes/ai-smart-generate-confirm/', { questions: previewQuestions });
+      const data = res.data || {};
+
+      if (data.status === 'partial_success') {
+        const failedIndexes = new Set<number>((data.errors || []).map((item: any) => Number(item.index) - 1));
+        const failedQuestions = previewQuestions.filter((_, index) => failedIndexes.has(index));
+        setPreviewQuestions(failedQuestions);
+        toast.warning(
+          `${data.error || "部分题目入库失败"}${data.errors?.[0]?.error ? `，示例: ${data.errors[0].error}` : ''}`
+        );
+      } else {
+        toast.success(`题目已成功入库（${data.count ?? previewQuestions.length}题）`);
+        setShowPreview(false);
+        setPreviewQuestions([]);
+      }
       fetchBank(1);
-    } catch (e) { toast.error("入库失败"); }
+    } catch (e: any) {
+      const errData = e?.response?.data;
+      const firstErr = errData?.errors?.[0]?.error;
+      toast.error(errData?.error || firstErr || "入库失败");
+    }
     finally { setIsSaving(false); }
   };
 
@@ -497,11 +512,16 @@ export const QuestionBankPanel = ({ kpList, onEdit, onDelete }: { kpList: any[],
                                   </div>
 
                                   {q.q_type === 'objective' ? (
-                                    <div className="grid grid-cols-2 gap-4">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         {['A', 'B', 'C', 'D'].map(opt => (
-                                            <div key={opt} className={cn("flex items-center gap-4 p-4 rounded-2xl border transition-all", q.answer === opt ? "bg-indigo-50 border-indigo-200 ring-1 ring-indigo-100" : "bg-slate-50/50 border-black/[0.02]")}>
-                                                <div onClick={() => updatePreviewQuestion(idx, 'answer', opt)} className={cn("w-8 h-8 rounded-full border flex items-center justify-center font-black text-xs cursor-pointer shrink-0 shadow-sm transition-all", q.answer === opt ? "bg-indigo-600 border-indigo-600 text-white" : "bg-white border-black/10 text-black/30")}>{opt}</div>
-                                                <input value={q.options[opt]} onChange={e => updatePreviewQuestion(idx, 'option', { key: opt, val: e.target.value })} className="flex-1 bg-transparent border-none p-0 text-xs font-bold text-[#1D1D1F] focus:ring-0 placeholder:text-black/10" placeholder="选项内容..." />
+                                            <div key={opt} className={cn("flex items-start gap-3 p-4 rounded-2xl border transition-all", q.answer === opt ? "bg-indigo-50 border-indigo-200 ring-1 ring-indigo-100" : "bg-slate-50/50 border-black/[0.02]")}>
+                                                <div onClick={() => updatePreviewQuestion(idx, 'answer', opt)} className={cn("w-8 h-8 rounded-full border flex items-center justify-center font-black text-xs cursor-pointer shrink-0 shadow-sm transition-all mt-0.5", q.answer === opt ? "bg-indigo-600 border-indigo-600 text-white" : "bg-white border-black/10 text-black/30")}>{opt}</div>
+                                                <textarea
+                                                  value={q.options[opt]}
+                                                  onChange={e => updatePreviewQuestion(idx, 'option', { key: opt, val: e.target.value })}
+                                                  className="flex-1 bg-transparent border-none p-0 text-xs font-bold text-[#1D1D1F] leading-relaxed focus:ring-0 placeholder:text-black/20 resize-y min-h-[72px] whitespace-pre-wrap break-words"
+                                                  placeholder="选项内容..."
+                                                />
                                             </div>
                                         ))}
                                     </div>
