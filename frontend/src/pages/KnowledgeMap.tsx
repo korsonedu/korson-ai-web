@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { PageWrapper } from '@/components/PageWrapper';
-import { Target, Maximize2, ZoomIn, ZoomOut, GitMerge, Layers3 } from 'lucide-react';
+import { Target, Maximize2, ZoomIn, ZoomOut, GitMerge } from 'lucide-react';
 import api from '@/lib/api';
 import { processMathContent } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -35,77 +35,136 @@ export interface KPNode {
   vy?: number;
 }
 
-const SMART_GRAPH_MAX_KP_PER_PARENT = 6;
+const LEVEL_ORDER: Record<string, number> = { sub: 0, ch: 1, sec: 2, kp: 3 };
+
+const sortNodes = (a: KPNode, b: KPNode) =>
+  (LEVEL_ORDER[a.level] ?? 99) - (LEVEL_ORDER[b.level] ?? 99) || a.name.localeCompare(b.name);
+
+const buildStableLayout = (nodes: KPNode[]) => {
+  const nodeMap = new Map(nodes.map((n) => [n.id, n]));
+  const childrenMap = new Map<number, KPNode[]>();
+  const roots: KPNode[] = [];
+
+  for (const node of nodes) {
+    if (node.parent && nodeMap.has(node.parent)) {
+      const bucket = childrenMap.get(node.parent) || [];
+      bucket.push(node);
+      childrenMap.set(node.parent, bucket);
+    } else {
+      roots.push(node);
+    }
+  }
+
+  for (const children of childrenMap.values()) children.sort(sortNodes);
+  roots.sort(sortNodes);
+
+  const rootCount = Math.max(roots.length, 1);
+  const sectorWidth = (Math.PI * 2) / rootCount;
+  const rootRadius = rootCount > 1 ? 260 : 0;
+  const depthSpacing = 140;
+  const positions = new Map<number, { x: number; y: number }>();
+
+  const collectDescendants = (nodeId: number, acc: KPNode[]) => {
+    const children = childrenMap.get(nodeId) || [];
+    for (const child of children) {
+      acc.push(child);
+      collectDescendants(child.id, acc);
+    }
+  };
+
+  const getDepthFromRoot = (node: KPNode, rootId: number) => {
+    let depth = 0;
+    let current: KPNode | undefined = node;
+    while (current && current.id !== rootId) {
+      depth += 1;
+      current = current.parent ? nodeMap.get(current.parent) : undefined;
+      if (!current) break;
+    }
+    return depth;
+  };
+
+  roots.forEach((root, idx) => {
+    const sectorStart = -Math.PI / 2 + idx * sectorWidth;
+    const sectorEnd = sectorStart + sectorWidth;
+    const sectorCenter = (sectorStart + sectorEnd) / 2;
+
+    positions.set(root.id, {
+      x: Math.cos(sectorCenter) * rootRadius,
+      y: Math.sin(sectorCenter) * rootRadius,
+    });
+
+    const descendants: KPNode[] = [];
+    collectDescendants(root.id, descendants);
+    if (!descendants.length) return;
+
+    descendants.forEach((node, order) => {
+      const t = (order + 1) / (descendants.length + 1);
+      const angle = sectorStart + t * (sectorEnd - sectorStart);
+      const depth = getDepthFromRoot(node, root.id);
+      const radius = rootRadius + depth * depthSpacing;
+      positions.set(node.id, {
+        x: Math.cos(angle) * radius,
+        y: Math.sin(angle) * radius,
+      });
+    });
+  });
+
+  return positions;
+};
 
 // --- 高级力导向图引擎 ---
 export const KnowledgeGraph = ({ nodes, onNodeClick }: { nodes: KPNode[], onNodeClick: (node: KPNode) => void }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [transform, setTransform] = useState({ x: 0, y: 0, k: 1 });
   const nodesRef = useRef<KPNode[]>([]);
+  const targetRef = useRef<Map<number, { x: number; y: number }>>(new Map());
   const requestRef = useRef<number | null>(null);
 
   useEffect(() => {
     const existingNodes = new Map(nodesRef.current.map(n => [n.id, n]));
-    let sumX = 0, sumY = 0;
-    const initialNodes = nodes.map(n => {
+    const layout = buildStableLayout(nodes);
+    targetRef.current = layout;
+
+    nodesRef.current = nodes.map(n => {
       const existing = existingNodes.get(n.id);
-      const startX = existing ? existing.x! : (Math.random() - 0.5) * 800;
-      const startY = existing ? existing.y! : (Math.random() - 0.5) * 800;
-      sumX += startX; sumY += startY;
-      return { ...n, x: startX, y: startY, vx: 0, vy: 0 };
+      const target = layout.get(n.id) || { x: 0, y: 0 };
+      return {
+        ...n,
+        x: existing?.x ?? target.x,
+        y: existing?.y ?? target.y,
+        vx: 0,
+        vy: 0,
+      };
     });
-    const centerX = nodes.length > 0 ? sumX / nodes.length : 0;
-    const centerY = nodes.length > 0 ? sumY / nodes.length : 0;
-    nodesRef.current = initialNodes.map(n => ({ ...n, x: n.x! - centerX, y: n.y! - centerY }));
     setTransform({ x: 0, y: 0, k: 1 });
   }, [nodes]);
 
-  const animate = (time: number) => {
+  const animate = () => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
     const currentNodes = nodesRef.current;
-    const k = 0.08, targetDist = 200, repulsion = 10000, centerForce = 0.003, damping = 0.85, maxVelocity = 100;
     const nodeMap = new Map(currentNodes.map(n => [n.id, n]));
-
-    for (let i = 0; i < currentNodes.length; i++) {
-      const a = currentNodes[i];
-      for (let j = i + 1; j < currentNodes.length; j++) {
-        const b = currentNodes[j];
-        const dx = b.x! - a.x!, dy = b.y! - a.y!;
-        const distance = Math.sqrt(dx * dx + dy * dy) || 1;
-        if (distance < 300) {
-          const safeDist = Math.max(distance, 5);
-          const force = repulsion / (safeDist * safeDist);
-          a.vx! -= (dx / safeDist) * force; a.vy! -= (dy / safeDist) * force;
-          b.vx! += (dx / safeDist) * force; b.vy! += (dy / safeDist) * force;
-        }
-      }
-      if (a.parent) {
-        const parentNode = nodeMap.get(a.parent);
-        if (parentNode) {
-          const dx = parentNode.x! - a.x!, dy = parentNode.y! - a.y!;
-          const distance = Math.sqrt(dx * dx + dy * dy) || 1;
-          const force = (distance - targetDist) * k;
-          a.vx! += (dx / distance) * force; a.vy! += (dy / distance) * force;
-          parentNode.vx! -= (dx / distance) * force * 0.5; parentNode.vy! -= (dy / distance) * force * 0.5;
-        }
-      }
-      a.vx! -= a.x! * centerForce; a.vy! -= a.y! * centerForce;
-      a.vx = Math.max(-maxVelocity, Math.min(maxVelocity, a.vx!)) * damping;
-      a.vy = Math.max(-maxVelocity, Math.min(maxVelocity, a.vy!)) * damping;
+    let moving = false;
+    for (const node of currentNodes) {
+      const target = targetRef.current.get(node.id);
+      if (!target) continue;
+      const dx = target.x - (node.x || 0);
+      const dy = target.y - (node.y || 0);
+      node.x = (node.x || 0) + dx * 0.15;
+      node.y = (node.y || 0) + dy * 0.15;
+      if (Math.abs(dx) > 0.4 || Math.abs(dy) > 0.4) moving = true;
     }
 
-    for (const node of currentNodes) { node.x! += node.vx!; node.y! += node.vy!; }
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.save();
     ctx.translate(canvas.width / 2 + transform.x, canvas.height / 2 + transform.y);
     ctx.scale(transform.k, transform.k);
     ctx.beginPath();
-    ctx.strokeStyle = 'rgba(148, 163, 184, 0.4)';
-    ctx.lineWidth = 1.5 / transform.k;
-    const hideDenseKpEdges = currentNodes.length > 140 && transform.k < 1.05;
+    ctx.strokeStyle = 'rgba(148, 163, 184, 0.28)';
+    ctx.lineWidth = 1.2 / transform.k;
+    const hideDenseKpEdges = currentNodes.length > 180 && transform.k < 1.05;
     for (const node of currentNodes) {
       if (node.parent) {
         if (hideDenseKpEdges && node.level === 'kp') continue;
@@ -121,7 +180,7 @@ export const KnowledgeGraph = ({ nodes, onNodeClick }: { nodes: KPNode[], onNode
       ctx.arc(node.x!, node.y!, radius, 0, Math.PI * 2);
       ctx.fillStyle = node.level === 'sub' ? '#1e1b4b' : node.level === 'ch' ? '#4338ca' : node.level === 'sec' ? '#818cf8' : '#ffffff';
       ctx.fill();
-      if (node.level === 'kp') { ctx.strokeStyle = "#94a3b8"; ctx.lineWidth = 1.5 / transform.k; ctx.stroke(); }
+      if (node.level === 'kp') { ctx.strokeStyle = "#94a3b8"; ctx.lineWidth = 1.2 / transform.k; ctx.stroke(); }
       if (node.level !== 'kp' || transform.k > 1.15) {
         ctx.fillStyle = node.level === 'kp' ? "#475569" : "#1e293b";
         ctx.font = `${node.level === 'kp' ? 'normal' : 'bold'} ${ (node.level === 'kp' ? 10 : 13) / transform.k}px sans-serif`;
@@ -130,10 +189,16 @@ export const KnowledgeGraph = ({ nodes, onNodeClick }: { nodes: KPNode[], onNode
       }
     }
     ctx.restore();
-    requestRef.current = requestAnimationFrame(animate);
+    if (moving) requestRef.current = requestAnimationFrame(animate);
+    else requestRef.current = null;
   };
 
-  useEffect(() => { requestRef.current = requestAnimationFrame(animate); return () => { if (requestRef.current) cancelAnimationFrame(requestRef.current); }; }, [transform]);
+  useEffect(() => {
+    requestRef.current = requestAnimationFrame(animate);
+    return () => {
+      if (requestRef.current) cancelAnimationFrame(requestRef.current);
+    };
+  }, [nodes, transform]);
   const handleWheel = (e: React.WheelEvent) => { const delta = e.deltaY > 0 ? 0.9 : 1.1; setTransform(prev => ({ ...prev, k: Math.max(0.1, Math.min(5, prev.k * delta)) })); };
   const handleMouseDown = (e: React.MouseEvent) => {
     const startX = e.clientX - transform.x, startY = e.clientY - transform.y;
@@ -168,7 +233,6 @@ export const KnowledgeMap: React.FC = () => {
   const [nodeDetails, setNodeDetails] = useState<{ courses: any[], articles: any[], questions: any[] }>({ courses: [], articles: [], questions: [] });
   const [searchQuery, setSearchQuery] = useState('');
   const [viewMode, setViewMode] = useState<'list' | 'graph'>('graph'); 
-  const [graphDensity, setGraphDensity] = useState<'smart' | 'full'>('smart');
   const [selectedRootId, setSelectedRootId] = useState<string>('all');
   const [selectedQuestion, setSelectedQuestion] = useState<any>(null);
 
@@ -217,34 +281,6 @@ export const KnowledgeMap: React.FC = () => {
     return allNodes.filter(n => validIds.has(n.id));
   }, [allNodes, selectedRootId]);
 
-  const graphNodes = useMemo(() => {
-    const isGlobalGraph = selectedRootId === 'all';
-    if (!isGlobalGraph || graphDensity === 'full') return displayNodes;
-
-    const coreNodes = displayNodes.filter(n => n.level !== 'kp');
-    const kpByParent = new Map<number, KPNode[]>();
-
-    for (const node of displayNodes) {
-      if (node.level !== 'kp' || !node.parent) continue;
-      const bucket = kpByParent.get(node.parent) || [];
-      bucket.push(node);
-      kpByParent.set(node.parent, bucket);
-    }
-
-    const selectedKpNodes: KPNode[] = [];
-    for (const list of kpByParent.values()) {
-      list.sort((a, b) => (b.questions_count || 0) - (a.questions_count || 0) || a.name.localeCompare(b.name));
-      selectedKpNodes.push(...list.slice(0, SMART_GRAPH_MAX_KP_PER_PARENT));
-    }
-
-    const visibleIds = new Set<number>([
-      ...coreNodes.map(n => n.id),
-      ...selectedKpNodes.map(n => n.id),
-    ]);
-    return displayNodes.filter(n => visibleIds.has(n.id));
-  }, [displayNodes, graphDensity, selectedRootId]);
-
-  const hiddenNodeCount = Math.max(displayNodes.length - graphNodes.length, 0);
   const listNodes = displayNodes.filter(n => n.level === 'kp' && n.name.toLowerCase().includes(searchQuery.toLowerCase()));
 
   return (
@@ -256,18 +292,6 @@ export const KnowledgeMap: React.FC = () => {
               <SelectTrigger className="w-[220px] h-11 bg-white rounded-2xl font-bold border-border shadow-sm"><GitMerge className="w-4 h-4 mr-2 text-indigo-500" /><SelectValue placeholder="全部分支" /></SelectTrigger>
               <SelectContent className="rounded-2xl"><SelectItem value="all" className="font-bold">全部分支</SelectItem>{rootOptions.map(opt => (<SelectItem key={opt.id} value={opt.id.toString()}>{opt.name}</SelectItem>))}</SelectContent>
             </Select>
-            {viewMode === 'graph' && (
-              <Select value={graphDensity} onValueChange={(value: 'smart' | 'full') => setGraphDensity(value)}>
-                <SelectTrigger className="w-[230px] h-11 bg-white rounded-2xl font-bold border-border shadow-sm">
-                  <Layers3 className="w-4 h-4 mr-2 text-slate-500" />
-                  <SelectValue placeholder="图谱密度" />
-                </SelectTrigger>
-                <SelectContent className="rounded-2xl">
-                  <SelectItem value="smart" className="font-bold">智能降噪</SelectItem>
-                  <SelectItem value="full" className="font-bold">完整全量</SelectItem>
-                </SelectContent>
-              </Select>
-            )}
             <Input placeholder={viewMode === 'list' ? "搜索考点..." : "关系图模式"} value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="flex-1 rounded-2xl bg-white border-border shadow-sm h-11 px-5 font-bold" disabled={viewMode === 'graph'} />
           </div>
           <div className="flex bg-muted/30 p-1 rounded-2xl border border-border/50 shrink-0">
@@ -279,14 +303,7 @@ export const KnowledgeMap: React.FC = () => {
         {loading ? (
           <div className="py-20 text-center opacity-20 font-bold uppercase text-[10px] animate-pulse">Mapping...</div>
         ) : viewMode === 'graph' ? (
-          <div className="space-y-2">
-            <KnowledgeGraph nodes={graphNodes} onNodeClick={handleNodeSelect} />
-            {selectedRootId === 'all' && graphDensity === 'smart' && hiddenNodeCount > 0 && (
-              <p className="text-[11px] font-bold text-slate-500 px-2">
-                已启用智能降噪：隐藏 {hiddenNodeCount} 个低优先级考点（每个父节点保留 Top {SMART_GRAPH_MAX_KP_PER_PARENT}）。
-              </p>
-            )}
-          </div>
+          <KnowledgeGraph nodes={displayNodes} onNodeClick={handleNodeSelect} />
         ) : (
           <div className="flex flex-wrap gap-2 bg-slate-50/50 p-6 rounded-[3rem] border border-border/50 min-h-[400px] content-start">
             {listNodes.map(node => (
