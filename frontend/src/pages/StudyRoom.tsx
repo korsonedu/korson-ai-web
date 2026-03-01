@@ -61,6 +61,40 @@ interface Message {
 
 interface Plan { id: number; content: string; is_completed: boolean; }
 
+const remarkSoftBreaks = () => {
+  const skipTypes = new Set(['code', 'inlineCode', 'math', 'inlineMath', 'html']);
+
+  const walk = (node: any) => {
+    if (!node || skipTypes.has(node.type) || !Array.isArray(node.children)) return;
+
+    const nextChildren: any[] = [];
+    node.children.forEach((child: any) => {
+      if (child?.type === 'text' && typeof child.value === 'string' && child.value.includes('\n')) {
+        const normalizedValue = child.value.replace(/\r\n?/g, '\n');
+        const lines = normalizedValue.split('\n');
+        lines.forEach((line: string, index: number) => {
+          if (line) {
+            nextChildren.push({ ...child, value: line });
+          }
+          if (index < lines.length - 1) {
+            nextChildren.push({ type: 'break' });
+          }
+        });
+        return;
+      }
+
+      walk(child);
+      nextChildren.push(child);
+    });
+
+    node.children = nextChildren;
+  };
+
+  return (tree: any) => {
+    walk(tree);
+  };
+};
+
 export const StudyRoom: React.FC = () => {
   const { user, updateUser } = useAuthStore();
   const { setPageHeader } = useSystemStore();
@@ -88,8 +122,12 @@ export const StudyRoom: React.FC = () => {
   const [isGiphyLoading, setIsGiphyLoading] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const chatTextareaRef = useRef<HTMLTextAreaElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const lastMessageIdRef = useRef<number | null>(null);
+  const isActiveRef = useRef<boolean>(false);
+  const taskNameRef = useRef<string>('');
+  const timeLeftRef = useRef<number>(25 * 60);
   
   const [allowBroadcast, setAllowBroadcast] = useState(user?.allow_broadcast ?? true);
   const [showOthersBroadcast, setShowOthersBroadcast] = useState(user?.show_others_broadcast ?? true);
@@ -108,11 +146,98 @@ export const StudyRoom: React.FC = () => {
   const fetchMessages = async () => { try { const res = await api.get('/study/messages/'); setMessages(res.data); } catch (e) {} };
   const fetchPlans = async () => { try { const res = await api.get('/users/plans/'); setPlans(res.data); } catch (e) {} };
 
+  const resizeChatTextarea = () => {
+    const el = chatTextareaRef.current;
+    if (!el) return;
+    el.style.height = 'auto';
+    const maxHeight = 128;
+    const nextHeight = Math.min(el.scrollHeight, maxHeight);
+    el.style.height = `${nextHeight}px`;
+    el.style.overflowY = el.scrollHeight > maxHeight ? 'auto' : 'hidden';
+  };
+
+  const isTaskStateMessage = (content: string) => (
+    content.includes('💪')
+    || content.includes('✅')
+    || content.includes('❌')
+    || content.includes('开始了“')
+    || content.includes('📅')
+    || content.includes('制定')
+  );
+
+  const undoMessage = async (messageId: number) => {
+    try {
+      await api.post(`/study/messages/${messageId}/undo/`);
+      toast.success("已撤回");
+      fetchMessages();
+      fetchPlans();
+    } catch (e: any) {
+      toast.error(e?.response?.data?.error || "撤回失败");
+    }
+  };
+
+  const getHeartbeatPayload = () => {
+    if (isActiveRef.current) {
+      return {
+        current_task: taskNameRef.current.trim() || '深度专注学习',
+        current_timer_end: new Date(Date.now() + Math.max(timeLeftRef.current, 0) * 1000).toISOString(),
+      };
+    }
+    return {
+      current_task: null,
+      current_timer_end: null,
+    };
+  };
+
+  const sendHeartbeat = async (override?: { current_task?: string | null; current_timer_end?: string | null }) => {
+    try {
+      await api.post('/users/heartbeat/', {
+        ...getHeartbeatPayload(),
+        ...(override || {}),
+      });
+    } catch (e) {}
+  };
+
   useEffect(() => {
-    fetchOnline(); fetchMessages(); fetchPlans();
-    const interval = setInterval(() => { fetchOnline(); fetchMessages(); }, 3000);
-    return () => clearInterval(interval);
+    isActiveRef.current = isActive;
+  }, [isActive]);
+
+  useEffect(() => {
+    taskNameRef.current = taskName;
+  }, [taskName]);
+
+  useEffect(() => {
+    timeLeftRef.current = timeLeft;
+  }, [timeLeft]);
+
+  useEffect(() => {
+    fetchOnline();
+    fetchMessages();
+    fetchPlans();
+    sendHeartbeat();
+
+    const syncInterval = setInterval(() => {
+      fetchOnline();
+      fetchMessages();
+    }, 5000);
+    const heartbeatInterval = setInterval(() => {
+      sendHeartbeat();
+    }, 30000);
+
+    return () => {
+      clearInterval(syncInterval);
+      clearInterval(heartbeatInterval);
+      sendHeartbeat({ current_task: null, current_timer_end: null });
+    };
   }, []);
+
+  useEffect(() => {
+    sendHeartbeat();
+  }, [isActive]);
+
+  useEffect(() => {
+    resizeChatTextarea();
+  }, [chatInput]);
 
   const handleScroll = () => {
     if (!scrollContainerRef.current) return;
@@ -236,6 +361,10 @@ export const StudyRoom: React.FC = () => {
     if (!taskName.trim()) return toast.error("请输入任务名称");
     setIsActive(true);
     setIsTimerOpen(false);
+    sendHeartbeat({
+      current_task: taskName.trim(),
+      current_timer_end: new Date(Date.now() + Math.max(timeLeft, 0) * 1000).toISOString(),
+    });
     if (allowBroadcast) {
       try {
         await api.post('/study/messages/', { content: `💪 开始了“${taskName}”任务 (计划 ${duration} 分钟)` });
@@ -246,6 +375,7 @@ export const StudyRoom: React.FC = () => {
 
   const handleCompleteTask = async (isManual: boolean) => {
     setIsActive(false);
+    sendHeartbeat({ current_task: null, current_timer_end: null });
     const focusedMins = Math.floor((duration * 60 - timeLeft) / 60);
     
     if (isManual) {
@@ -296,12 +426,10 @@ export const StudyRoom: React.FC = () => {
     return () => clearInterval(interval);
   }, [isActive, timeLeft]);
 
-  // Calculate the last system message ID for the current user to restrict Undo
-  const mySystemMessages = messages.filter(m => 
-    m.user_detail.username === user?.username && 
-    (m.content.includes('💪') || m.content.includes('✅') || m.content.includes('❌') || m.content.includes('开始了“') || m.content.includes('📅') || m.content.includes('制定'))
-  );
-  const lastSystemMsgId = mySystemMessages.length > 0 ? mySystemMessages[mySystemMessages.length - 1].id : null;
+  const myMessages = messages.filter(m => m.user_detail.username === user?.username);
+  const myTaskMessages = myMessages.filter(m => isTaskStateMessage(m.content));
+  const lastMyMessageId = myMessages.length > 0 ? myMessages[myMessages.length - 1].id : null;
+  const lastMyTaskMessageId = myTaskMessages.length > 0 ? myTaskMessages[myTaskMessages.length - 1].id : null;
 
   return (
     <div className="h-[calc(100vh-6.5rem)] flex gap-6 animate-in fade-in duration-300 text-left text-foreground">
@@ -367,7 +495,7 @@ export const StudyRoom: React.FC = () => {
           <div className="max-w-4xl mx-auto space-y-4 pb-4">
             {messages.map((msg) => {
               const isMe = msg.user_detail.username === user?.username;
-              const isTask = msg.content.includes('💪') || msg.content.includes('✅') || msg.content.includes('❌') || msg.content.includes('开始了“') || msg.content.includes('📅') || msg.content.includes('制定');
+              const isTask = isTaskStateMessage(msg.content);
               if (isTask && !showOthersBroadcast && !isMe) return null;
               if (isTask) return (
                 <div key={msg.id} className="flex flex-col items-center py-0.5 animate-in fade-in zoom-in-95 duration-300">
@@ -384,17 +512,9 @@ export const StudyRoom: React.FC = () => {
                      }
                      <span className="text-[11px] font-bold tracking-tight text-foreground"><span className="opacity-70">{msg.user_detail.nickname || msg.user_detail.username}</span> {msg.content.split(msg.user_detail.username)[1] || msg.content}</span>
                      
-                     {/* Undo Button - Restricted to Last Message Only */}
-                     {isMe && msg.related_plan && msg.id === lastSystemMsgId && (
+                     {isMe && msg.id === lastMyTaskMessageId && (
                         <button 
-                          onClick={async () => {
-                            try {
-                              await api.post(`/study/messages/${msg.id}/undo/`);
-                              toast.success("已撤销");
-                              fetchMessages();
-                              fetchPlans();
-                            } catch (e) { toast.error("撤销失败"); }
-                          }}
+                          onClick={() => undoMessage(msg.id)}
                           className="ml-3 text-[11px] font-bold text-muted-foreground/50 hover:text-red-500 underline decoration-dotted underline-offset-2 transition-colors cursor-pointer"
                         >
                           撤销
@@ -418,21 +538,31 @@ export const StudyRoom: React.FC = () => {
                       style={!isMediaOnly && !isMe ? { backgroundColor: '#ffb0b3', color: '#0f172a' } : {}}
                     >
                       <ReactMarkdown 
-                        remarkPlugins={[remarkMath]} 
+                        remarkPlugins={[remarkMath, remarkSoftBreaks]} 
                         rehypePlugins={[rehypeKatex]} 
                         components={{ 
                           img: ({node, ...props}) => <img {...props} className="max-w-[130px] md:max-w-[200px] rounded-lg my-0.5 cursor-zoom-in hover:opacity-90 transition-opacity" onClick={() => window.open(props.src || '', '_blank')}/>, 
                           p: ({node, ...props}) => <p {...props} className="m-0 leading-normal w-fit" />,
-                          div: ({node, ...props}) => <div {...props} className="w-fit" />
+                          div: ({node, ...props}) => <div {...props} className="w-fit" />,
+                          br: () => <br />
                         }}
                       >
                         {processMathContent(msg.content)}
                       </ReactMarkdown>
                     </div>
-                    {/* User Message Timestamp - Outside */}
-                    <span className="text-[11px] text-muted-foreground/40 mt-0.3 block px-1 font-medium">
-                      {new Date(msg.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
-                    </span>
+                    <div className="mt-0.3 flex items-center gap-2 px-1">
+                      <span className="text-[11px] text-muted-foreground/40 font-medium">
+                        {new Date(msg.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                      </span>
+                      {isMe && msg.id === lastMyMessageId && (
+                        <button
+                          onClick={() => undoMessage(msg.id)}
+                          className="text-[11px] font-bold text-muted-foreground/50 hover:text-red-500 underline decoration-dotted underline-offset-2 transition-colors cursor-pointer"
+                        >
+                          撤回
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
               );
@@ -484,8 +614,23 @@ export const StudyRoom: React.FC = () => {
               <Button variant="ghost" size="icon" onClick={() => fileInputRef.current?.click()} className="h-8 w-8 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"><ImageIcon className="h-4 w-4"/></Button>
               <input type="file" ref={fileInputRef} onChange={(e) => handleFileUpload(e)} className="hidden" accept="image/*" />
             </div>
-            <div className="flex gap-3 bg-muted rounded-2xl p-1 focus-within:bg-card focus-within:ring-2 focus-within:ring-primary/5 transition-all shadow-inner border border-border">
-              <Input value={chatInput} onChange={e => setChatInput(e.target.value)} onCompositionStart={() => setIsComposing(true)} onCompositionEnd={() => setIsComposing(false)} onKeyDown={e => { if (e.key === 'Enter' && !isComposing) { e.preventDefault(); sendMessage(); } }} placeholder="发送消息 (支持拖入图片)..." className="bg-transparent border-none shadow-none focus-visible:ring-0 text-[13px] h-10 px-4 text-foreground placeholder:text-muted-foreground/50" />
+            <div className="flex gap-3 bg-muted rounded-2xl p-1.5 focus-within:bg-card focus-within:ring-2 focus-within:ring-primary/5 transition-all shadow-inner border border-border">
+              <textarea
+                ref={chatTextareaRef}
+                value={chatInput}
+                onChange={e => setChatInput(e.target.value)}
+                onCompositionStart={() => setIsComposing(true)}
+                onCompositionEnd={() => setIsComposing(false)}
+                onKeyDown={e => {
+                  if (e.key === 'Enter' && !e.shiftKey && !isComposing) {
+                    e.preventDefault();
+                    sendMessage();
+                  }
+                }}
+                placeholder="发送消息 (Enter发送 / Shift+Enter换行，支持拖入图片)..."
+                className="flex-1 bg-transparent border-none shadow-none focus:outline-none focus-visible:ring-0 text-[13px] min-h-10 max-h-32 px-4 py-2 text-foreground placeholder:text-muted-foreground/50 resize-none leading-normal"
+                rows={1}
+              />
               <Button onClick={sendMessage} size="icon" className="rounded-xl h-10 w-10 bg-primary text-primary-foreground shadow-xl shrink-0 hover:opacity-90 active:scale-95 transition-transform"><Send className="h-4 w-4" /></Button>
             </div>
           </div>
@@ -592,6 +737,7 @@ export const StudyRoom: React.FC = () => {
           <AlertDialogHeader><AlertDialogTitle className="text-foreground">确定要中止任务吗？</AlertDialogTitle><AlertDialogDescription className="text-muted-foreground">离开当前页面将视为一次未完成的任务，并向讨论区广播。确定离开吗？</AlertDialogDescription></AlertDialogHeader>
           <AlertDialogFooter><AlertDialogCancel onClick={() => setShowStopAlert(false)} className="rounded-xl border-border text-foreground hover:bg-muted">继续专注</AlertDialogCancel><AlertDialogAction onClick={async () => { 
             setIsActive(false); setShowStopAlert(false);
+            sendHeartbeat({ current_task: null, current_timer_end: null });
             const focusedMins = Math.floor((duration * 60 - timeLeft) / 60);
             if (allowBroadcast) {
               await api.post('/study/messages/', { content: `❌ 中止了“${taskName}”任务 (专注 ${focusedMins} 分钟)` });

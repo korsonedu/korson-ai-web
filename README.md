@@ -1,4 +1,4 @@
-# 科晟智慧学习系统 (Korson Academy)
+# 宇艺（UniMind.ai）学习系统
 
 基于 AI 驱动的现代化金融考研学习管理系统，集成了深度学术咨询、FSRS 智能测试及实时共学社区。
 
@@ -32,7 +32,7 @@
 
 ### 后端配置
 1. 安装依赖：`pip install -r requirements.txt`
-2. 配置 `.env`：填入 `DEEPSEEK_API_KEY` (请使用 SiliconFlow API Key) 及数据库信息。
+2. 配置 `.env`：填入 `LLM_API_KEY` (如使用 SiliconFlow，请填其 API Key) 及数据库信息。
 3. 执行迁移：`python manage.py migrate`
 4. 启动：`python manage.py runserver`
 
@@ -70,4 +70,4 @@ git pull origin main
 \`\`\`
 
 ---
-*知行网校 - 让每一分钟的努力都清晰可见*
+*宇艺（UniMind.ai）- 让每一分钟的努力都清晰可见*

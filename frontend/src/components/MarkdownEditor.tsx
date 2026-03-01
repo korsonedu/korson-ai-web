@@ -50,7 +50,7 @@ export const MarkdownEditor = ({ content, onChange, placeholder }: MarkdownEdito
     ],
     content: content ? content.replace(/&gt;/g, '>').replace(/&lt;/g, '<').replace(/&amp;/g, '&') : '',
     onUpdate: ({ editor }) => {
-      const markdown = editor.storage.markdown.getMarkdown();
+      const markdown = (editor.storage as any).markdown.getMarkdown();
       // Unescape common HTML entities that tiptap-markdown might escape
       const cleaned = markdown
         .replace(/&gt;/g, '>')

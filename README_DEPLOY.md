@@ -1,4 +1,4 @@
-# 知行网校 (Scholarly School System) 正式部署手册
+# 宇艺（UniMind.ai）正式部署手册
 
 本手册旨在指导教研与技术团队将系统顺利部署至云服务器（腾讯云/阿里云/华为云等，推荐 Ubuntu 22.04+）。
 
@@ -34,7 +34,7 @@ sudo systemctl start redis-server
 ### 3.1 环境变量配置
 在 `backend/` 目录下创建 `.env` 文件：
 ```env
-DEEPSEEK_API_KEY=您的API密钥
+LLM_API_KEY=您的API密钥
 DEBUG=False
 ALLOWED_HOSTS=您的域名,服务器IP
 DATABASE_URL=postgres://user:password@localhost:5432/dbname (若用PG)
@@ -127,4 +127,4 @@ server {
 *   **上传大文件超时**: 修改 Nginx `client_max_body_size 100M;` 和后端超时设置。
 
 ---
-知行网校 - 技术委员会 2026.02
+宇艺（UniMind.ai）- 技术委员会 2026.02

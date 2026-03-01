@@ -119,7 +119,7 @@ export const MainLayout: React.FC = () => {
   const [showActivateDialog, setShowActivateDialog] = useState(false);
   const [activationCode, setActivationCode] = useState('');
   const [isActivating, setIsActivating] = useState(false);
-  const [schoolConfig, setSchoolConfig] = useState({ name: '科晟智慧', desc: 'KORSON ACADEMY', logo: '' });
+  const [schoolConfig, setSchoolConfig] = useState({ name: '宇艺', desc: 'UNIMIND.AI', logo: '' });
 
   const isFullPage = ['/intro', '/course-details', '/management'].includes(location.pathname);
 

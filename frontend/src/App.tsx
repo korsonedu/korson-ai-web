@@ -1,4 +1,4 @@
-import { createBrowserRouter, RouterProvider, Navigate, useNavigate, useLocation } from 'react-router-dom';
+import { createBrowserRouter, RouterProvider, Navigate, useLocation } from 'react-router-dom';
 import { MainLayout } from './layouts/MainLayout';
 import { CourseCenter } from './pages/CourseCenter';
 import { TestLadder } from './pages/TestLadder';
@@ -17,13 +17,13 @@ import { QASystem } from './pages/QASystem';
 import { useAuthStore } from './store/useAuthStore';
 import { useSystemStore } from './store/useSystemStore';
 import { Loader2 } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, type ReactNode } from 'react';
 import api from '@/lib/api';
 import { Toaster } from 'sonner';
 import { WeeklyReportDialog } from './components/WeeklyReportDialog';
 
 // Auth Guard with Persistence
-const RequireAuth = ({ children }: { children: JSX.Element }) => {
+const RequireAuth = ({ children }: { children: ReactNode }) => {
   const { token, user, setAuth } = useAuthStore();
   const { theme, setTheme } = useSystemStore();
   const [loading, setLoading] = useState(!user && !!token);

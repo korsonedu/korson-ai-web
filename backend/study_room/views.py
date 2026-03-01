@@ -1,12 +1,25 @@
 from rest_framework import generics, permissions
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from django.db.models import Q
 from django.core.files.storage import default_storage
 from django.conf import settings
 from .models import ChatMessage
 from users.models import DailyPlan
 from .serializers import ChatMessageSerializer
 from users.views import IsMember
+
+
+def _task_state_message_q() -> Q:
+    return (
+        Q(content__contains='💪')
+        | Q(content__contains='✅')
+        | Q(content__contains='❌')
+        | Q(content__contains='开始了“')
+        | Q(content__contains='📅')
+        | Q(content__contains='制定')
+    )
+
 
 class ChatMessageListView(generics.ListCreateAPIView):
     queryset = ChatMessage.objects.all().order_by('timestamp')
@@ -30,6 +43,21 @@ class UndoBroadcastView(APIView):
     def post(self, request, pk):
         try:
             message = ChatMessage.objects.get(pk=pk, user=request.user)
+
+            latest_user_message = ChatMessage.objects.filter(user=request.user).order_by('-timestamp', '-id').first()
+            latest_task_state_message = (
+                ChatMessage.objects.filter(user=request.user)
+                .filter(_task_state_message_q())
+                .order_by('-timestamp', '-id')
+                .first()
+            )
+            can_undo = (
+                (latest_user_message and message.id == latest_user_message.id)
+                or (latest_task_state_message and message.id == latest_task_state_message.id)
+            )
+            if not can_undo:
+                return Response({'error': '只能撤回本人最后一条消息或最后一条任务状态消息'}, status=400)
+
             if message.related_plan:
                 # Revert plan status
                 plan = message.related_plan

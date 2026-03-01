@@ -111,10 +111,10 @@ export const ArticleDetail: React.FC = () => {
       <footer className="mt-20 pt-12 border-t border-border/50 flex items-center justify-between">
          <div className="flex items-center gap-4 text-left">
             <div className="h-12 w-12 rounded-full bg-black flex items-center justify-center text-white font-bold text-sm shadow-xl uppercase">
-               {article.author_display_name?.[0] || 'KS'}
+               {article.author_display_name?.[0] || '宇'}
             </div>
             <div>
-               <p className="text-sm font-bold text-slate-900 dark:text-white">{article.author_display_name || '科晟网校学术编辑部'}</p>
+               <p className="text-sm font-bold text-slate-900 dark:text-white">{article.author_display_name || '宇艺学术编辑部'}</p>
                <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-widest">Verified Academic Resource</p>
             </div>
          </div>

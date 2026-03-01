@@ -1,26 +1,37 @@
 import os
-import requests
 import json
 import datetime
-import re
 import csv
 import io
 from django.utils import timezone
-from rest_framework import generics, permissions, status
+from rest_framework import generics, permissions
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from .models import Question, QuizAttempt, UserQuestionStatus, KnowledgePoint, QuizExam, ExamQuestionResult
+from .models import Question, QuizAttempt, UserQuestionStatus, KnowledgePoint, QuizExam
 from .serializers import (
     QuestionSerializer, QuizAttemptSerializer, UserQuestionStatusSerializer, 
     KnowledgePointSerializer, QuizExamSerializer
 )
 from users.models import User
 from users.serializers import UserSerializer
-from .fsrs import FSRS
 from users.views import IsMember
 import random
 from ai_service import AIService
+from ai_engine.service import AICallError
 from notifications.models import Notification
+from .ai_workflow import (
+    grade_single_question_submission,
+    mark_questions_reviewed,
+    run_exam_grading,
+    save_confirmed_questions,
+)
+from .services.ai_parse_service import (
+    build_parse_task_id,
+    extract_raw_text,
+    get_parse_task,
+    init_parse_task,
+)
+from .services.task_dispatcher import dispatch_ai_parse_task, dispatch_exam_grading
 
 class QuestionListView(generics.ListCreateAPIView):
     serializer_class = QuestionSerializer
@@ -93,17 +104,10 @@ class QuestionListView(generics.ListCreateAPIView):
             self.generate_ai_answer(question)
 
     def generate_ai_answer(self, question):
-        template = AIService.get_template('quizzes', 'ai_answer_prompt.txt') or "解析题目: {question_text}"
-        prompt = template.format(
-            q_type_display=question.get_subjective_type_display() if question.q_type == 'subjective' else '客观题',
-            question_text=question.text,
-            grading_points=question.grading_points or '无'
-        )
-        
-        res = AIService.simple_chat("你是一位专业的学术助教。", prompt)
-        if res:
-            question.ai_answer = res['choices'][0]['message']['content']
-            question.save()
+        ai_answer = AIService.generate_ai_answer(question)
+        if ai_answer:
+            question.ai_answer = ai_answer
+            question.save(update_fields=['ai_answer'])
 
 class GradeSubjectiveView(APIView):
     permission_classes = [IsMember]
@@ -123,49 +127,14 @@ class GradeSubjectiveView(APIView):
         max_score = question.get_max_score()
         
         try:
-            grade_data = AIService.grade_question(
-                question_text=question.text,
-                user_answer=user_answer,
-                correct_answer=question.correct_answer,
-                q_type=question.q_type,
-                max_score=max_score,
-                grading_points=question.grading_points,
-                subjective_type=question.get_subjective_type_display() if question.q_type == 'subjective' else "客观题"
-            )
-            
-            if not grade_data:
-                return Response({'error': 'AI 评分服务异常'}, status=500)
-            
-            score_val = float(grade_data.get('score', 0))
-            feedback = grade_data.get('feedback', '回答已评阅')
-            analysis = grade_data.get('analysis', '解析生成中')
-            fsrs_rating = int(grade_data.get('fsrs_rating', 2))
-
-            user = request.user
-            normalized_score = score_val / max_score if max_score > 0 else 0
-            
-            status_obj, _ = UserQuestionStatus.objects.get_or_create(user=user, question=question)
-            status_obj = FSRS.update_status(status_obj, fsrs_rating)
-            
-            if normalized_score < 0.6:
-                status_obj.wrong_count += 1
-                status_obj.last_correct = False
-            else:
-                status_obj.last_correct = True
-            status_obj.save()
-            
-            expected_score = 1 / (1 + 10**( (question.difficulty - user.elo_score) / 400 ))
-            elo_change = int(32 * (normalized_score - expected_score))
-            user.elo_score += elo_change
-            user.save(update_fields=['elo_score'])
-            
+            result = grade_single_question_submission(request.user, question, user_answer)
             return Response({
-                'score': score_val,
+                'score': result['score'],
                 'max_score': max_score,
-                'feedback': feedback,
-                'analysis': analysis,
+                'feedback': result['feedback'],
+                'analysis': result['analysis'],
                 'ai_answer': question.ai_answer,
-                'elo_change': elo_change
+                'elo_change': result['elo_change']
             })
         except Exception as e:
             return Response({'error': f'评分逻辑错误: {str(e)}'}, status=500)
@@ -278,108 +247,6 @@ class KnowledgePointDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = KnowledgePointSerializer
     permission_classes = [IsAdminUserOrReadOnly]
 
-def process_exam_grading(user, exam, questions_data, api_key):
-    """后台异步批改整张试卷"""
-    total_score = 0
-    max_total_score = 0
-    total_difficulty = 0
-    question_count = 0
-    
-    for item in questions_data:
-        q_id = item.get('question_id')
-        user_answer = item.get('answer')
-        
-        try:
-            question = Question.objects.get(id=q_id)
-        except Question.DoesNotExist:
-            continue
-            
-        max_score = question.get_max_score()
-        max_total_score += max_score
-        total_difficulty += (question.difficulty or 1000)
-        question_count += 1
-        
-        # 统一调用 AI 服务进行判分与解析（选择题也包含解析）
-        try:
-            grade_data = AIService.grade_question(
-                question_text=question.text,
-                user_answer=user_answer,
-                correct_answer=question.correct_answer,
-                q_type=question.q_type,
-                max_score=max_score,
-                grading_points=question.grading_points,
-                subjective_type=question.get_subjective_type_display() if question.q_type == 'subjective' else "客观选择题"
-            )
-            
-            if grade_data:
-                score_val = float(grade_data.get('score', 0))
-                # 客观题强制覆盖分数为数据库校验结果
-                if question.q_type == 'objective':
-                    is_correct = str(user_answer).strip() == str(question.correct_answer).strip()
-                    score_val = 10 if is_correct else 0
-                
-                fsrs_rating = int(grade_data.get('fsrs_rating', 2))
-                normalized_score = score_val / max_score if max_score > 0 else 0
-                total_score += score_val
-                
-                # FSRS 状态更新
-                status_obj, _ = UserQuestionStatus.objects.get_or_create(user=user, question=question)
-                status_obj = FSRS.update_status(status_obj, fsrs_rating)
-                status_obj.last_review = timezone.now() # 记录复习时间，触发冷却
-                if normalized_score < 0.6:
-                    status_obj.wrong_count += 1
-                    status_obj.last_correct = False
-                else:
-                    status_obj.last_correct = True
-                status_obj.save()
-                
-                # 保存详细记录
-                ExamQuestionResult.objects.create(
-                    exam=exam,
-                    question=question,
-                    user_answer=user_answer,
-                    score=score_val,
-                    max_score=max_score,
-                    feedback=grade_data.get('feedback', '已评阅'),
-                    analysis=grade_data.get('analysis', '解析生成中...'),
-                    is_correct=normalized_score >= 0.6
-                )
-        except Exception as e:
-            print(f"Error grading Q{q_id}: {e}")
-            ExamQuestionResult.objects.create(
-                exam=exam,
-                question=question,
-                user_answer=user_answer,
-                score=0,
-                max_score=max_score,
-                feedback="评分服务异常",
-                analysis=f"错误详情: {str(e)}",
-                is_correct=False
-            )
-    
-    # 结算 ELO 和 发送通知
-    avg_score = total_score / max_total_score if max_total_score > 0 else 0
-    avg_difficulty = total_difficulty / question_count if question_count > 0 else 1000
-    
-    # ELO 结算：根据本次考试的平均难度计算预期得分
-    expected_score = 1 / (1 + 10**( (avg_difficulty - user.elo_score) / 400 ))
-    elo_change = int(32 * (avg_score - expected_score))
-    user.elo_score += elo_change
-    user.save()
-    
-    exam.total_score = total_score
-    exam.max_score = max_total_score
-    exam.elo_change = elo_change
-    exam.save()
-    
-    Notification.objects.create(
-        recipient=user,
-        ntype='system',
-        title='📝 评估完成',
-        content=f'得分：{total_score}/{max_total_score}。本次测验平均难度：{int(avg_difficulty)}。',
-        link=f'/tests?action=view_report&exam_id={exam.id}'
-    )
-
 class SubmitExamView(APIView):
     permission_classes = [IsMember]
 
@@ -387,36 +254,30 @@ class SubmitExamView(APIView):
         questions_data = request.data.get('answers', [])
         if not questions_data:
             return Response({'error': '无答题数据'}, status=400)
-            
-        api_key = os.getenv('DEEPSEEK_API_KEY')
-        if not api_key:
-            return Response({'error': 'AI 配置缺失'}, status=500)
-            
+
         exam = QuizExam.objects.create(user=request.user)
 
-        # 【优化】即时同步状态：确保题目立即打上“已复习”标记，防止异步判卷期间被再次抽到
-        now = timezone.now()
-        for item in questions_data:
-            q_id = item.get('question_id')
-            try:
-                # 使用 get_or_create 确保新题也被即时排除
-                status_obj, created = UserQuestionStatus.objects.get_or_create(
-                    user=request.user, 
-                    question_id=q_id
-                )
-                status_obj.last_review = now
-                status_obj.save(update_fields=['last_review'])
-            except Exception as e:
-                print(f"Sync review status error for Q{q_id}: {e}")
-
-        # 启动后台线程
-        thread = threading.Thread(
-            target=process_exam_grading,
-            args=(request.user, exam, questions_data, api_key)
+        mark_questions_reviewed(
+            user=request.user,
+            question_ids=[item.get('question_id') for item in questions_data if item.get('question_id') is not None],
         )
-        thread.start()
+
+        # 单题特训走同步批改，便于前端即时拿报告；多题走后台线程。
+        if len(questions_data) == 1:
+            run_exam_grading(request.user.id, exam.id, questions_data)
+            return Response({
+                'status': 'completed',
+                'exam_id': exam.id,
+                'message': '试卷已完成批改。'
+            })
+
+        dispatch_exam_grading(request.user.id, exam.id, questions_data)
         
-        return Response({'status': 'processing', 'message': '试卷已提交后台批改，结果将通过通知发送。'})
+        return Response({
+            'status': 'processing',
+            'exam_id': exam.id,
+            'message': '试卷已提交后台批改，结果将通过通知发送。'
+        })
 
 class LatestExamReportView(APIView):
     """
@@ -469,11 +330,25 @@ class AIPreviewGenerateView(APIView):
         kp_ids = request.data.get('kp_ids', [])
         count = int(request.data.get('count', 1))
         target_types = request.data.get('types', []) # 新增题型过滤
+        target_difficulty = request.data.get('difficulty_level', 'normal')
+        target_type_ratio = request.data.get('type_ratio')
         
         if not kp_ids:
             return Response({'error': '未提供知识点 ID'}, status=400)
         
-        questions = AIService.preview_generate_questions(kp_ids, count_per_kp=count, target_types=target_types)
+        try:
+            questions = AIService.preview_generate_questions(
+                kp_ids,
+                count_per_kp=count,
+                target_types=target_types,
+                target_difficulty=target_difficulty,
+                target_type_ratio=target_type_ratio,
+            )
+        except AICallError as e:
+            return Response({'error': e.message}, status=e.status_code)
+        except Exception:
+            return Response({'error': 'AI 命题服务异常，请稍后重试'}, status=500)
+
         if not questions:
             return Response({'error': 'AI 生成失败，请重试'}, status=500)
             
@@ -486,84 +361,32 @@ class AIConfirmSaveQuestionsView(APIView):
     permission_classes = [permissions.IsAdminUser]
     def post(self, request):
         questions_data = request.data.get('questions', [])
-        created_count = 0
-        for q_data in questions_data:
-            kp_id = q_data.get('kp_id')
-            if not kp_id: continue
-            
-            # 数据映射
-            Question.objects.create(
-                knowledge_point_id=kp_id,
-                text=q_data.get('question', ''),
-                q_type='objective',
-                options=q_data.get('options', {}),
-                correct_answer=q_data.get('answer', ''),
-                ai_answer=q_data.get('explanation', ''),
-                difficulty_level=q_data.get('difficulty_level', 'normal')
-            )
-            created_count += 1
-            
+        created_count = save_confirmed_questions(questions_data)
         return Response({'status': 'success', 'count': created_count})
 
 class GenerateFromTextView(APIView):
     permission_classes = [permissions.IsAdminUser]
     def post(self, request):
-        text = request.data.get('text'); kp_id = request.data.get('kp_id')
-        num_obj = request.data.get('num_objective', 3); num_short = request.data.get('num_short', 1); num_essay = request.data.get('num_essay', 1)
-        template = AIService.get_template('quizzes', 'generate_from_text_prompt.txt')
-        prompt = template.format(text=text, num_obj=num_obj, num_short=num_short, num_essay=num_essay)
-        res = AIService.simple_chat("你是一位专业的出题官。", prompt)
-        if not res: return Response({'error': 'AI 生成失败'}, status=500)
-        content = res['choices'][0]['message']['content']
-        qs_data = AIService.extract_json(content)
-        created_count = 0
-        for q in qs_data:
-            clean_q = {
-                'text': q.get('text', q.get('question', '')),
-                'q_type': q.get('q_type', 'objective'),
-                'subjective_type': q.get('subjective_type'),
-                'options': q.get('options'),
-                'correct_answer': q.get('correct_answer', q.get('answer', '')),
-                'grading_points': q.get('grading_points', ''),
-                'difficulty': q.get('difficulty', 1000),
-                'knowledge_point_id': kp_id if kp_id else None
-            }
-            if clean_q['text']:
-                Question.objects.create(**clean_q)
-                created_count += 1
+        text = request.data.get('text')
+        kp_id = request.data.get('kp_id')
+        num_obj = request.data.get('num_objective', 3)
+        num_short = request.data.get('num_short', 1)
+        num_essay = request.data.get('num_essay', 1)
+        num_calc = request.data.get('num_calc', 0)
+
+        generated = AIService.generate_questions_from_text(
+            text=text or '',
+            num_obj=num_obj,
+            num_short=num_short,
+            num_essay=num_essay,
+            num_calc=num_calc,
+            kp_id=kp_id,
+        )
+        if not generated:
+            return Response({'error': 'AI 生成失败'}, status=500)
+
+        created_count = save_confirmed_questions(generated)
         return Response({'status': 'success', 'count': created_count})
-
-import threading
-from django.core.cache import cache
-
-def process_ai_parse_task(raw_text, kp_id, api_key, task_id):
-    """后台分片处理长文本，带进度反馈和重试逻辑"""
-    chunk_size = 2000 # 减小分片，彻底解决 AI 输出截断问题
-    overlap = 150
-    chunks = []
-    for i in range(0, len(raw_text), chunk_size - overlap):
-        chunks.append(raw_text[i:i + chunk_size])
-    
-    total_chunks = len(chunks[:25]) # 封顶支持 5万字左右
-    all_questions = []
-    template = AIService.get_template('quizzes', 'preview_parse_prompt.txt')
-    
-    for i, chunk in enumerate(chunks[:25]):
-        # 更新进度
-        cache.set(f"parse_task_{task_id}", {"status": "processing", "progress": f"{i+1}/{total_chunks}", "data": all_questions}, 3600)
-        
-        prompt = template.format(raw_text=chunk)
-        res = AIService.simple_chat("你是一位专业的文本解析专家。", prompt, max_tokens=3000)
-        if res:
-            content = res['choices'][0]['message']['content']
-            qs_data = AIService.extract_json(content)
-            if isinstance(qs_data, list):
-                for q in qs_data:
-                    if not any(existing.get('text') == q.get('text') for existing in all_questions):
-                        all_questions.append(q)
-    
-    # 最终完成
-    cache.set(f"parse_task_{task_id}", {"status": "completed", "progress": "100%", "data": all_questions}, 3600)
 
 class AIPreviewParseView(APIView):
     """
@@ -571,32 +394,23 @@ class AIPreviewParseView(APIView):
     """
     permission_classes = [permissions.IsAdminUser]
     def post(self, request):
-        raw_text = request.data.get('raw_text', '')
-        file_obj = request.FILES.get('file')
-        api_key = os.getenv('DEEPSEEK_API_KEY')
-        
-        if file_obj:
-            if file_obj.name.endswith('.docx'):
-                import docx  # type: ignore # 延迟导入
-                doc = docx.Document(file_obj)
-                raw_text = "\n".join([p.text for p in doc.paragraphs])
-            else:
-                raw_text = file_obj.read().decode('utf-8', errors='ignore')
+        raw_text = extract_raw_text(
+            request.data.get('raw_text', ''),
+            request.FILES.get('file'),
+        )
 
         if not raw_text.strip(): return Response({'error': '内容为空'}, status=400)
 
-        task_id = datetime.datetime.now().strftime('%Y%m%d%H%M%S%f')
-        cache.set(f"parse_task_{task_id}", {"status": "processing", "progress": "0%", "data": []}, 3600)
-        
-        thread = threading.Thread(target=process_ai_parse_task, args=(raw_text, None, api_key, task_id))
-        thread.start()
+        task_id = build_parse_task_id()
+        init_parse_task(task_id)
+        dispatch_ai_parse_task(raw_text, task_id)
 
         return Response({'task_id': task_id, 'status': 'processing'})
 
     def get(self, request):
         """前端轮询此接口获取结果"""
         task_id = request.query_params.get('task_id')
-        result = cache.get(f"parse_task_{task_id}")
+        result = get_parse_task(task_id)
         if not result: return Response({'error': '任务不存在'}, status=404)
         return Response(result)
 
@@ -605,22 +419,11 @@ class BulkImportQuestionsView(APIView):
     def post(self, request):
         questions_data = request.data.get('questions', [])
         kp_id = request.data.get('kp_id')
-        created_count = 0
-        for q in questions_data:
-            clean_q = {
-                'text': q.get('text', ''),
-                'q_type': q.get('q_type', 'objective'),
-                'subjective_type': q.get('subjective_type'),
-                'difficulty_level': q.get('difficulty_level', 'normal'),
-                'options': q.get('options'),
-                'correct_answer': q.get('correct_answer', ''),
-                'grading_points': q.get('grading_points', ''),
-                'ai_answer': q.get('analysis', ''),
-                'knowledge_point_id': kp_id if kp_id else None
-            }
-            if clean_q['text']:
-                Question.objects.create(**clean_q)
-                created_count += 1
+        if kp_id:
+            for q in questions_data:
+                q['kp_id'] = q.get('kp_id') or kp_id
+
+        created_count = save_confirmed_questions(questions_data)
         return Response({'status': 'success', 'count': created_count})
 
 

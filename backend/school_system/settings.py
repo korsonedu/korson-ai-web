@@ -12,16 +12,54 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 
 import os
 from pathlib import Path
+
+from django.core.exceptions import ImproperlyConfigured
 from dotenv import load_dotenv
 
 load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = os.getenv("SECRET_KEY", "django-insecure-default")
-DEBUG = os.getenv("DEBUG", "True") == "True"
+def _get_bool(name: str, default: bool = False) -> bool:
+    value = os.getenv(name)
+    if value is None:
+        return default
+    return str(value).strip().lower() in {"1", "true", "yes", "on"}
 
-ALLOWED_HOSTS = ["*"]
+
+def _get_list(name: str, default=None):
+    raw = os.getenv(name, "")
+    values = [item.strip() for item in raw.split(",") if item.strip()]
+    return values if values else (default or [])
+
+
+def _get_int(name: str, default: int) -> int:
+    value = os.getenv(name)
+    if value is None or str(value).strip() == "":
+        return default
+    try:
+        return int(value)
+    except ValueError as exc:
+        raise ImproperlyConfigured(f"{name} must be an integer.") from exc
+
+
+DJANGO_ENV = os.getenv("DJANGO_ENV", "development").strip().lower()
+IS_PROD = DJANGO_ENV in {"production", "prod"}
+
+SECRET_KEY = os.getenv("SECRET_KEY", "django-insecure-default")
+DEBUG = _get_bool("DEBUG", default=not IS_PROD)
+
+if IS_PROD and SECRET_KEY == "django-insecure-default":
+    raise ImproperlyConfigured("SECRET_KEY must be set in production.")
+if IS_PROD and DEBUG:
+    raise ImproperlyConfigured("DEBUG must be False in production.")
+
+ALLOWED_HOSTS = _get_list(
+    "ALLOWED_HOSTS",
+    default=["127.0.0.1", "localhost", "0.0.0.0"] if DEBUG else [],
+)
+if IS_PROD and not ALLOWED_HOSTS:
+    raise ImproperlyConfigured("ALLOWED_HOSTS must be configured in production.")
 
 INSTALLED_APPS = [
     "daphne",
@@ -109,7 +147,29 @@ STATICFILES_DIRS = [
 MEDIA_URL = "media/"
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 
-CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_ALL_ORIGINS = _get_bool("CORS_ALLOW_ALL_ORIGINS", default=DEBUG)
+CORS_ALLOWED_ORIGINS = _get_list("CORS_ALLOWED_ORIGINS")
+CORS_ALLOWED_ORIGIN_REGEXES = _get_list("CORS_ALLOWED_ORIGIN_REGEXES")
+CORS_ALLOW_CREDENTIALS = _get_bool("CORS_ALLOW_CREDENTIALS", default=True)
+CSRF_TRUSTED_ORIGINS = _get_list("CSRF_TRUSTED_ORIGINS")
+CSRF_COOKIE_SAMESITE = os.getenv("CSRF_COOKIE_SAMESITE", "Lax")
+SESSION_COOKIE_SAMESITE = os.getenv("SESSION_COOKIE_SAMESITE", "Lax")
+
+SESSION_COOKIE_SECURE = _get_bool("SESSION_COOKIE_SECURE", default=IS_PROD)
+CSRF_COOKIE_SECURE = _get_bool("CSRF_COOKIE_SECURE", default=IS_PROD)
+SECURE_SSL_REDIRECT = _get_bool("SECURE_SSL_REDIRECT", default=IS_PROD)
+SECURE_HSTS_SECONDS = _get_int("SECURE_HSTS_SECONDS", 31536000 if IS_PROD else 0)
+SECURE_HSTS_INCLUDE_SUBDOMAINS = _get_bool("SECURE_HSTS_INCLUDE_SUBDOMAINS", default=IS_PROD)
+SECURE_HSTS_PRELOAD = _get_bool("SECURE_HSTS_PRELOAD", default=IS_PROD)
+SECURE_REFERRER_POLICY = os.getenv(
+    "SECURE_REFERRER_POLICY",
+    "strict-origin-when-cross-origin" if IS_PROD else "same-origin",
+)
+SECURE_CONTENT_TYPE_NOSNIFF = _get_bool("SECURE_CONTENT_TYPE_NOSNIFF", default=IS_PROD)
+X_FRAME_OPTIONS = os.getenv("X_FRAME_OPTIONS", "DENY" if IS_PROD else "SAMEORIGIN")
+
+if _get_bool("USE_X_FORWARDED_PROTO", default=IS_PROD):
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
@@ -120,11 +180,51 @@ REST_FRAMEWORK = {
     ],
 }
 
+ONLINE_USER_ACTIVE_WINDOW_SECONDS = _get_int("ONLINE_USER_ACTIVE_WINDOW_SECONDS", 300)
+LLM_REQUEST_TIMEOUT_SECONDS = _get_int("LLM_REQUEST_TIMEOUT_SECONDS", 120)
+LLM_REQUEST_MAX_RETRIES = _get_int("LLM_REQUEST_MAX_RETRIES", 1)
+AI_SCHEMA_REPAIR_MAX_RETRIES = _get_int("AI_SCHEMA_REPAIR_MAX_RETRIES", 1)
+AI_BULK_GENERATE_MAX_PER_REQUEST = _get_int("AI_BULK_GENERATE_MAX_PER_REQUEST", 3)
+AI_BULK_GENERATE_CONCURRENCY = _get_int("AI_BULK_GENERATE_CONCURRENCY", 2)
+
+REDIS_URL = os.getenv("REDIS_URL", "redis://127.0.0.1:6379/0")
+CHANNEL_LAYER_REDIS_URL = os.getenv("CHANNEL_LAYER_REDIS_URL", REDIS_URL)
+
 CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels_redis.core.RedisChannelLayer",
         "CONFIG": {
-            "hosts": [("127.0.0.1", 6379)],
+            "hosts": [CHANNEL_LAYER_REDIS_URL],
         },
     },
+}
+
+CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL", REDIS_URL)
+CELERY_RESULT_BACKEND = os.getenv("CELERY_RESULT_BACKEND", CELERY_BROKER_URL)
+CELERY_ACCEPT_CONTENT = ["json"]
+CELERY_TASK_SERIALIZER = "json"
+CELERY_RESULT_SERIALIZER = "json"
+CELERY_TIMEZONE = TIME_ZONE
+CELERY_ENABLE_UTC = USE_TZ
+CELERY_TASK_DEFAULT_QUEUE = os.getenv("CELERY_TASK_DEFAULT_QUEUE", "default")
+CELERY_TASK_TRACK_STARTED = _get_bool("CELERY_TASK_TRACK_STARTED", default=True)
+CELERY_TASK_ACKS_LATE = _get_bool("CELERY_TASK_ACKS_LATE", default=True)
+CELERY_TASK_REJECT_ON_WORKER_LOST = _get_bool("CELERY_TASK_REJECT_ON_WORKER_LOST", default=True)
+CELERY_WORKER_PREFETCH_MULTIPLIER = _get_int("CELERY_WORKER_PREFETCH_MULTIPLIER", 1)
+CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = _get_bool(
+    "CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP",
+    default=True,
+)
+CELERY_BROKER_CONNECTION_MAX_RETRIES = _get_int("CELERY_BROKER_CONNECTION_MAX_RETRIES", 100)
+CELERY_TASK_SOFT_TIME_LIMIT = _get_int("CELERY_TASK_SOFT_TIME_LIMIT", 1500)
+CELERY_TASK_TIME_LIMIT = _get_int("CELERY_TASK_TIME_LIMIT", 1800)
+CELERY_RESULT_EXPIRES = _get_int("CELERY_RESULT_EXPIRES", 86400)
+CELERY_TASK_IGNORE_RESULT = _get_bool("CELERY_TASK_IGNORE_RESULT", default=False)
+CELERY_BEAT_SCHEDULER = os.getenv("CELERY_BEAT_SCHEDULER", "celery.beat:PersistentScheduler")
+CELERY_BEAT_SCHEDULE_FILENAME = os.getenv(
+    "CELERY_BEAT_SCHEDULE_FILENAME",
+    str(BASE_DIR / "celerybeat-schedule"),
+)
+CELERY_BROKER_TRANSPORT_OPTIONS = {
+    "visibility_timeout": _get_int("CELERY_VISIBILITY_TIMEOUT", 3600),
 }

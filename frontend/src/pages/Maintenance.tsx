@@ -135,7 +135,13 @@ export const Maintenance: React.FC = () => {
   const handleCreateBot = async () => {
     if (!botForm.name || !botForm.prompt) return toast.error("信息不完整");
     const fd = new FormData(); fd.append('name', botForm.name); fd.append('system_prompt', botForm.prompt); fd.append('is_exclusive', String(botForm.is_exclusive)); if (botForm.avatar) fd.append('avatar', botForm.avatar);
-    try { await api.post('/ai/bots/', fd); toast.success("助教已上线"); setBotForm({ name: '', prompt: '', avatar: null, is_exclusive: false }); fetchLists(); }
+    try {
+      const res = await api.post('/ai/bots/', fd);
+      const templateName = res.data?.prompt_template_name;
+      toast.success(templateName ? `助教已上线，并创建 Prompt：${templateName}` : "助教已上线");
+      setBotForm({ name: '', prompt: '', avatar: null, is_exclusive: false });
+      fetchLists();
+    }
     catch (e) { toast.error("发布失败"); }
   };
 
@@ -362,7 +368,33 @@ export const Maintenance: React.FC = () => {
               <textarea value={botForm.prompt} onChange={e => setBotForm({ ...botForm, prompt: e.target.value })} className="w-full bg-[#F5F5F7] border-none rounded-2xl p-6 min-h-[200px] font-bold text-sm" placeholder="引导词 (Prompt)..." />
               <Button onClick={handleCreateBot} className="w-full h-14 rounded-2xl bg-black text-white font-bold uppercase text-xs tracking-widest">Deploy Bot</Button>
             </Card>
-            <Card className="p-10 bg-[#F5F5F7]/50 rounded-3xl border-none shadow-sm space-y-6"><h3 className="text-sm font-bold uppercase tracking-widest opacity-40">助教矩阵</h3><ScrollArea className="h-[520px]"><div className="grid gap-3 pr-4">{botList.map(b => (<div key={b.id} className="flex items-center justify-between p-5 bg-white rounded-2xl group"><div className="flex items-center gap-4 text-left"><Avatar className="h-10 w-10"><AvatarImage src={b.avatar} /><AvatarFallback>{b.name[0]}</AvatarFallback></Avatar><p className="text-sm font-bold truncate">{b.name}</p></div><div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity"><Button onClick={() => setEditingItem({ type: 'bots', data: { ...b } })} variant="ghost" size="icon" className="h-8 w-8 text-blue-600"><Edit3 className="w-3.5 h-3.5" /></Button><Button onClick={() => handleDelete('ai/bots', b.id)} variant="ghost" size="icon" className="h-8 w-8 text-red-500"><Trash2 className="w-3.5 h-3.5" /></Button></div></div>))}</div></ScrollArea></Card>
+            <Card className="p-10 bg-[#F5F5F7]/50 rounded-3xl border-none shadow-sm space-y-6">
+              <h3 className="text-sm font-bold uppercase tracking-widest opacity-40">助教矩阵</h3>
+              <ScrollArea className="h-[520px]">
+                <div className="grid gap-3 pr-4">
+                  {botList.map(b => (
+                    <div key={b.id} className="flex items-center justify-between p-5 bg-white rounded-2xl group">
+                      <div className="flex items-center gap-4 text-left">
+                        <Avatar className="h-10 w-10">
+                          <AvatarImage src={b.avatar} />
+                          <AvatarFallback>{b.name[0]}</AvatarFallback>
+                        </Avatar>
+                        <div className="min-w-0">
+                          <p className="text-sm font-bold truncate">{b.name}</p>
+                          <p className="text-[10px] text-black/35 font-bold truncate">
+                            {b.prompt_template_name || 'bots/bot_{id}_prompt.txt'} · {b.prompt_file_exists ? 'FILE OK' : 'FILE MISSING'}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <Button onClick={() => setEditingItem({ type: 'bots', data: { ...b } })} variant="ghost" size="icon" className="h-8 w-8 text-blue-600"><Edit3 className="w-3.5 h-3.5" /></Button>
+                        <Button onClick={() => handleDelete('ai/bots', b.id)} variant="ghost" size="icon" className="h-8 w-8 text-red-500"><Trash2 className="w-3.5 h-3.5" /></Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </ScrollArea>
+            </Card>
           </div>
         </TabsContent>
 
@@ -435,6 +467,7 @@ export const Maintenance: React.FC = () => {
             {editingItem?.type === 'bots' && (
               <div className="space-y-4">
                 <div className="flex items-center justify-between gap-4"><Input value={editingItem.data.name} onChange={e => setEditingItem({ ...editingItem, data: { ...editingItem.data, name: e.target.value } })} className="rounded-xl bg-slate-50 border-none h-10 text-xs font-bold" /><div className="flex items-center gap-2 pt-4"><input type="checkbox" checked={editingItem.data.is_exclusive} onChange={e => setEditingItem({ ...editingItem, data: { ...editingItem.data, is_exclusive: e.target.checked } })} /><Label className="text-[11px] font-bold text-emerald-600">专属导师权限</Label></div></div>
+                <Input value={editingItem.data.prompt_template_name || ''} readOnly className="rounded-xl bg-emerald-50/70 border-none h-10 text-[11px] font-bold text-emerald-700" />
                 <textarea value={editingItem.data.system_prompt} onChange={e => setEditingItem({ ...editingItem, data: { ...editingItem.data, system_prompt: e.target.value } })} className="w-full min-h-[300px] p-4 rounded-xl bg-slate-50 border-none text-xs" />
               </div>
             )}

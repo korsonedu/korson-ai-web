@@ -91,7 +91,7 @@ export const Landing: React.FC = () => {
       <section id="section-1" className="py-24 bg-white dark:bg-[#0F1115] border-b border-slate-50 dark:border-slate-900">
         <div className="max-w-6xl mx-auto px-6">
           <SectionHeader 
-            title="为什么选择科晟智慧？" 
+            title="为什么选择宇艺（UniMind.ai）？" 
             subtitle="极具深度的知识内容、数据沉淀与全流程技术赋能，构筑无法复制的应试护城河。通过 AI 驱动的学习引擎与模块化教学战略，我们确保每一位学员都能建立起完整的金融学术框架，实现从零基础到前 10% 的跨越式增长。" 
             label="Core Advantages" 
             centered 

@@ -1,16 +1,25 @@
-import os
 import threading
+import logging
 from django.db import connections
-from rest_framework import generics, permissions, status
+from rest_framework import generics, permissions
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from .models import AIChatMessage, Bot
 from .serializers import AIChatMessageSerializer, BotSerializer
 from .utils import get_student_academic_context
+from .prompt_sync import (
+    delete_bot_prompt_file,
+    get_bot_prompt_template_name,
+    sync_bot_prompt,
+    write_bot_prompt_file,
+)
 from users.views import IsMember
 from ai_service import AIService
 
-def process_ai_chat(user, bot, user_message, api_key, pending_msg_id, history_limit=10):
+logger = logging.getLogger(__name__)
+
+
+def process_ai_chat(user, bot, user_message, pending_msg_id, history_limit=10):
     # Filter out pending messages from history
     history_objs = AIChatMessage.objects.filter(user=user, bot=bot).order_by('-timestamp')[:history_limit]
     history_msgs = [{"role": h.role, "content": h.content} for h in reversed(history_objs) if h.content != "[Thinking...]"]
@@ -43,32 +52,13 @@ def process_ai_chat(user, bot, user_message, api_key, pending_msg_id, history_li
                 pending_msg.save()
                 
     except Exception as e:
-        print(f"AI Chat Thread Error: {e}")
+        logger.exception("AI Chat Thread Error: %s", e)
         pending_msg = AIChatMessage.objects.filter(id=pending_msg_id).first()
         if pending_msg:
             pending_msg.content = f"抱歉，连接中断: {str(e)}"
             pending_msg.save()
     finally:
         connections.close_all()
-
-def get_bot_prompt_path(bot):
-    base_dir = os.path.join(os.path.dirname(__file__), 'templates', 'bots')
-    if not os.path.exists(base_dir):
-        os.makedirs(base_dir)
-    return os.path.join(base_dir, f"bot_{bot.id}_prompt.txt")
-
-def sync_bot_prompt(bot):
-    """双向同步核心：确保数据库与物理文件一致"""
-    path = get_bot_prompt_path(bot)
-    if os.path.exists(path):
-        with open(path, 'r', encoding='utf-8') as f:
-            content = f.read()
-        if bot.system_prompt != content:
-            bot.system_prompt = content
-            bot.save(update_fields=['system_prompt'])
-    else:
-        with open(path, 'w', encoding='utf-8') as f:
-            f.write(bot.system_prompt)
 
 class BotListCreateView(generics.ListCreateAPIView):
     serializer_class = BotSerializer
@@ -78,12 +68,18 @@ class BotListCreateView(generics.ListCreateAPIView):
 
     def get_queryset(self):
         bots = Bot.objects.all()
-        for bot in bots: sync_bot_prompt(bot)
+        for bot in bots:
+            sync_bot_prompt(bot)
         return bots
 
     def perform_create(self, serializer):
         bot = serializer.save()
-        sync_bot_prompt(bot) # 创建时立即生成物理文件
+        sync_bot_prompt(bot)  # 创建时立即生成物理文件
+        logger.info(
+            "Bot created and prompt synced: bot_id=%s, template=%s",
+            bot.id,
+            get_bot_prompt_template_name(bot),
+        )
 
 class BotDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Bot.objects.all()
@@ -92,19 +88,13 @@ class BotDetailView(generics.RetrieveUpdateDestroyAPIView):
 
     def perform_update(self, serializer):
         bot = serializer.save()
-        # 前端修改后，强制覆盖物理文件
-        path = get_bot_prompt_path(bot)
-        with open(path, 'w', encoding='utf-8') as f:
-            f.write(bot.system_prompt)
+        # 前端修改后，强制覆盖物理文件，再反向校验一次。
+        write_bot_prompt_file(bot, bot.system_prompt or '')
+        sync_bot_prompt(bot)
 
     def perform_destroy(self, instance):
         # 删除数据库记录前，先删除物理文件
-        path = get_bot_prompt_path(instance)
-        if os.path.exists(path):
-            try:
-                os.remove(path)
-            except Exception as e:
-                print(f"Error deleting file {path}: {str(e)}")
+        delete_bot_prompt_file(instance)
         instance.delete()
 
 class AIChatView(APIView):
@@ -123,13 +113,12 @@ class AIChatView(APIView):
         
         # 2. Create Pending Assistant Message
         pending_msg = AIChatMessage.objects.create(user=request.user, role='assistant', content="[Thinking...]", bot=bot)
-
-        api_key = os.getenv('DEEPSEEK_API_KEY')
         
         # 3. Start Background Thread
         thread = threading.Thread(
             target=process_ai_chat,
-            args=(request.user, bot, user_message, api_key, pending_msg.id)
+            args=(request.user, bot, user_message, pending_msg.id),
+            daemon=True,
         )
         thread.start()
 

@@ -64,11 +64,11 @@ class DailyPlan(models.Model):
         ordering = ['created_at']
 
 class SystemConfig(models.Model):
-    school_name = models.CharField(max_length=100, default='科晟智慧')
-    school_short_name = models.CharField(max_length=20, default='科晟', verbose_name="网校缩写")
-    school_description = models.TextField(default='KORSON ACADEMY')
+    school_name = models.CharField(max_length=100, default='宇艺（UniMind.ai）')
+    school_short_name = models.CharField(max_length=20, default='宇艺', verbose_name="网校缩写")
+    school_description = models.TextField(default='UNIMIND.AI')
     school_logo = models.ImageField(upload_to="school_logos/", blank=True, null=True)
-    invite_code = models.CharField(max_length=50, default="KORSON2025", verbose_name="邀请码")
+    invite_code = models.CharField(max_length=50, default="UNIMIND2026", verbose_name="邀请码")
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):

@@ -1,8 +1,6 @@
 from django.contrib import admin, messages
 from .models import KnowledgePoint, Question, QuizAttempt, UserQuestionStatus, QuizExam, ExamQuestionResult
 
-# 确保引入路径正确。如果 ai_service.py 就在同一目录下，请用 from .ai_service import AIService
-# 如果在根目录，直接这样引入即可：
 from ai_service import AIService 
 
 @admin.register(KnowledgePoint)
@@ -12,7 +10,6 @@ class KnowledgePointAdmin(admin.ModelAdmin):
     search_fields = ('name', 'code', 'description')
     ordering = ('id',)
     
-    # 【最关键的一行】：必须把函数名加到这个列表里，后台才会显示
     actions = ['generate_ai_questions']
 
     def get_tree_name(self, obj):
@@ -21,7 +18,6 @@ class KnowledgePointAdmin(admin.ModelAdmin):
         return f"{indent}{obj.name}"
     get_tree_name.short_description = '知识点名称(树状)'
 
-    # 【关键缩进】：这个函数必须在 KnowledgePointAdmin 类的内部
     @admin.action(description="🤖 AI 批量生成混合题型 (仅对选中考点)")
     def generate_ai_questions(self, request, queryset):
         # 过滤出叶子节点

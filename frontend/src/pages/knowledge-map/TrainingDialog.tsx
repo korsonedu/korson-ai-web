@@ -58,7 +58,7 @@ export const KnowledgeTrainingDialog: React.FC<KnowledgeTrainingDialogProps> = (
 
   return (
     <Dialog open={!!question} onOpenChange={open => !open && onClose()}>
-      <DialogContent className="sm:max-w-[800px] rounded-[3rem] p-10 border-none shadow-2xl text-left overflow-hidden max-h-[90vh] flex flex-col bg-white">
+      <DialogContent className="sm:max-w-[800px] rounded-[3rem] p-10 border-none shadow-2xl text-left overflow-hidden max-h-[90vh] min-h-0 flex flex-col bg-white">
         <DialogHeader>
           <div className="flex items-center gap-3 mb-4">
             <Badge className="bg-indigo-600 text-white border-none uppercase text-[11px] font-bold">学术特训</Badge>
@@ -71,7 +71,7 @@ export const KnowledgeTrainingDialog: React.FC<KnowledgeTrainingDialogProps> = (
           </DialogTitle>
         </DialogHeader>
 
-        <ScrollArea className="flex-1 mt-6 pr-4">
+        <ScrollArea className="flex-1 min-h-0 mt-6 pr-4">
           {!showResult ? (
             <div className="space-y-6 py-4">
               {question.q_type === 'objective' && question.options ? (

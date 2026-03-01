@@ -4,7 +4,7 @@ from .views import (
     SystemConfigView, OnlineUserListView, UpdateEmailView, UpdatePasswordView,
     DailyPlanListView, DailyPlanDetailView, ResetEloView,
     ActivateMembershipView, ActivationCodeListView, ActivationCodeDetailView,
-    BIAnalyticsView, WeeklyCognitiveReportView
+    BIAnalyticsView, WeeklyCognitiveReportView, HeartbeatView
 )
 
 urlpatterns = [
@@ -16,6 +16,7 @@ urlpatterns = [
     path('me/password/', UpdatePasswordView.as_view(), name='password-update'),
     path('config/', SystemConfigView.as_view(), name='system-config'),
     path('online/', OnlineUserListView.as_view(), name='online-users'),
+    path('heartbeat/', HeartbeatView.as_view(), name='heartbeat'),
     path('plans/', DailyPlanListView.as_view(), name='daily-plan-list'),
     path('plans/<int:pk>/', DailyPlanDetailView.as_view(), name='daily-plan-detail'),
     path('me/reset-elo/', ResetEloView.as_view(), name='reset-elo'),

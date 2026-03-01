@@ -96,7 +96,7 @@ export const SystemSettings: React.FC = () => {
                        <Input 
                         value={system.schoolShortName}
                         onChange={e => setSystem({...system, schoolShortName: e.target.value})}
-                        placeholder="如：科晟"
+                        placeholder="如：宇艺"
                         className="pl-12 bg-white/10 border-none h-12 rounded-2xl text-white font-bold px-5 focus-visible:ring-white/20" 
                        />
                     </div>

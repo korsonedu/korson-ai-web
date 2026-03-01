@@ -7,7 +7,13 @@ from rest_framework.views import APIView
 from .serializers import UserSerializer, RegisterSerializer, SystemConfigSerializer, DailyPlanSerializer, ActivationCodeSerializer
 from .models import User, SystemConfig, DailyPlan, ActivationCode
 from django.utils import timezone
+from django.conf import settings
+from django.utils.dateparse import parse_datetime
 import datetime
+import logging
+
+
+logger = logging.getLogger(__name__)
 
 class IsMember(permissions.BasePermission):
     """
@@ -207,10 +213,59 @@ class WeeklyCognitiveReportView(APIView):
 class OnlineUserListView(generics.ListAPIView):
     serializer_class = UserSerializer
     permission_classes = (permissions.IsAuthenticated,)
+
     def get_queryset(self):
         now = timezone.now()
-        five_mins_ago = now - datetime.timedelta(minutes=5)
-        return User.objects.filter(last_active__gte=five_mins_ago)
+        active_window_seconds = max(getattr(settings, "ONLINE_USER_ACTIVE_WINDOW_SECONDS", 300), 10)
+        threshold = now - datetime.timedelta(seconds=active_window_seconds)
+        return User.objects.filter(is_active=True, last_active__gte=threshold).order_by('-last_active', '-elo_score')
+
+
+class HeartbeatView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        user = request.user
+        user.last_active = timezone.now()
+        update_fields = ["last_active"]
+
+        if "current_task" in request.data:
+            task = request.data.get("current_task")
+            if task is None:
+                normalized_task = None
+            else:
+                normalized_task = str(task).strip() or None
+                if normalized_task and len(normalized_task) > 200:
+                    return Response({"error": "current_task cannot exceed 200 characters."}, status=400)
+            user.current_task = normalized_task
+            update_fields.append("current_task")
+
+        if "current_timer_end" in request.data:
+            raw_timer_end = request.data.get("current_timer_end")
+            if raw_timer_end in (None, ""):
+                normalized_timer_end = None
+            elif isinstance(raw_timer_end, str):
+                normalized_timer_end = parse_datetime(raw_timer_end)
+                if normalized_timer_end is None:
+                    return Response({"error": "current_timer_end must be a valid ISO datetime."}, status=400)
+                if timezone.is_naive(normalized_timer_end):
+                    normalized_timer_end = timezone.make_aware(
+                        normalized_timer_end,
+                        timezone.get_current_timezone(),
+                    )
+            else:
+                return Response({"error": "current_timer_end must be a string or null."}, status=400)
+
+            user.current_timer_end = normalized_timer_end
+            update_fields.append("current_timer_end")
+
+        user.save(update_fields=update_fields)
+        return Response({
+            "status": "ok",
+            "last_active": user.last_active,
+            "current_task": user.current_task,
+            "current_timer_end": user.current_timer_end,
+        })
 
 class SystemConfigView(generics.RetrieveUpdateAPIView):
     queryset = SystemConfig.objects.all()
@@ -244,8 +299,7 @@ class LoginView(APIView):
     def post(self, request, *args, **kwargs):
         username = request.data.get('username')
         password = request.data.get('password')
-        
-        print(f"DEBUG: Login attempt for username: {username}")
+        logger.debug("Login attempt username=%s", username)
         
         if not username or not password:
             return Response({'error': '请提供用户名和密码'}, status=status.HTTP_400_BAD_REQUEST)
@@ -261,7 +315,7 @@ class LoginView(APIView):
                 'user': UserSerializer(user).data
             })
         else:
-            print(f"DEBUG: Authentication failed for user: {username}")
+            logger.debug("Authentication failed username=%s", username)
             return Response({'error': '用户名或密码错误'}, status=status.HTTP_401_UNAUTHORIZED)
 
 class UserDetailView(generics.RetrieveAPIView):

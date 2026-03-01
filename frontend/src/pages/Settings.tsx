@@ -165,7 +165,7 @@ export const Settings: React.FC = () => {
              <h4 className="text-[10px] font-bold uppercase tracking-widest opacity-40 ml-1">天梯定位校准</h4>
              <p className="text-[10px] text-[#86868B] font-medium leading-relaxed">每个账户仅有一次机会重置分位记录。</p>
              <AlertDialog>
-                <AlertDialogTrigger asChild><Button variant="outline" disabled={user?.elo_reset_count >= 1} className="w-full rounded-2xl h-11 border-black/5 font-bold text-xs"><RotateCcw className="h-3.5 w-3.5 mr-2" /> 重置分位 ({1 - (user?.elo_reset_count || 0)}/1)</Button></AlertDialogTrigger>
+                <AlertDialogTrigger asChild><Button variant="outline" disabled={(user?.elo_reset_count ?? 0) >= 1} className="w-full rounded-2xl h-11 border-black/5 font-bold text-xs"><RotateCcw className="h-3.5 w-3.5 mr-2" /> 重置分位 ({1 - (user?.elo_reset_count || 0)}/1)</Button></AlertDialogTrigger>
                 <AlertDialogContent className="rounded-[2.5rem] border-none shadow-2xl">
                   <AlertDialogHeader><div className="h-12 w-12 bg-amber-50 text-amber-600 rounded-2xl flex items-center justify-center mb-2"><ShieldAlert className="h-6 w-6"/></div><AlertDialogTitle>确认重置 ELO 吗？</AlertDialogTitle><AlertDialogDescription>重置后需重新进行评估赛。此操作不可撤回。</AlertDialogDescription></AlertDialogHeader>
                   <AlertDialogFooter><AlertDialogCancel className="rounded-xl font-bold">取消</AlertDialogCancel><AlertDialogAction onClick={handleResetElo} className="rounded-xl bg-black text-white font-bold">确定重置</AlertDialogAction></AlertDialogFooter>

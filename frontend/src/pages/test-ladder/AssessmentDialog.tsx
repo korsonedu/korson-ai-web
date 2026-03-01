@@ -14,7 +14,7 @@ interface AssessmentProps {
   onOpenChange: (open: boolean) => void;
   questions: any[];
   currentIdx: number;
-  setCurrentIdx: (idx: number) => void;
+  setCurrentIdx: React.Dispatch<React.SetStateAction<number>>;
   answers: any;
   handleSelect: (id: number, val: any) => void;
   toggleMastered: (id: number) => void;

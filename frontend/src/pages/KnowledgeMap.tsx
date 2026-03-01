@@ -247,7 +247,7 @@ export const KnowledgeMap: React.FC = () => {
         )}
 
         <Dialog modal={false} open={!!selectedNode} onOpenChange={open => !open && setSelectedNode(null)}>
-          <DialogContent className="sm:max-w-[750px] rounded-[3rem] p-10 border-none shadow-2xl text-left overflow-hidden max-h-[85vh] flex flex-col">
+          <DialogContent className="sm:max-w-[750px] rounded-[3rem] p-10 border-none shadow-2xl text-left overflow-hidden max-h-[85vh] min-h-0 flex flex-col">
             <DialogHeader>
               <div className="flex items-center gap-3 mb-2"><Badge className="bg-emerald-500 text-white border-none uppercase text-[9px] font-bold">Knowledge Point</Badge></div>
               <DialogTitle className="text-3xl font-bold tracking-tight">{selectedNode?.name}</DialogTitle>
@@ -255,7 +255,7 @@ export const KnowledgeMap: React.FC = () => {
                 <ReactMarkdown remarkPlugins={[remarkMath]} rehypePlugins={[rehypeKatex]}>{processMathContent(selectedNode?.description || "")}</ReactMarkdown>
               </div>
             </DialogHeader>
-            <ScrollArea className="flex-1 mt-8 pr-4">
+            <ScrollArea className="flex-1 min-h-0 mt-8 pr-4">
               <div className="space-y-4 text-left">
                 <h5 className="text-[10px] font-bold uppercase tracking-widest text-black/30 flex items-center gap-2"><Target className="w-3.5 h-3.5" /> 关联题目 ({nodeDetails.questions.length})</h5>
                 <div className="grid gap-2">{nodeDetails.questions.map(q => (
