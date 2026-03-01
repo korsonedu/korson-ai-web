@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { PageWrapper } from '@/components/PageWrapper';
-import { Target, Maximize2, ZoomIn, ZoomOut, GitMerge } from 'lucide-react';
+import { Target, Maximize2, ZoomIn, ZoomOut, GitMerge, Layers3 } from 'lucide-react';
 import api from '@/lib/api';
 import { processMathContent } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -34,6 +34,8 @@ export interface KPNode {
   vx?: number;
   vy?: number;
 }
+
+const SMART_GRAPH_MAX_KP_PER_PARENT = 6;
 
 // --- 高级力导向图引擎 ---
 export const KnowledgeGraph = ({ nodes, onNodeClick }: { nodes: KPNode[], onNodeClick: (node: KPNode) => void }) => {
@@ -103,8 +105,10 @@ export const KnowledgeGraph = ({ nodes, onNodeClick }: { nodes: KPNode[], onNode
     ctx.beginPath();
     ctx.strokeStyle = 'rgba(148, 163, 184, 0.4)';
     ctx.lineWidth = 1.5 / transform.k;
+    const hideDenseKpEdges = currentNodes.length > 140 && transform.k < 1.05;
     for (const node of currentNodes) {
       if (node.parent) {
+        if (hideDenseKpEdges && node.level === 'kp') continue;
         const parentNode = nodeMap.get(node.parent);
         if (parentNode) { ctx.moveTo(parentNode.x!, parentNode.y!); ctx.lineTo(node.x!, node.y!); }
       }
@@ -118,7 +122,7 @@ export const KnowledgeGraph = ({ nodes, onNodeClick }: { nodes: KPNode[], onNode
       ctx.fillStyle = node.level === 'sub' ? '#1e1b4b' : node.level === 'ch' ? '#4338ca' : node.level === 'sec' ? '#818cf8' : '#ffffff';
       ctx.fill();
       if (node.level === 'kp') { ctx.strokeStyle = "#94a3b8"; ctx.lineWidth = 1.5 / transform.k; ctx.stroke(); }
-      if (node.level !== 'kp' || transform.k > 0.8) {
+      if (node.level !== 'kp' || transform.k > 1.15) {
         ctx.fillStyle = node.level === 'kp' ? "#475569" : "#1e293b";
         ctx.font = `${node.level === 'kp' ? 'normal' : 'bold'} ${ (node.level === 'kp' ? 10 : 13) / transform.k}px sans-serif`;
         ctx.textAlign = "center";
@@ -164,6 +168,7 @@ export const KnowledgeMap: React.FC = () => {
   const [nodeDetails, setNodeDetails] = useState<{ courses: any[], articles: any[], questions: any[] }>({ courses: [], articles: [], questions: [] });
   const [searchQuery, setSearchQuery] = useState('');
   const [viewMode, setViewMode] = useState<'list' | 'graph'>('graph'); 
+  const [graphDensity, setGraphDensity] = useState<'smart' | 'full'>('smart');
   const [selectedRootId, setSelectedRootId] = useState<string>('all');
   const [selectedQuestion, setSelectedQuestion] = useState<any>(null);
 
@@ -212,6 +217,34 @@ export const KnowledgeMap: React.FC = () => {
     return allNodes.filter(n => validIds.has(n.id));
   }, [allNodes, selectedRootId]);
 
+  const graphNodes = useMemo(() => {
+    const isGlobalGraph = selectedRootId === 'all';
+    if (!isGlobalGraph || graphDensity === 'full') return displayNodes;
+
+    const coreNodes = displayNodes.filter(n => n.level !== 'kp');
+    const kpByParent = new Map<number, KPNode[]>();
+
+    for (const node of displayNodes) {
+      if (node.level !== 'kp' || !node.parent) continue;
+      const bucket = kpByParent.get(node.parent) || [];
+      bucket.push(node);
+      kpByParent.set(node.parent, bucket);
+    }
+
+    const selectedKpNodes: KPNode[] = [];
+    for (const list of kpByParent.values()) {
+      list.sort((a, b) => (b.questions_count || 0) - (a.questions_count || 0) || a.name.localeCompare(b.name));
+      selectedKpNodes.push(...list.slice(0, SMART_GRAPH_MAX_KP_PER_PARENT));
+    }
+
+    const visibleIds = new Set<number>([
+      ...coreNodes.map(n => n.id),
+      ...selectedKpNodes.map(n => n.id),
+    ]);
+    return displayNodes.filter(n => visibleIds.has(n.id));
+  }, [displayNodes, graphDensity, selectedRootId]);
+
+  const hiddenNodeCount = Math.max(displayNodes.length - graphNodes.length, 0);
   const listNodes = displayNodes.filter(n => n.level === 'kp' && n.name.toLowerCase().includes(searchQuery.toLowerCase()));
 
   return (
@@ -223,6 +256,18 @@ export const KnowledgeMap: React.FC = () => {
               <SelectTrigger className="w-[220px] h-11 bg-white rounded-2xl font-bold border-border shadow-sm"><GitMerge className="w-4 h-4 mr-2 text-indigo-500" /><SelectValue placeholder="全部分支" /></SelectTrigger>
               <SelectContent className="rounded-2xl"><SelectItem value="all" className="font-bold">全部分支</SelectItem>{rootOptions.map(opt => (<SelectItem key={opt.id} value={opt.id.toString()}>{opt.name}</SelectItem>))}</SelectContent>
             </Select>
+            {viewMode === 'graph' && (
+              <Select value={graphDensity} onValueChange={(value: 'smart' | 'full') => setGraphDensity(value)}>
+                <SelectTrigger className="w-[230px] h-11 bg-white rounded-2xl font-bold border-border shadow-sm">
+                  <Layers3 className="w-4 h-4 mr-2 text-slate-500" />
+                  <SelectValue placeholder="图谱密度" />
+                </SelectTrigger>
+                <SelectContent className="rounded-2xl">
+                  <SelectItem value="smart" className="font-bold">智能降噪</SelectItem>
+                  <SelectItem value="full" className="font-bold">完整全量</SelectItem>
+                </SelectContent>
+              </Select>
+            )}
             <Input placeholder={viewMode === 'list' ? "搜索考点..." : "关系图模式"} value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="flex-1 rounded-2xl bg-white border-border shadow-sm h-11 px-5 font-bold" disabled={viewMode === 'graph'} />
           </div>
           <div className="flex bg-muted/30 p-1 rounded-2xl border border-border/50 shrink-0">
@@ -234,7 +279,14 @@ export const KnowledgeMap: React.FC = () => {
         {loading ? (
           <div className="py-20 text-center opacity-20 font-bold uppercase text-[10px] animate-pulse">Mapping...</div>
         ) : viewMode === 'graph' ? (
-          <KnowledgeGraph nodes={displayNodes} onNodeClick={handleNodeSelect} />
+          <div className="space-y-2">
+            <KnowledgeGraph nodes={graphNodes} onNodeClick={handleNodeSelect} />
+            {selectedRootId === 'all' && graphDensity === 'smart' && hiddenNodeCount > 0 && (
+              <p className="text-[11px] font-bold text-slate-500 px-2">
+                已启用智能降噪：隐藏 {hiddenNodeCount} 个低优先级考点（每个父节点保留 Top {SMART_GRAPH_MAX_KP_PER_PARENT}）。
+              </p>
+            )}
+          </div>
         ) : (
           <div className="flex flex-wrap gap-2 bg-slate-50/50 p-6 rounded-[3rem] border border-border/50 min-h-[400px] content-start">
             {listNodes.map(node => (

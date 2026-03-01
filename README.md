@@ -40,6 +40,38 @@
 1. 安装依赖：`npm install`
 2. 启动开发环境：`npm run dev`
 
+## 431 知识点树导入
+
+后端已内置管理命令 `import_knowledge_tree`，用于把 Markdown 知识树一次性导入 `KnowledgePoint`。
+
+### 使用步骤
+1. 进入后端目录并激活虚拟环境：
+```bash
+cd backend
+source venv/bin/activate
+```
+2. 执行导入命令（把路径换成你的 `.md` 文件）：
+```bash
+python manage.py import_knowledge_tree /absolute/path/to/finance_431.md
+```
+
+### Markdown 格式要求
+- 一级/二级/三级标题分别映射为 `sub/ch/sec`：
+```md
+# [SUB-01] 模块名
+## [CH-01] 篇章名
+### [SEC-01] 小节名
+```
+- 具体考点用 `- [CODE] 名称` 表示，映射为 `kp`：
+```md
+- [MB-1001] 货币的起源（常考概念）
+```
+
+### 注意事项
+- 此命令会先执行 `KnowledgePoint.objects.all().delete()`，即先清空旧知识点再导入。
+- `name` 会自动去掉括号说明，括号内原文会保留在 `description`。
+- 导入完成后可在管理后台或 `/api/quizzes/knowledge-points/` 检查层级是否正确。
+
 ## 管理员指南
 - **机器人管理**：在“维护中心”部署新机器人，定义其 System Prompt。
 - **题目入库**：支持 **CSV 批量导入**、AI 智能导入及手工录入，AI 将自动为缺失答案的题目生成解析。
