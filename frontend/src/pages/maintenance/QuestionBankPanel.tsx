@@ -101,6 +101,12 @@ export const QuestionBankPanel = ({ kpList, onEdit, onDelete }: { kpList: any[],
 
   const invalidDifficultyCount = previewQuestions.filter(q => q.difficulty_check_passed === false).length;
 
+  const autoResizeTextarea = (el: HTMLTextAreaElement | null) => {
+    if (!el) return;
+    el.style.height = 'auto';
+    el.style.height = `${el.scrollHeight}px`;
+  };
+
   const buildTypeRatioPayload = () => {
     const baseRatio = AI_TYPE_RATIO_PRESET_MAP[selectedTypeRatioPreset] || AI_TYPE_RATIO_PRESET_MAP.balanced;
     const enabledSet = new Set(selectedTypes);
@@ -255,6 +261,11 @@ export const QuestionBankPanel = ({ kpList, onEdit, onDelete }: { kpList: any[],
     }
     setPreviewQuestions(updated);
   };
+
+  useEffect(() => {
+    const nodes = document.querySelectorAll<HTMLTextAreaElement>('[data-ai-option-textarea="true"]');
+    nodes.forEach(autoResizeTextarea);
+  }, [previewQuestions]);
 
   const getQuestionTypeLabel = (q: any) => {
     if (q.q_type === 'objective') return '单项选择题';
@@ -517,9 +528,12 @@ export const QuestionBankPanel = ({ kpList, onEdit, onDelete }: { kpList: any[],
                                             <div key={opt} className={cn("flex items-start gap-3 p-4 rounded-2xl border transition-all", q.answer === opt ? "bg-indigo-50 border-indigo-200 ring-1 ring-indigo-100" : "bg-slate-50/50 border-black/[0.02]")}>
                                                 <div onClick={() => updatePreviewQuestion(idx, 'answer', opt)} className={cn("w-8 h-8 rounded-full border flex items-center justify-center font-black text-xs cursor-pointer shrink-0 shadow-sm transition-all mt-0.5", q.answer === opt ? "bg-indigo-600 border-indigo-600 text-white" : "bg-white border-black/10 text-black/30")}>{opt}</div>
                                                 <textarea
+                                                  data-ai-option-textarea="true"
                                                   value={q.options[opt]}
+                                                  rows={1}
+                                                  onInput={e => autoResizeTextarea(e.currentTarget)}
                                                   onChange={e => updatePreviewQuestion(idx, 'option', { key: opt, val: e.target.value })}
-                                                  className="flex-1 bg-transparent border-none p-0 text-xs font-bold text-[#1D1D1F] leading-relaxed focus:ring-0 placeholder:text-black/20 resize-y min-h-[72px] whitespace-pre-wrap break-words"
+                                                  className="flex-1 bg-transparent border-none p-0 text-xs font-bold text-[#1D1D1F] leading-relaxed focus:ring-0 placeholder:text-black/20 resize-none min-h-0 overflow-hidden whitespace-pre-wrap break-words"
                                                   placeholder="选项内容..."
                                                 />
                                             </div>

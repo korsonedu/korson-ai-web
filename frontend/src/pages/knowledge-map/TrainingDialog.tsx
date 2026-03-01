@@ -153,7 +153,7 @@ export const KnowledgeTrainingDialog: React.FC<KnowledgeTrainingDialogProps> = (
                         key={opt.key}
                         onClick={() => setAnswer(opt.key)}
                         className={cn(
-                          "w-full p-4 rounded-2xl border text-left font-bold transition-all flex items-start gap-5 group/opt",
+                          "w-full p-4 rounded-2xl border text-left font-bold transition-all flex items-center gap-5 group/opt",
                           answer === opt.key
                             ? "bg-slate-900 text-white border-slate-900 shadow-xl scale-[1.01]"
                             : "bg-white border-slate-200/60 hover:border-indigo-400 hover:bg-slate-50"
@@ -161,7 +161,7 @@ export const KnowledgeTrainingDialog: React.FC<KnowledgeTrainingDialogProps> = (
                       >
                         <div
                           className={cn(
-                            "h-7 w-7 rounded-xl border-2 flex items-center justify-center transition-all shrink-0 mt-0.5",
+                            "h-7 w-7 rounded-xl border-2 flex items-center justify-center transition-all shrink-0",
                             answer === opt.key
                               ? "border-white/20 bg-indigo-600"
                               : "border-slate-100 bg-slate-50 group-hover/opt:border-indigo-200"
