@@ -175,11 +175,18 @@ def run_exam_grading(user_id: int, exam_id: int, questions_data: List[Dict[str, 
     exam.elo_change = elo_change
     exam.save(update_fields=['total_score', 'max_score', 'elo_change'])
 
+    if question_count == 1:
+        title = '🧠 特训判分完成'
+        content = f'该题已完成 AI 判分：{total_score}/{max_total_score}。点击查看详解。'
+    else:
+        title = '📝 评估完成'
+        content = f'得分：{total_score}/{max_total_score}。本次测验平均难度：{int(avg_difficulty)}。'
+
     Notification.objects.create(
         recipient=user,
         ntype='system',
-        title='📝 评估完成',
-        content=f'得分：{total_score}/{max_total_score}。本次测验平均难度：{int(avg_difficulty)}。',
+        title=title,
+        content=content,
         link=f'/tests?action=view_report&exam_id={exam.id}',
     )
 

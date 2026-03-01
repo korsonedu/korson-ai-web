@@ -73,4 +73,8 @@ def validate_grading_payload(payload: Any) -> Tuple[bool, List[str]]:
     if not feedback:
         errors.append('feedback_empty')
 
+    analysis = str(payload.get('analysis', '')).strip()
+    if not analysis:
+        errors.append('analysis_empty')
+
     return len(errors) == 0, errors

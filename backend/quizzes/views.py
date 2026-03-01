@@ -23,7 +23,6 @@ from notifications.models import Notification
 from .ai_workflow import (
     grade_single_question_submission,
     mark_questions_reviewed,
-    run_exam_grading,
     save_confirmed_questions,
 )
 from .services.ai_parse_service import (
@@ -265,21 +264,17 @@ class SubmitExamView(APIView):
             question_ids=[item.get('question_id') for item in questions_data if item.get('question_id') is not None],
         )
 
-        # 单题特训走同步批改，便于前端即时拿报告；多题走后台线程。
-        if len(questions_data) == 1:
-            run_exam_grading(request.user.id, exam.id, questions_data)
-            return Response({
-                'status': 'completed',
-                'exam_id': exam.id,
-                'message': '试卷已完成批改。'
-            })
-
         dispatch_exam_grading(request.user.id, exam.id, questions_data)
-        
+
+        # 统一走后台批改，避免前端刷新/离开导致用户侧状态丢失。
+        message = '试卷已提交后台批改，结果将通过通知发送。'
+        if len(questions_data) == 1:
+            message = '特训已提交后台判分，完成后将通过通知发送。'
+
         return Response({
             'status': 'processing',
             'exam_id': exam.id,
-            'message': '试卷已提交后台批改，结果将通过通知发送。'
+            'message': message,
         })
 
 class LatestExamReportView(APIView):

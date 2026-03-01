@@ -27,6 +27,7 @@ class QuizAITaskService:
         'grading_result': (
             '输出必须是单个 JSON 对象，且仅包含: '
             'score(number), feedback(string), analysis(string), fsrs_rating(integer 1-4)。'
+            '其中 feedback=判分依据和深度解析，analysis=标准答案（满分示范作答）。'
         ),
     }
 
@@ -197,8 +198,19 @@ class QuizAITaskService:
             is_correct = bool(user_choice and user_choice == correct_choice)
             return {
                 'score': max_score if is_correct else 0.0,
-                'feedback': '回答正确，判断准确。' if is_correct else f'回答错误，正确答案为 {correct_choice or "标准答案未设置"}。',
-                'analysis': f'本题为客观题。你的作答：{user_choice or "未作答"}；参考答案：{correct_choice or "未设置"}。',
+                'feedback': (
+                    f'判分依据：本题按标准答案唯一判分。你的作答为 {user_choice or "未作答"}，'
+                    f'标准答案为 {correct_choice or "未设置"}。'
+                    + ('作答与标准答案一致，因此给满分。' if is_correct else '两者不一致，因此本题不得分。')
+                ),
+                'analysis': (
+                    f'标准答案：选择 {correct_choice or "（题库未设置）"}。'
+                    + (
+                        '该选项满足题干条件并与题目设定一致。'
+                        if correct_choice
+                        else '请管理员补全该题标准答案后再进行训练。'
+                    )
+                ),
                 'fsrs_rating': 4 if is_correct else 1,
             }
 
@@ -233,11 +245,11 @@ class QuizAITaskService:
         )
 
         if not isinstance(parsed, dict):
-            fallback_feedback = '未能完成 AI 判分，已返回兜底结果。'
+            fallback_feedback = '判分依据和深度解析：未能完成 AI 判分，已返回兜底结果。'
             return {
                 'score': 0.0,
                 'feedback': fallback_feedback,
-                'analysis': str(correct_answer or ''),
+                'analysis': f'标准答案：{str(correct_answer or "")}',
                 'fsrs_rating': 1,
             }
 
