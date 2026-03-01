@@ -21,8 +21,6 @@ import { AssessmentDialog } from './test-ladder/AssessmentDialog';
 import { ResultReportDialog } from './test-ladder/ResultReportDialog';
 import { Leaderboard } from './test-ladder/Leaderboard';
 
-const TEST_PENDING_EXAM_KEY = 'test_ladder_pending_exam_id_v1';
-
 export const TestLadder: React.FC = () => {
   const { primaryColor } = useSystemStore();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -46,70 +44,10 @@ export const TestLadder: React.FC = () => {
   const [showResultDialog, setShowResultDialog] = useState(false);
   const [currentReportIdx, setCurrentReportIdx] = useState(0);
   const [examSummary, setExamSummary] = useState<any>(null);
-  const [isRecoveringReport, setIsRecoveringReport] = useState(false);
 
   useEffect(() => {
     fetchLeaderboard();
     fetchGoals();
-  }, []);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    const recoverPendingExam = async () => {
-      const raw = window.localStorage.getItem(TEST_PENDING_EXAM_KEY);
-      if (!raw) return;
-      const examId = Number(raw);
-      if (!Number.isFinite(examId)) {
-        window.localStorage.removeItem(TEST_PENDING_EXAM_KEY);
-        return;
-      }
-
-      setIsRecoveringReport(true);
-      try {
-        for (let i = 0; i < 90; i += 1) {
-          if (cancelled) return;
-          try {
-            const res = await api.get(`/quizzes/exams/${examId}/`);
-            const rows = Array.isArray(res.data?.results) ? res.data.results : [];
-            if (rows.length > 0) {
-              if (cancelled) return;
-              setExamSummary({
-                total_score: res.data.total_score,
-                max_score: res.data.max_score,
-                elo_change: res.data.elo_change,
-                created_at: res.data.created_at_fmt
-              });
-              const mappedResults = rows.map((r: any) => ({
-                question: r.question_detail,
-                user_answer: r.user_answer,
-                score: r.score,
-                max_score: r.max_score,
-                feedback: r.feedback,
-                analysis: r.analysis,
-                is_correct: r.is_correct
-              }));
-              setResults(mappedResults);
-              setCurrentReportIdx(0);
-              setShowResultDialog(true);
-              window.localStorage.removeItem(TEST_PENDING_EXAM_KEY);
-              toast.success("判分已完成，已恢复报告");
-              return;
-            }
-          } catch {
-            // 网络波动或尚未生成报告时继续轮询
-          }
-          await new Promise((resolve) => window.setTimeout(resolve, 2000));
-        }
-      } finally {
-        if (!cancelled) setIsRecoveringReport(false);
-      }
-    };
-
-    recoverPendingExam();
-    return () => {
-      cancelled = true;
-    };
   }, []);
 
   useEffect(() => {
@@ -206,12 +144,8 @@ export const TestLadder: React.FC = () => {
     setIsSubmitting(true);
     try {
       const payload = unmasteredQuestions.map(q => ({ question_id: q.id, answer: answers[q.id] }));
-      const res = await api.post('/quizzes/submit-exam/', { answers: payload });
-      const examId = Number(res.data?.exam_id);
-      if (Number.isFinite(examId)) {
-        window.localStorage.setItem(TEST_PENDING_EXAM_KEY, String(examId));
-      }
-      toast.success("试卷已提交 AI 批改", { description: "可刷新页面，系统会自动恢复并展示报告。" });
+      await api.post('/quizzes/submit-exam/', { answers: payload });
+      toast.success("试卷已提交 AI 批改", { description: "完成后请在通知中心点击查看报告。" });
       setIsTestOpen(false);
       fetchGoals();
     } catch (e: any) {
@@ -315,10 +249,6 @@ export const TestLadder: React.FC = () => {
           currentReportIdx={currentReportIdx} 
           setCurrentReportIdx={setCurrentReportIdx} 
         />
-
-        {isRecoveringReport && (
-          <div className="text-xs font-bold text-slate-400 tracking-wide">正在恢复最近一次判分结果...</div>
-        )}
 
         <Leaderboard leaderboard={leaderboard} />
       </div>

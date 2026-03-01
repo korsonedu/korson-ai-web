@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -15,50 +15,6 @@ interface KnowledgeTrainingDialogProps {
   onClose: () => void;
   onSuccess?: () => void;
 }
-
-const TRAINING_PENDING_KEY = 'knowledge_training_pending_exam_v1';
-const TRAINING_POLL_INTERVAL_MS = 1500;
-const TRAINING_MAX_POLL_ATTEMPTS = 60;
-
-interface PendingTrainingExam {
-  questionId: number;
-  answer: string;
-  startedAt: number;
-  examId?: number;
-}
-
-const readPendingTrainingExam = (): PendingTrainingExam | null => {
-  if (typeof window === 'undefined') return null;
-  try {
-    const raw = window.localStorage.getItem(TRAINING_PENDING_KEY);
-    if (!raw) return null;
-    const parsed = JSON.parse(raw);
-    if (!parsed || typeof parsed !== 'object') return null;
-    const questionId = Number(parsed.questionId);
-    const startedAt = Number(parsed.startedAt);
-    if (!Number.isFinite(questionId) || !Number.isFinite(startedAt)) return null;
-    return {
-      questionId,
-      answer: String(parsed.answer || ''),
-      startedAt,
-      examId: parsed.examId != null ? Number(parsed.examId) : undefined,
-    };
-  } catch {
-    return null;
-  }
-};
-
-const writePendingTrainingExam = (payload: PendingTrainingExam) => {
-  if (typeof window === 'undefined') return;
-  window.localStorage.setItem(TRAINING_PENDING_KEY, JSON.stringify(payload));
-};
-
-const clearPendingTrainingExam = () => {
-  if (typeof window === 'undefined') return;
-  window.localStorage.removeItem(TRAINING_PENDING_KEY);
-};
-
-const sleep = (ms: number) => new Promise((resolve) => window.setTimeout(resolve, ms));
 
 const normalizeObjectiveOptions = (rawOptions: any): Array<{ key: string; text: string }> => {
   if (Array.isArray(rawOptions)) {
@@ -92,11 +48,9 @@ export const KnowledgeTrainingDialog: React.FC<KnowledgeTrainingDialogProps> = (
 }) => {
   const [answer, setAnswer] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isRecovering, setIsRecovering] = useState(false);
   const [showResult, setShowResult] = useState(false);
   const [resultData, setResultData] = useState<any>(null);
   const contentRef = useRef<HTMLDivElement>(null);
-  const pollTokenRef = useRef(0);
 
   const objectiveOptions = useMemo(
     () => normalizeObjectiveOptions(question?.options),
@@ -104,10 +58,8 @@ export const KnowledgeTrainingDialog: React.FC<KnowledgeTrainingDialogProps> = (
   );
 
   useEffect(() => {
-    pollTokenRef.current += 1;
     setAnswer('');
     setIsSubmitting(false);
-    setIsRecovering(false);
     setShowResult(false);
     setResultData(null);
   }, [question?.id]);
@@ -115,100 +67,6 @@ export const KnowledgeTrainingDialog: React.FC<KnowledgeTrainingDialogProps> = (
   useEffect(() => {
     if (contentRef.current) contentRef.current.scrollTop = 0;
   }, [question?.id, showResult]);
-
-  const findQuestionResult = useCallback((results: any[] | undefined): any | null => {
-    if (!Array.isArray(results) || !question?.id) return null;
-    const qid = String(question.id);
-    return (
-      results.find((item) => String(item?.question) === qid)
-      || results.find((item) => String(item?.question_id) === qid)
-      || results.find((item) => String(item?.question_detail?.id) === qid)
-      || null
-    );
-  }, [question?.id]);
-
-  const waitExamResultById = useCallback(
-    async (examId: number, pollToken: number, maxAttempts = TRAINING_MAX_POLL_ATTEMPTS): Promise<any | null> => {
-      for (let i = 0; i < maxAttempts; i += 1) {
-        if (pollToken !== pollTokenRef.current) return null;
-        try {
-          const byExam = await api.get(`/quizzes/exams/${examId}/`);
-          const recovered = findQuestionResult(byExam.data?.results) || byExam.data?.results?.[0] || null;
-          if (recovered) return recovered;
-        } catch {
-          // 继续重试，避免瞬时网络抖动导致流程中断
-        }
-        await sleep(TRAINING_POLL_INTERVAL_MS);
-      }
-      return null;
-    },
-    [findQuestionResult]
-  );
-
-  const waitLatestMatchingResult = useCallback(
-    async (pending: PendingTrainingExam, pollToken: number, maxAttempts = 20): Promise<any | null> => {
-      for (let i = 0; i < maxAttempts; i += 1) {
-        if (pollToken !== pollTokenRef.current) return null;
-        try {
-          const latest = await api.get('/quizzes/latest-report/');
-          const recovered = findQuestionResult(latest.data?.results);
-          const createdAtMs = Date.parse(String(latest.data?.created_at || ''));
-          const isFreshEnough = !Number.isFinite(createdAtMs) || createdAtMs >= pending.startedAt - 10 * 60 * 1000;
-          if (recovered && isFreshEnough) return recovered;
-        } catch {
-          // latest-report 可能暂不可读，继续轮询
-        }
-        await sleep(2000);
-      }
-      return null;
-    },
-    [findQuestionResult]
-  );
-
-  useEffect(() => {
-    let canceled = false;
-
-    const recoverResultIfNeeded = async () => {
-      if (!question?.id) return;
-      const pending = readPendingTrainingExam();
-      if (!pending || pending.questionId !== Number(question.id)) return;
-
-      const isExpired = Date.now() - pending.startedAt > 30 * 60 * 1000;
-      if (isExpired) {
-        clearPendingTrainingExam();
-        return;
-      }
-
-      setIsRecovering(true);
-      try {
-        const pollToken = pollTokenRef.current;
-        let recovered: any | null = null;
-        if (pending.examId && Number.isFinite(pending.examId)) {
-          recovered = await waitExamResultById(pending.examId, pollToken, 80);
-        }
-
-        if (!recovered) {
-          recovered = await waitLatestMatchingResult(pending, pollToken, 25);
-        }
-
-        if (!canceled && pollToken === pollTokenRef.current && recovered) {
-          setResultData(recovered);
-          setShowResult(true);
-          clearPendingTrainingExam();
-          if (onSuccess) onSuccess();
-        }
-      } catch {
-        // 静默失败，允许用户手动重新提交
-      } finally {
-        if (!canceled) setIsRecovering(false);
-      }
-    };
-
-    recoverResultIfNeeded();
-    return () => {
-      canceled = true;
-    };
-  }, [onSuccess, question?.id, waitExamResultById, waitLatestMatchingResult]);
 
   const standardAnswerText = useMemo(() => {
     if (!showResult) return '';
@@ -228,56 +86,16 @@ export const KnowledgeTrainingDialog: React.FC<KnowledgeTrainingDialogProps> = (
     if (!answer.trim()) return toast.error("请输入或选择答案");
 
     setIsSubmitting(true);
-    const pendingBase: PendingTrainingExam = {
-      questionId: Number(question.id),
-      answer: answer,
-      startedAt: Date.now(),
-    };
-    writePendingTrainingExam(pendingBase);
-
-    let examId: number | null = null;
     try {
       const payload = [{ question_id: question.id, answer: answer }];
-      const res = await api.post('/quizzes/submit-exam/', { answers: payload });
-      const parsedExamId = Number(res.data.exam_id);
-      if (Number.isFinite(parsedExamId)) {
-        examId = parsedExamId;
-        writePendingTrainingExam({ ...pendingBase, examId: parsedExamId });
-      }
+      await api.post('/quizzes/submit-exam/', { answers: payload });
+      toast.success('已提交后台判分，你可以先去做别的事。');
+      if (onSuccess) onSuccess();
+      onClose();
     } catch (e: any) {
-      clearPendingTrainingExam();
       toast.error(e.response?.data?.error || "提交失败");
-      setIsSubmitting(false);
-      return;
-    }
-    setIsSubmitting(false);
-
-    setIsRecovering(true);
-    const pollToken = pollTokenRef.current;
-    try {
-      let recovered: any | null = null;
-      if (examId && Number.isFinite(examId)) {
-        recovered = await waitExamResultById(examId, pollToken);
-      }
-      if (!recovered) {
-        recovered = await waitLatestMatchingResult(
-          { ...pendingBase, examId: examId || undefined },
-          pollToken,
-          20
-        );
-      }
-
-      if (pollToken !== pollTokenRef.current) return;
-      if (recovered) {
-        setResultData(recovered);
-        setShowResult(true);
-        clearPendingTrainingExam();
-        if (onSuccess) onSuccess();
-      } else {
-        toast.info('判分仍在后台进行，完成后会发系统通知。你可以先离开页面。');
-      }
     } finally {
-      if (pollToken === pollTokenRef.current) setIsRecovering(false);
+      setIsSubmitting(false);
     }
   };
 
@@ -285,7 +103,6 @@ export const KnowledgeTrainingDialog: React.FC<KnowledgeTrainingDialogProps> = (
     setAnswer('');
     setShowResult(false);
     setResultData(null);
-    clearPendingTrainingExam();
   };
 
   if (!question) return null;
@@ -442,13 +259,13 @@ export const KnowledgeTrainingDialog: React.FC<KnowledgeTrainingDialogProps> = (
               </Button>
               <Button
                 onClick={handleSubmit}
-                disabled={isSubmitting || isRecovering || !answer.trim()}
+                disabled={isSubmitting || !answer.trim()}
                 className="rounded-2xl px-12 bg-indigo-600 text-white hover:bg-indigo-700 font-black h-14 shadow-xl shadow-indigo-100 transition-all active:scale-95"
               >
-                {isSubmitting || isRecovering ? (
+                {isSubmitting ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                    {isRecovering ? '后台判分中...' : '提交中...'}
+                    提交中...
                   </>
                 ) : (
                   <>
