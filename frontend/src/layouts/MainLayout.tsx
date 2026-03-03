@@ -61,6 +61,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
+import UnimindLogo from '../../Unimind_logo.png';
 
 const SidebarItem = ({ to, icon: Icon, label, active, collapsed, restricted, onRestrictedClick }: any) => {
   const content = (
@@ -119,19 +120,11 @@ export const MainLayout: React.FC = () => {
   const [showActivateDialog, setShowActivateDialog] = useState(false);
   const [activationCode, setActivationCode] = useState('');
   const [isActivating, setIsActivating] = useState(false);
-  const [schoolConfig, setSchoolConfig] = useState({ name: '宇艺', desc: 'UNIMIND.AI', logo: '' });
 
   const isFullPage = ['/intro', '/course-details', '/management'].includes(location.pathname);
 
   useEffect(() => {
     document.documentElement.style.setProperty('--primary-override', primaryColor);
-    api.get('/users/config/').then(res => {
-      setSchoolConfig({ 
-        name: res.data.school_name, 
-        desc: res.data.school_description,
-        logo: res.data.school_logo_url
-      });
-    }).catch(() => {});
   }, [primaryColor]);
 
   const handleActivate = async () => {
@@ -166,35 +159,25 @@ export const MainLayout: React.FC = () => {
     <TooltipProvider delayDuration={0}>
       <div className="flex h-screen bg-background text-foreground overflow-hidden font-sans selection:bg-primary selection:text-primary-foreground">
         <aside className={cn(
-          "relative border-r border-border flex flex-col p-2 bg-card/70 backdrop-blur-2xl transition-all duration-500 ease-in-out z-30",
-          collapsed ? "w-16" : "w-52"
+          "relative border-r border-border flex flex-col p-2 bg-card/70 backdrop-blur-2xl transition-all duration-500 ease-in-out z-30 shrink-0",
+          collapsed ? "w-16 min-w-16 max-w-16" : "w-48 min-w-48 max-w-36"
         )}>
           {/* Header Section */}
-          <div className={cn("mb-6 mt-2 flex items-center transition-all h-10", collapsed ? "justify-center" : "justify-between px-2")}>
-            {!collapsed ? (
-              <>
-                <div className="flex items-center gap-3 min-w-0">
-                  <div className="h-9 w-9 rounded-xl bg-black flex items-center justify-center shrink-0 shadow-xl overflow-hidden text-white font-bold text-lg italic" style={{backgroundColor: primaryColor}}>
-                    {schoolConfig.logo ? (
-                      <img src={schoolConfig.logo} className="w-full h-full object-cover" />
-                    ) : (
-                      <span>{schoolConfig.name[0]}</span>
-                    )}
-                  </div>
-                  <div className="flex flex-col animate-in fade-in duration-500 min-w-0">
-                    <h1 className="text-[14px] font-bold tracking-tight truncate w-24">{schoolConfig.name}</h1>
-                    <p className="text-[11px] text-muted-foreground font-bold uppercase tracking-wider truncate w-24">{schoolConfig.desc}</p>
-                  </div>
-                </div>
-                <Button variant="ghost" size="icon" onClick={() => setCollapsed(true)} className="h-6 w-6 text-muted-foreground hover:bg-muted rounded-full">
-                  <ChevronLeft className="h-4 w-4" />
-                </Button>
-              </>
-            ) : (
-              <Button variant="ghost" size="icon" onClick={() => setCollapsed(false)} className="h-10 w-10 text-muted-foreground hover:text-foreground rounded-xl">
-                <ChevronRight className="h-5 w-5" />
-              </Button>
-            )}
+          <div className={cn("mb-6 mt-2 flex items-center transition-all", collapsed ? "flex-col gap-2 justify-center" : "justify-between px-2")}>
+            <div className={cn("shrink-0 overflow-hidden", collapsed ? "w-10 h-10 rounded-xl" : "w-32 h-8")}>
+              <img src={UnimindLogo} alt="Unimind.ai" className="w-full h-full object-contain" />
+            </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setCollapsed(!collapsed)}
+              className={cn(
+                "text-muted-foreground hover:bg-muted rounded-full",
+                collapsed ? "h-8 w-8" : "h-6 w-6"
+              )}
+            >
+              {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+            </Button>
           </div>
 
           <nav className="flex-1 space-y-0.5">

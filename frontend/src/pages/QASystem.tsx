@@ -150,16 +150,13 @@ const AnswerItem = ({ answer, isFirst, onReplyClick, onRefresh }: { answer: any,
             <div 
                 onClick={onReplyClick}
                 className={cn(
-                "text-xs leading-relaxed break-words rounded-2xl px-4 py-2.5 relative cursor-pointer hover:ring-2 hover:ring-indigo-100 transition-all", 
+                "text-xs leading-relaxed break-words whitespace-pre-wrap rounded-2xl px-4 py-2.5 relative cursor-pointer hover:ring-2 hover:ring-indigo-100 transition-all", 
                 isFirst ? "bg-indigo-50/50 text-indigo-950 font-medium border border-indigo-100/50" : "bg-muted/30 text-foreground"
                 )}
             >
                 <ReactMarkdown 
                 remarkPlugins={[remarkMath]} 
                 rehypePlugins={[rehypeKatex]}
-                components={{
-                    p: ({node, ...props}) => <p {...props} className="m-0 inline" />,
-                }}
                 >
                 {processMathContent(answer.content)}
                 </ReactMarkdown>
@@ -194,7 +191,7 @@ const ThreadCard = ({ question, onRefresh, isAdmin }: { question: any, onRefresh
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showInput, setShowInput] = useState(false);
   const { user } = useAuthStore();
-  const inputRef = useRef<HTMLInputElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
 
   // Editing state
   const [isEditing, setIsEditing] = useState(false);
@@ -444,15 +441,20 @@ const ThreadCard = ({ question, onRefresh, isAdmin }: { question: any, onRefresh
 
       {/* Reply Input */}
       {showInput && (
-        <div className="pl-13 mt-4 flex gap-2 animate-in fade-in slide-in-from-bottom-2">
-          <Input 
+        <div className="pl-13 mt-4 flex gap-2 items-start animate-in fade-in slide-in-from-bottom-2">
+          <textarea
             autoFocus
             ref={inputRef}
             value={replyContent} 
             onChange={e => setReplyContent(e.target.value)} 
-            placeholder={isAdmin ? "教师回复..." : "回复..."}
-            className="h-10 rounded-xl bg-muted/30 border-transparent focus:bg-white transition-all text-xs font-medium"
-            onKeyDown={e => e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing && handleReply()}
+            placeholder={isAdmin ? "教师回复... (Enter发送，Shift+Enter换行)" : "回复... (Enter发送，Shift+Enter换行)"}
+            className="w-full min-h-[40px] max-h-36 rounded-xl bg-muted/30 border border-transparent focus:bg-white transition-all text-xs font-medium px-3 py-2 resize-none leading-relaxed focus:outline-none focus:ring-2 focus:ring-black/5"
+            onKeyDown={e => {
+              if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) {
+                e.preventDefault();
+                handleReply();
+              }
+            }}
             onBlur={(e) => {
               // Only close if we are not clicking the Send button
               if (!e.relatedTarget || !(e.relatedTarget as HTMLElement).closest('.send-button')) {
