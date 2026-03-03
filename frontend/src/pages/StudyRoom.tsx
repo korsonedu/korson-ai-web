@@ -6,7 +6,7 @@ import {
   Send, Users, MessageSquare, Play, Pause, 
   RotateCcw, CheckCircle2, MoreHorizontal, 
   Plus, Zap, Timer, XCircle, ListTodo, Circle,
-  Trophy, Clock, Radio, Eye, Smile, Image as ImageIcon,
+  Trophy, Clock, Radio, Eye, Smile, Image as ImageIcon, Camera,
   FileVideo, ArrowDown, Loader2, Calendar, Trash2
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -115,6 +115,9 @@ export const StudyRoom: React.FC = () => {
   const [chatInput, setChatInput] = useState('');
   const [showStopAlert, setShowStopAlert] = useState(false);
   const [isTimerOpen, setIsTimerOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  const [showMobileTimerSetup, setShowMobileTimerSetup] = useState(false);
+  const [showMobileTimerFullscreen, setShowMobileTimerFullscreen] = useState(false);
   const [isAtBottom, setIsAtBottom] = useState(true);
   const [isComposing, setIsComposing] = useState(false);
   const [giphySearch, setGiphySearch] = useState('');
@@ -122,6 +125,7 @@ export const StudyRoom: React.FC = () => {
   const [isGiphyLoading, setIsGiphyLoading] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
   const chatTextareaRef = useRef<HTMLTextAreaElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const lastMessageIdRef = useRef<number | null>(null);
@@ -149,6 +153,11 @@ export const StudyRoom: React.FC = () => {
   const resizeChatTextarea = () => {
     const el = chatTextareaRef.current;
     if (!el) return;
+    if (isMobile) {
+      el.style.height = '40px';
+      el.style.overflowY = 'auto';
+      return;
+    }
     el.style.height = 'auto';
     const maxHeight = 128;
     const nextHeight = Math.min(el.scrollHeight, maxHeight);
@@ -232,12 +241,21 @@ export const StudyRoom: React.FC = () => {
   }, []);
 
   useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const media = window.matchMedia('(max-width: 767px)');
+    const sync = () => setIsMobile(media.matches);
+    sync();
+    media.addEventListener('change', sync);
+    return () => media.removeEventListener('change', sync);
+  }, []);
+
+  useEffect(() => {
     sendHeartbeat();
   }, [isActive]);
 
   useEffect(() => {
     resizeChatTextarea();
-  }, [chatInput]);
+  }, [chatInput, isMobile]);
 
   const handleScroll = () => {
     if (!scrollContainerRef.current) return;
@@ -373,6 +391,13 @@ export const StudyRoom: React.FC = () => {
     }
   };
 
+  const handleEnterMobileFocus = async () => {
+    if (!taskName.trim()) return toast.error("请输入任务名称");
+    if (!isActive) await handleStartTask();
+    setShowMobileTimerSetup(false);
+    setShowMobileTimerFullscreen(true);
+  };
+
   const handleCompleteTask = async (isManual: boolean) => {
     setIsActive(false);
     sendHeartbeat({ current_task: null, current_timer_end: null });
@@ -432,24 +457,36 @@ export const StudyRoom: React.FC = () => {
   const lastMyTaskMessageId = myTaskMessages.length > 0 ? myTaskMessages[myTaskMessages.length - 1].id : null;
 
   return (
-    <div className="h-[calc(100vh-6.5rem)] flex gap-6 animate-in fade-in duration-300 text-left text-foreground">
+    <div className={cn(
+      "overflow-hidden animate-in fade-in duration-300 text-left text-foreground",
+      isMobile ? "h-full min-h-0 flex flex-col gap-0" : "h-[calc(100vh-6.5rem)] flex gap-6"
+    )}>
       <div 
-        className={cn("flex-1 flex flex-col bg-card rounded-3xl shadow-sm border border-border overflow-hidden relative transition-all duration-300", isDragging && "ring-4 ring-primary/20 bg-primary/5 border-primary border-dashed z-50")}
+        className={cn(
+          isMobile
+            ? "flex-1 min-h-0 flex flex-col bg-background overflow-hidden relative transition-all duration-300"
+            : "flex-1 flex flex-col bg-card rounded-3xl shadow-sm border border-border overflow-hidden relative transition-all duration-300",
+          isDragging && "ring-4 ring-primary/20 bg-primary/5 border-primary border-dashed z-50",
+        )}
         onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); setIsDragging(true); }}
         onDragEnter={(e) => { e.preventDefault(); e.stopPropagation(); setIsDragging(true); }}
         onDragLeave={(e) => { e.preventDefault(); e.stopPropagation(); setIsDragging(false); }}
         onDrop={onDrop}
       >
-        <header className="px-8 py-3 border-b border-border flex items-center justify-between bg-card/80 backdrop-blur-md sticky top-0 z-20">
+        <header className={cn(
+          "border-b border-border flex items-center justify-between bg-card/80 backdrop-blur-md sticky top-0 z-20",
+          isMobile ? "px-3 py-2.5" : "px-8 py-3"
+        )}>
           <div className="flex items-center gap-4">
             <div className="h-9 w-9 rounded-xl bg-primary flex items-center justify-center shadow-lg text-primary-foreground"><MessageSquare className="h-4 w-4" /></div>
             <h2 className="text-sm font-bold tracking-tight">学习咖啡厅</h2>
           </div>
           <div className="flex items-center gap-2">
-            <Popover open={isTimerOpen} onOpenChange={setIsTimerOpen}>
-              <PopoverTrigger asChild><Button className={cn("rounded-2xl h-10 px-5 gap-3 transition-all duration-500 shadow-xl border border-black/5", isActive ? "bg-emerald-500 text-white" : "bg-primary text-primary-foreground hover:opacity-90")}><Timer className="h-4 w-4" /><span className="font-mono font-bold text-sm tracking-tight tabular-nums">{formatTime(timeLeft)}</span></Button></PopoverTrigger>
-              <PopoverContent className="w-80 rounded-[2.5rem] p-8 border-none shadow-2xl bg-card/95 backdrop-blur-xl z-[100]" side="bottom" align="end">
-                 <div className="space-y-5 text-center">
+            {!isMobile && (
+              <Popover open={isTimerOpen} onOpenChange={setIsTimerOpen}>
+                <PopoverTrigger asChild><Button className={cn("rounded-2xl h-10 px-5 gap-3 transition-all duration-500 shadow-xl border border-black/5", isActive ? "bg-emerald-500 text-white" : "bg-primary text-primary-foreground hover:opacity-90")}><Timer className="h-4 w-4" /><span className="font-mono font-bold text-sm tracking-tight tabular-nums">{formatTime(timeLeft)}</span></Button></PopoverTrigger>
+                <PopoverContent className="w-80 rounded-[2.5rem] p-8 border-none shadow-2xl bg-card/95 backdrop-blur-xl z-[100]" side="bottom" align="end">
+                  <div className="space-y-5 text-center">
                     <div className="text-5xl font-mono font-bold tracking-tighter text-foreground tabular-nums">{formatTime(timeLeft)}</div>
                     <div className="space-y-4 text-left">
                       <div className="space-y-2">
@@ -463,9 +500,10 @@ export const StudyRoom: React.FC = () => {
                       <Button size="lg" onClick={isActive ? () => setIsActive(false) : handleStartTask} className={cn("rounded-2xl flex-1 font-bold h-12 shadow-lg", isActive ? "bg-muted text-foreground" : "bg-primary text-primary-foreground shadow-primary/10")}>{isActive ? <Pause className="mr-2 h-4 w-4" /> : <Play className="mr-2 h-4 w-4" />}{isActive ? '暂停' : '开始学习'}</Button>
                       {isActive && <Button variant="destructive" onClick={() => setShowStopAlert(true)} className="rounded-2xl h-12 w-12 shadow-xl shadow-red-500/20"><XCircle className="h-5 w-5" /></Button>}
                     </div>
-                 </div>
-              </PopoverContent>
-            </Popover>
+                  </div>
+                </PopoverContent>
+              </Popover>
+            )}
 
             <DropdownMenu modal={false}>
               <DropdownMenuTrigger asChild>
@@ -491,7 +529,14 @@ export const StudyRoom: React.FC = () => {
           </div>
         </header>
 
-        <div ref={scrollContainerRef} onScroll={handleScroll} className="flex-1 overflow-y-auto p-8 space-y-4 scrollbar-thin scrollbar-thumb-primary/10 relative">
+        <div
+          ref={scrollContainerRef}
+          onScroll={handleScroll}
+          className={cn(
+            "flex-1 overflow-y-auto space-y-4 scrollbar-thin scrollbar-thumb-primary/10 relative",
+            isMobile ? "min-h-0 p-3" : "p-8"
+          )}
+        >
           <div className="max-w-4xl mx-auto space-y-4 pb-4">
             {messages.map((msg) => {
               const isMe = msg.user_detail.username === user?.username;
@@ -574,7 +619,10 @@ export const StudyRoom: React.FC = () => {
           <Button onClick={() => scrollToBottom(true)} size="icon" className="absolute bottom-24 right-8 rounded-full h-10 w-10 shadow-2xl bg-primary text-primary-foreground z-50 hover:scale-110 transition-transform opacity-80 hover:opacity-100 border border-white/10"><ArrowDown className="h-5 w-5"/></Button>
         )}
 
-        <footer className="p-4 bg-card/80 backdrop-blur-md border-t border-border z-20">
+        <footer className={cn(
+          "bg-card/80 backdrop-blur-md border-t border-border z-20",
+          isMobile ? "p-2 pb-[calc(4.9rem+env(safe-area-inset-bottom))] shrink-0" : "p-4"
+        )}>
           <div className="max-w-4xl mx-auto space-y-3">
             <div className="flex gap-2 px-1">
               <Popover>
@@ -612,7 +660,13 @@ export const StudyRoom: React.FC = () => {
                 </PopoverContent>
               </Popover>
               <Button variant="ghost" size="icon" onClick={() => fileInputRef.current?.click()} className="h-8 w-8 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"><ImageIcon className="h-4 w-4"/></Button>
+              {isMobile && (
+                <Button variant="ghost" size="icon" onClick={() => cameraInputRef.current?.click()} className="h-8 w-8 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">
+                  <Camera className="h-4 w-4" />
+                </Button>
+              )}
               <input type="file" ref={fileInputRef} onChange={(e) => handleFileUpload(e)} className="hidden" accept="image/*" />
+              <input type="file" ref={cameraInputRef} onChange={(e) => handleFileUpload(e)} className="hidden" accept="image/*" capture="environment" />
             </div>
             <div className="flex gap-3 bg-muted rounded-2xl p-1.5 focus-within:bg-card focus-within:ring-2 focus-within:ring-primary/5 transition-all shadow-inner border border-border">
               <textarea
@@ -627,23 +681,57 @@ export const StudyRoom: React.FC = () => {
                     sendMessage();
                   }
                 }}
-                placeholder="发送消息 (Enter发送 / Shift+Enter换行，支持拖入图片)..."
-                className="flex-1 bg-transparent border-none shadow-none focus:outline-none focus-visible:ring-0 text-[13px] min-h-10 max-h-32 px-4 py-2 text-foreground placeholder:text-muted-foreground/50 resize-none leading-normal"
+                placeholder="发送消息 (Enter发送 / Shift+Enter换行)..."
+                className={cn(
+                  "flex-1 bg-transparent border-none shadow-none focus:outline-none focus-visible:ring-0 text-[13px] px-4 py-2 text-foreground placeholder:text-muted-foreground/50 resize-none leading-normal",
+                  isMobile ? "h-10 min-h-10 max-h-10" : "min-h-10 max-h-32"
+                )}
                 rows={1}
               />
               <Button onClick={sendMessage} size="icon" className="rounded-xl h-10 w-10 bg-primary text-primary-foreground shadow-xl shrink-0 hover:opacity-90 active:scale-95 transition-transform"><Send className="h-4 w-4" /></Button>
             </div>
           </div>
         </footer>
+
+        {isMobile && (
+          <div className="absolute right-4 bottom-4 z-40">
+            <Popover open={showMobileTimerSetup} onOpenChange={setShowMobileTimerSetup}>
+              <PopoverTrigger asChild>
+                <button className={cn("h-12 w-12 rounded-full shadow-2xl border border-white/20 flex items-center justify-center text-white transition-transform active:scale-95", isActive ? "bg-emerald-500" : "bg-slate-900")}>
+                  <Timer className="h-5 w-5" />
+                </button>
+              </PopoverTrigger>
+              <PopoverContent side="top" align="end" className="w-[82vw] max-w-72 rounded-2xl p-4 border-none shadow-2xl bg-card/95 backdrop-blur-xl z-[100]">
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs font-black uppercase tracking-widest text-muted-foreground">番茄钟</p>
+                    <span className="font-mono font-black text-lg tabular-nums">{formatTime(timeLeft)}</span>
+                  </div>
+                  <Input value={taskName} onChange={e => setTaskName(e.target.value)} placeholder="任务名称..." className="h-10 rounded-xl bg-muted border-none text-sm font-bold" />
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between text-[11px] font-bold text-muted-foreground uppercase">
+                      <span>时长</span>
+                      <span>{duration} 分钟</span>
+                    </div>
+                    <Slider disabled={isActive} value={[duration]} onValueChange={v => handleDurationChange(v[0])} max={120} min={1} step={1} />
+                  </div>
+                  <Button onClick={handleEnterMobileFocus} className="w-full h-10 rounded-xl bg-slate-900 text-white font-black">
+                    进入全屏专注
+                  </Button>
+                </div>
+              </PopoverContent>
+            </Popover>
+          </div>
+        )}
       </div>
 
-      <div className="w-72 flex flex-col gap-6 shrink-0 text-foreground">
-        <Card className="border-none shadow-sm rounded-3xl bg-card overflow-hidden p-6 flex-1 min-h-0 flex flex-col border border-border">
+      <div className="hidden md:flex w-72 flex-col gap-6 shrink-0 text-foreground">
+        <Card className="border-none shadow-sm rounded-2xl md:rounded-3xl bg-card overflow-hidden p-4 md:p-6 md:flex-1 min-h-0 flex flex-col border border-border">
           <header className="mb-4 flex items-center justify-between"><CardTitle className="text-[13px] font-bold uppercase tracking-widest text-muted-foreground">实时共学</CardTitle><Users className="h-4 w-4 text-muted-foreground opacity-20" /></header>
           <div className="flex-1 overflow-y-auto space-y-3 pr-2 scrollbar-none">
             {onlineUsers.map((u, i) => (<HoverCard key={i}><HoverCardTrigger asChild><div className="flex items-center gap-3 p-2.5 rounded-2xl hover:bg-muted transition-all cursor-pointer border border-transparent hover:border-border group"><div className="relative shrink-0"><Avatar className="h-9 w-9 border border-border shadow-sm group-hover:ring-2 ring-emerald-500/20 transition-all"><AvatarImage src={u.avatar_url}/></Avatar><span className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full bg-emerald-500 border-2 border-background shadow-sm"/></div><div className="flex-1 min-w-0"><p className="text-xs font-bold text-foreground truncate">{u.nickname || u.username} {u.username === user?.username && "(你)"}</p><p className="text-[11px] text-emerald-600 font-bold truncate mt-0.5 uppercase tracking-tight">{u.current_task || '在线中'}</p></div></div></HoverCardTrigger><HoverCardContent side="left" className="w-80 rounded-[2rem] p-6 border-none shadow-2xl bg-card/95 backdrop-blur-xl z-50 text-left text-foreground"><div className="flex space-x-4"><Avatar className="h-12 w-12 border border-border shadow-sm"><AvatarImage src={u.avatar_url}/></Avatar><div className="space-y-3 flex-1 text-left"><div className="flex justify-between items-center"><h4 className="text-sm font-bold">{u.nickname || u.username}</h4><Badge variant="outline" className="text-[11px] border-emerald-500/20 text-emerald-600 rounded-full">ELO {u.elo_score}</Badge></div><div className="space-y-2 pt-2 border-t border-border"><div className="flex items-center gap-2 text-muted-foreground"><Clock className="h-3.5 w-3.5"/><span className="text-[11px] font-bold uppercase tracking-widest">今日专注: {u.today_focused_minutes} min</span></div><div className="flex items-center gap-2 text-muted-foreground"><CheckCircle2 className="h-3.5 w-3.5"/><span className="text-[11px] font-bold uppercase tracking-widest">今日已完成: {u.today_completed_tasks?.length || 0} tasks</span></div></div></div></div></HoverCardContent></HoverCard>))}</div>
         </Card>
-        <Card className="border-none shadow-sm rounded-3xl bg-card overflow-hidden p-6 flex-1 min-h-0 flex flex-col border border-border">
+        <Card className="border-none shadow-sm rounded-2xl md:rounded-3xl bg-card overflow-hidden p-4 md:p-6 md:flex-1 min-h-0 flex flex-col border border-border">
           <header className="mb-4 flex items-center justify-between border-b border-border pb-4"><CardTitle className="text-[13px] font-bold uppercase tracking-widest text-muted-foreground">计划清单</CardTitle><ListTodo className="h-4 w-4 text-muted-foreground opacity-20" /></header>
           <div className="flex-1 overflow-y-auto space-y-1.5 pr-2 scrollbar-none">
             {plans.map(p => (
@@ -730,6 +818,33 @@ export const StudyRoom: React.FC = () => {
             </Button>
           </div>
         </Card>
+      </div>
+
+      <div className={cn("fixed inset-0 z-[120] md:hidden bg-black/95 text-white flex flex-col items-center justify-center gap-6 transition-all duration-300", showMobileTimerFullscreen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none")}>
+        <button onClick={() => setShowMobileTimerFullscreen(false)} className="absolute top-6 right-6 h-10 w-10 rounded-full bg-white/10 flex items-center justify-center">
+          <XCircle className="h-5 w-5" />
+        </button>
+        <p className="text-xs font-black uppercase tracking-[0.25em] text-white/40">Focus Mode</p>
+        <p className="font-mono font-black text-[72px] leading-none tabular-nums">{formatTime(timeLeft)}</p>
+        <p className="text-base font-bold text-white/80 px-8 text-center">{taskName || '深度专注学习'}</p>
+        <div className="flex items-center gap-3">
+          <Button
+            size="lg"
+            onClick={isActive ? () => setIsActive(false) : handleStartTask}
+            className={cn("rounded-2xl px-6 h-12 font-black", isActive ? "bg-white/20 text-white hover:bg-white/30" : "bg-emerald-500 text-white hover:bg-emerald-600")}
+          >
+            {isActive ? <Pause className="mr-2 h-4 w-4" /> : <Play className="mr-2 h-4 w-4" />}
+            {isActive ? '暂停' : '开始'}
+          </Button>
+          <Button
+            size="lg"
+            variant="ghost"
+            onClick={() => setShowStopAlert(true)}
+            className="rounded-2xl px-6 h-12 font-black text-white border border-white/20 hover:bg-white/10"
+          >
+            结束
+          </Button>
+        </div>
       </div>
 
       <AlertDialog open={showStopAlert} onOpenChange={setShowStopAlert}>
