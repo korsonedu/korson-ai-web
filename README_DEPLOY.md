@@ -25,6 +25,7 @@ sudo apt install -y python3-pip python3-venv nginx redis-server git
 ```bash
 sudo systemctl enable redis-server
 sudo systemctl start redis-server
+sudo systemctl status redis-server --no-pager
 ```
 
 ---
@@ -38,7 +39,10 @@ LLM_API_KEY=您的API密钥
 DEBUG=False
 ALLOWED_HOSTS=您的域名,服务器IP
 DATABASE_URL=postgres://user:password@localhost:5432/dbname (若用PG)
-REDIS_URL=redis://127.0.0.1:63700/0
+REDIS_URL=redis://127.0.0.1:6379/0
+CELERY_BROKER_URL=redis://127.0.0.1:6379/0
+CELERY_RESULT_BACKEND=redis://127.0.0.1:6379/0
+QUIZ_EXAM_GRADING_USE_CELERY=true
 ```
 
 ### 3.2 初始化环境
@@ -57,6 +61,55 @@ pip install daphne
 daphne -b 0.0.0.0 -p 8000 school_system.asgi:application
 ```
 *(生产环境建议使用 Gunicorn + Uvicorn 或是 Systemd 守护进程运行)*
+
+### 3.4 配置 Celery Worker（生产强烈建议）
+
+> 若不启动 Worker，异步判分可能“提交成功但长时间无结果”。
+
+新建 systemd 服务文件：
+`/etc/systemd/system/korson-ai-web-celery.service`
+
+```ini
+[Unit]
+Description=Korson AI Web Celery Worker
+After=network.target redis-server.service
+Wants=redis-server.service
+
+[Service]
+Type=simple
+User=root
+Group=root
+WorkingDirectory=/opt/korson-ai-web/backend
+Environment="DJANGO_SETTINGS_MODULE=school_system.settings"
+EnvironmentFile=/opt/korson-ai-web/backend/.env
+ExecStart=/opt/korson-ai-web/backend/venv/bin/celery -A school_system worker -l info --concurrency=2 --prefetch-multiplier=1
+Restart=always
+RestartSec=5
+TimeoutStopSec=60
+KillSignal=SIGTERM
+
+[Install]
+WantedBy=multi-user.target
+```
+
+加载并启动：
+```bash
+sudo systemctl daemon-reload
+sudo systemctl enable --now korson-ai-web-celery
+sudo systemctl status korson-ai-web-celery --no-pager
+```
+
+查看 Worker 日志：
+```bash
+sudo journalctl -u korson-ai-web-celery -f -n 200
+```
+
+检查 Worker 是否在线：
+```bash
+cd /opt/korson-ai-web/backend
+source venv/bin/activate
+celery -A school_system inspect ping
+```
 
 ---
 
@@ -123,6 +176,7 @@ server {
 
 ## 7. 故障排查 (FAQ)
 *   **500 错误**: 检查 `.env` 中的 AI 密钥是否正确，以及 Redis 是否启动。
+*   **提交后长期“评分中”**: 优先检查 `redis-server` 和 `korson-ai-web-celery` 是否运行；再执行 `celery -A school_system inspect ping` 验证 worker 在线。
 *   **WebSocket 连接失败**: 检查 Nginx 是否配置了 `Upgrade` 头部，以及后端是否由 Daphne/Uvicorn 启动。
 *   **上传大文件超时**: 修改 Nginx `client_max_body_size 100M;` 和后端超时设置。
 

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -39,33 +39,43 @@ export const AssessmentDialog: React.FC<AssessmentProps> = ({
   gradingMessage
 }) => {
   const currentQ = questions[currentIdx];
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const media = window.matchMedia('(max-width: 767px)');
+    const sync = () => setIsMobile(media.matches);
+    sync();
+    media.addEventListener('change', sync);
+    return () => media.removeEventListener('change', sync);
+  }, []);
 
   return (
     <Dialog modal={false} open={open} onOpenChange={(open) => { if (!open && !isSubmitting) onOpenChange(false); }}>
       <DialogContent
         onInteractOutside={(e) => e.preventDefault()}
-        className="sm:max-w-[1200px] rounded-[3rem] border-none bg-white p-0 shadow-2xl overflow-hidden flex flex-col h-[800px] z-[100]"
+        className="w-[96vw] sm:max-w-[1200px] rounded-2xl md:rounded-[3rem] border-none bg-white p-0 shadow-2xl overflow-hidden flex flex-col h-[92vh] md:h-[800px] z-[100]"
       >
         {questions.length > 0 && currentQ && (
           <>
-            <DialogHeader className="p-10 pb-6 border-b border-slate-100 shrink-0 bg-white">
-              <div className="flex justify-between items-center">
+            <DialogHeader className="p-4 md:p-10 md:pb-6 border-b border-slate-100 shrink-0 bg-white">
+              <div className="flex flex-col md:flex-row justify-between md:items-center gap-3">
                 <div className="space-y-1.5 text-left">
-                  <DialogTitle className="text-2xl font-black tracking-tight text-slate-900 uppercase">学术能力评估</DialogTitle>
+                  <DialogTitle className="text-xl md:text-2xl font-black tracking-tight text-slate-900 uppercase">学术能力评估</DialogTitle>
                   <p className="text-[11px] font-bold uppercase tracking-[0.3em] text-indigo-600 animate-pulse">Smart Evaluation Active</p>
                 </div>
-                <div className="px-6 py-2 bg-slate-900 rounded-2xl text-white font-mono font-bold text-sm tabular-nums shadow-xl">
+                <div className="self-start md:self-auto px-4 md:px-6 py-2 bg-slate-900 rounded-xl md:rounded-2xl text-white font-mono font-bold text-sm tabular-nums shadow-xl">
                   {currentIdx + 1} / {questions.length}
                 </div>
               </div>
             </DialogHeader>
 
-            <div className="flex-1 flex overflow-hidden">
-              <div className="flex-1 overflow-y-auto p-8 pt-1 bg-white scrollbar-thin border-r border-slate-50">
+            <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
+              <div className="flex-1 overflow-y-auto p-4 md:p-8 md:pt-1 bg-white scrollbar-thin md:border-r border-slate-50">
                 <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
                   <div className="space-y-4">
-                    <div className="flex items-center justify-between border-b border-slate-50 pb-4">
-                      <div className="flex items-center gap-3">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between border-b border-slate-50 pb-4 gap-3">
+                      <div className="flex flex-wrap items-center gap-2 md:gap-3">
                         <Badge variant="secondary" className="rounded-lg px-2 py-0.5 text-[11px] font-black uppercase tracking-widest bg-slate-100 text-slate-500 border-none">
                           {currentQ.q_type === 'objective' ? '客观选择' :
                             currentQ.subjective_type === 'calculate' ? '主观计算' :
@@ -102,10 +112,10 @@ export const AssessmentDialog: React.FC<AssessmentProps> = ({
                       </div>
                     </div>
 
-                    <div className="flex items-start gap-8 relative mt-2 text-left">
+                    <div className="flex items-start gap-4 md:gap-8 relative mt-2 text-left">
                       <span className="text-6xl font-black text-slate-100/80 tabular-nums select-none absolute -left-4 -top-4 -z-10 opacity-50">{(currentIdx + 1).toString().padStart(2, '0')}</span>
                       <div className="flex-1 pt-0 min-w-0">
-                        <div className="text-xl font-bold text-slate-900 leading-relaxed text-left">
+                        <div className="text-base md:text-xl font-bold text-slate-900 leading-relaxed text-left">
                           <ReactMarkdown remarkPlugins={[remarkMath]} rehypePlugins={[rehypeKatex]}>
                             {processMathContent(currentQ.text)}
                           </ReactMarkdown>
@@ -122,7 +132,7 @@ export const AssessmentDialog: React.FC<AssessmentProps> = ({
                               disabled={currentQ.is_mastered}
                               onClick={() => handleSelect(currentQ.id, opt)}
                               className={cn(
-                                "w-full p-4 rounded-2xl border text-left font-bold transition-all flex items-center gap-5 group/opt",
+                                "w-full p-3 md:p-4 rounded-xl md:rounded-2xl border text-left font-bold transition-all flex items-center gap-3 md:gap-5 group/opt",
                                 answers[currentQ.id] === opt ? "bg-slate-900 text-white border-slate-900 shadow-xl scale-[1.01]" : "bg-white border-slate-200/60 hover:border-indigo-400 hover:bg-slate-50",
                                 currentQ.is_mastered && "cursor-not-allowed"
                               )}
@@ -130,7 +140,7 @@ export const AssessmentDialog: React.FC<AssessmentProps> = ({
                               <div className={cn("h-7 w-7 rounded-xl border-2 flex items-center justify-center transition-all", answers[currentQ.id] === opt ? "border-white/20 bg-indigo-600" : "border-slate-100 bg-slate-50 group-hover/opt:border-indigo-200")}>
                                 <span className={cn("text-[11px] font-black", answers[currentQ.id] === opt ? "text-white" : "text-slate-400")}>{String.fromCharCode(65 + i)}</span>
                               </div>
-                              <span className="text-sm tracking-tight">{opt}</span>
+                              <span className="text-xs md:text-sm tracking-tight">{opt}</span>
                             </button>
                           ))}
                         </div>
@@ -141,7 +151,7 @@ export const AssessmentDialog: React.FC<AssessmentProps> = ({
                             disabled={currentQ.is_mastered}
                             onChange={(e) => handleSelect(currentQ.id, e.target.value)}
                             className={cn(
-                              "w-full bg-slate-50 border border-slate-100/60 rounded-[2rem] p-8 min-h-[250px] font-bold text-base focus:ring-4 focus:ring-indigo-500/5 transition-all placeholder:text-slate-300 resize-none shadow-inner",
+                              "w-full bg-slate-50 border border-slate-100/60 rounded-2xl md:rounded-[2rem] p-4 md:p-8 min-h-[180px] md:min-h-[250px] font-bold text-sm md:text-base focus:ring-4 focus:ring-indigo-500/5 transition-all placeholder:text-slate-300 resize-none shadow-inner",
                               currentQ.is_mastered && "cursor-not-allowed"
                             )}
                             placeholder={currentQ.is_mastered ? "该题已标记掌握，无需填写答案..." : "在此输入您的分析或计算过程..."}
@@ -153,10 +163,10 @@ export const AssessmentDialog: React.FC<AssessmentProps> = ({
                 </div>
               </div>
 
-              <div className="w-64 bg-slate-50/30 p-8 flex flex-col shrink-0">
-                <h5 className="text-[13px] font-bold text-slate-400 uppercase tracking-widest mb-6 text-left">题号矩阵</h5>
-                <ScrollArea className="flex-1 pr-2">
-                  <div className="grid grid-cols-4 gap-2">
+              <div className={cn("w-full md:w-64 bg-slate-50/30 p-4 md:p-8 md:flex flex-col shrink-0 border-t md:border-t-0 border-slate-100", isMobile ? "hidden" : "flex")}>
+                <h5 className="text-[12px] md:text-[13px] font-bold text-slate-400 uppercase tracking-widest mb-3 md:mb-6 text-left">题号矩阵</h5>
+                <ScrollArea className="flex-1 pr-1 md:pr-2">
+                  <div className="grid grid-cols-6 md:grid-cols-4 gap-2">
                     {questions.map((q, i) => (
                       <button
                         key={i}
@@ -191,19 +201,19 @@ export const AssessmentDialog: React.FC<AssessmentProps> = ({
               </div>
             </div>
 
-            <div className="p-10 border-t border-slate-100 flex justify-between items-center bg-white shrink-0">
-              <div className="flex items-center gap-6">
-                <Button variant="ghost" disabled={currentIdx === 0} onClick={() => setCurrentIdx(prev => prev - 1)} className="rounded-xl font-bold gap-2 text-slate-400 h-12 px-6 hover:text-slate-900 transition-colors">
+              <div className="p-4 md:p-10 border-t border-slate-100 flex flex-col md:flex-row justify-between md:items-center gap-3 md:gap-0 bg-white shrink-0">
+              <div className="flex items-center gap-3 md:gap-6">
+                <Button variant="ghost" disabled={currentIdx === 0} onClick={() => setCurrentIdx(prev => prev - 1)} className="rounded-xl font-bold gap-2 text-slate-400 h-10 md:h-12 px-4 md:px-6 hover:text-slate-900 transition-colors">
                   <ChevronLeft className="h-5 w-5" /> 上一题
                 </Button>
                 {gradingMessage && <div className="flex items-center gap-3 px-4 py-2 bg-indigo-50 rounded-full"><Loader2 className="h-4 w-4 animate-spin text-indigo-500" /><span className="text-[11px] font-bold text-indigo-600 uppercase tracking-widest">{gradingMessage}</span></div>}
               </div>
               {currentIdx === questions.length - 1 ? (
-                <Button onClick={handleSubmit} disabled={isSubmitting} className="rounded-2xl px-12 bg-indigo-600 text-white hover:bg-indigo-700 font-black h-14 shadow-xl shadow-indigo-100 transition-all active:scale-95">
+                <Button onClick={handleSubmit} disabled={isSubmitting} className="rounded-xl md:rounded-2xl w-full md:w-auto px-8 md:px-12 bg-indigo-600 text-white hover:bg-indigo-700 font-black h-12 md:h-14 shadow-xl shadow-indigo-100 transition-all active:scale-95">
                   {isSubmitting ? "评分中..." : "提交评分"}
                 </Button>
               ) : (
-                <Button onClick={() => setCurrentIdx(prev => prev + 1)} className="rounded-2xl px-12 bg-slate-900 text-white hover:bg-slate-800 font-black h-14 shadow-lg transition-all active:scale-95">
+                <Button onClick={() => setCurrentIdx(prev => prev + 1)} className="rounded-xl md:rounded-2xl w-full md:w-auto px-8 md:px-12 bg-slate-900 text-white hover:bg-slate-800 font-black h-12 md:h-14 shadow-lg transition-all active:scale-95">
                   下一题 <ChevronRight className="ml-2 h-5 w-5" />
                 </Button>
               )}

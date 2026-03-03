@@ -683,7 +683,7 @@ export const StudyRoom: React.FC = () => {
                 }}
                 placeholder="发送消息 (Enter发送 / Shift+Enter换行)..."
                 className={cn(
-                  "flex-1 bg-transparent border-none shadow-none focus:outline-none focus-visible:ring-0 text-[13px] px-4 py-2 text-foreground placeholder:text-muted-foreground/50 resize-none leading-normal",
+                  "flex-1 bg-transparent border-none shadow-none focus:outline-none focus-visible:ring-0 text-[13px] px-4 py-2.5 text-foreground placeholder:text-muted-foreground/50 resize-none leading-5",
                   isMobile ? "h-10 min-h-10 max-h-10" : "min-h-10 max-h-32"
                 )}
                 rows={1}

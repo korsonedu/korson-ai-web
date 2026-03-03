@@ -13,6 +13,7 @@ import {
   Sparkles,
   Settings2,
   BrainCircuit,
+  BarChart3,
   Home,
   Info,
   Rocket,
@@ -120,12 +121,42 @@ export const MainLayout: React.FC = () => {
   const [showActivateDialog, setShowActivateDialog] = useState(false);
   const [activationCode, setActivationCode] = useState('');
   const [isActivating, setIsActivating] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
 
   const isFullPage = ['/intro', '/course-details', '/management'].includes(location.pathname);
+  const isMobileAllowedPath = (pathname: string) =>
+    pathname === '/articles' ||
+    pathname.startsWith('/article/') ||
+    pathname === '/qa' ||
+    pathname.startsWith('/qa/') ||
+    pathname === '/study' ||
+    pathname === '/knowledge-map' ||
+    pathname === '/tests' ||
+    pathname.startsWith('/tests/session') ||
+    pathname === '/settings';
+  const isMobileStudyPage = isMobile && location.pathname === '/study';
+  const isMobileImmersivePage = isMobile && location.pathname.startsWith('/tests/session');
+  const hideMobileBottomNav = isMobile && location.pathname.startsWith('/tests/session');
 
   useEffect(() => {
     document.documentElement.style.setProperty('--primary-override', primaryColor);
   }, [primaryColor]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const media = window.matchMedia('(max-width: 767px)');
+    const sync = () => setIsMobile(media.matches);
+    sync();
+    media.addEventListener('change', sync);
+    return () => media.removeEventListener('change', sync);
+  }, []);
+
+  useEffect(() => {
+    if (!isMobile) return;
+    if (!isMobileAllowedPath(location.pathname)) {
+      navigate('/qa', { replace: true });
+    }
+  }, [isMobile, location.pathname, navigate]);
 
   const handleActivate = async () => {
     if (!activationCode.trim()) return toast.error("请输入激活码");
@@ -152,6 +183,13 @@ export const MainLayout: React.FC = () => {
     { to: '/study', icon: Clock, label: '自习室', restricted: true },
     { to: '/ai', icon: Sparkles, label: 'AI 实验室', restricted: true },
   ];
+  const mobileNavItems = [
+    { to: '/articles', icon: FileText, label: '文章', restricted: true },
+    { to: '/qa', icon: MessageCircleQuestion, label: '答疑', restricted: true },
+    { to: '/study', icon: Clock, label: '自习', restricted: true },
+    { to: '/knowledge-map', icon: BrainCircuit, label: '知识卡片', restricted: true },
+    { to: '/tests', icon: Trophy, label: '做题', restricted: true },
+  ];
 
   if (user?.role === 'admin') navItems.push({ to: '/management', icon: ShieldCheck, label: '维护中心', restricted: false });
 
@@ -159,8 +197,8 @@ export const MainLayout: React.FC = () => {
     <TooltipProvider delayDuration={0}>
       <div className="flex h-screen bg-background text-foreground overflow-hidden font-sans selection:bg-primary selection:text-primary-foreground">
         <aside className={cn(
-          "relative border-r border-border flex flex-col p-2 bg-card/70 backdrop-blur-2xl transition-all duration-500 ease-in-out z-30 shrink-0",
-          collapsed ? "w-16 min-w-16 max-w-16" : "w-48 min-w-48 max-w-36"
+          "relative border-r border-border flex-col p-2 bg-card/70 backdrop-blur-2xl transition-all duration-500 ease-in-out z-30 shrink-0 hidden md:flex",
+          collapsed ? "w-16 min-w-16 max-w-16" : "w-48 min-w-48 max-w-48"
         )}>
           {/* Header Section */}
           <div className={cn("mb-6 mt-2 flex items-center transition-all", collapsed ? "flex-col gap-2 justify-center" : "justify-between px-2")}>
@@ -237,6 +275,15 @@ export const MainLayout: React.FC = () => {
                     <Settings2 className="h-3.5 w-3.5" />
                     <span className="font-bold text-xs">外观与系统</span>
                   </DropdownMenuItem>
+                  {user?.is_member && (
+                    <DropdownMenuItem
+                      onClick={() => window.dispatchEvent(new Event('open-weekly-report'))}
+                      className="rounded-xl px-3 py-2 gap-3 cursor-pointer focus:bg-primary focus:text-primary-foreground transition-colors"
+                    >
+                      <BarChart3 className="h-3.5 w-3.5" />
+                      <span className="font-bold text-xs">认知资产周报</span>
+                    </DropdownMenuItem>
+                  )}
                   <DropdownMenuSeparator className="my-2 bg-border" />
                   <DropdownMenuItem onClick={() => setShowLogoutAlert(true)} className="rounded-xl px-3 py-2 gap-3 cursor-pointer text-destructive focus:bg-destructive focus:text-destructive-foreground transition-colors">
                     <LogOut className="h-3.5 w-3.5" />
@@ -255,9 +302,14 @@ export const MainLayout: React.FC = () => {
           </div>
         </aside>
 
-        <main className="flex-1 h-screen overflow-y-auto relative z-10 flex flex-col bg-background">
-          {!isFullPage && (
-            <header className="sticky top-0 h-14 shrink-0 border-b border-border bg-background/80 backdrop-blur-xl z-20 px-10 flex items-center justify-between transition-all">
+        <main className={cn(
+          "flex-1 h-screen relative z-10 flex flex-col bg-background",
+          (isMobileImmersivePage || isMobileStudyPage)
+            ? "overflow-hidden pb-0"
+            : "overflow-y-auto pb-[calc(5rem+env(safe-area-inset-bottom))] md:pb-0"
+        )}>
+          {!isFullPage && !isMobileImmersivePage && (
+            <header className="sticky top-0 h-14 shrink-0 border-b border-border bg-background/80 backdrop-blur-xl z-20 px-10 items-center justify-between transition-all hidden md:flex">
                <div className="flex flex-col justify-center min-w-0">
                   {pageTitle && (
                     <div className="flex flex-col md:flex-row md:items-baseline md:gap-3 animate-in fade-in slide-in-from-top-1 duration-300">
@@ -282,10 +334,95 @@ export const MainLayout: React.FC = () => {
                </div>
             </header>
           )}
-          <div className={cn("flex-1 w-full relative", !isFullPage && "px-8 py-6")}>
+          {!isFullPage && !isMobileImmersivePage && (
+            <header className="sticky top-0 h-14 shrink-0 border-b border-border bg-background/90 backdrop-blur-xl z-20 px-4 flex items-center justify-between md:hidden">
+              <div className="flex items-center gap-2 min-w-0">
+                <img src={UnimindLogo} alt="Unimind.ai" className="w-20 h-5 object-contain shrink-0" />
+                {pageTitle && <span className="text-xs font-black tracking-tight truncate">{pageTitle}</span>}
+              </div>
+              {user && (
+                <DropdownMenu modal={false}>
+                  <DropdownMenuTrigger asChild>
+                    <button className="rounded-full border border-border p-0.5 bg-card">
+                      <Avatar className="h-7 w-7">
+                        <AvatarImage src={user?.avatar_url} />
+                        <AvatarFallback className="text-[10px] font-bold">{user?.username?.[0]}</AvatarFallback>
+                      </Avatar>
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-48 rounded-2xl p-2 bg-card/95 backdrop-blur-xl border-border shadow-2xl">
+                    {user && !user.is_member && (
+                      <DropdownMenuItem onClick={() => setShowActivateDialog(true)} className="rounded-xl px-3 py-2 gap-2 cursor-pointer bg-amber-50 text-amber-700 focus:bg-amber-100 focus:text-amber-800 transition-colors">
+                        <Sparkles className="h-3.5 w-3.5" />
+                        <span className="font-bold text-xs">激活会员</span>
+                      </DropdownMenuItem>
+                    )}
+                    <DropdownMenuItem onClick={() => navigate('/settings')} className="rounded-xl px-3 py-2 gap-2 cursor-pointer focus:bg-primary focus:text-primary-foreground transition-colors">
+                      <UserIcon className="h-3.5 w-3.5" />
+                      <span className="font-bold text-xs">个人设置</span>
+                    </DropdownMenuItem>
+                    {user?.is_member && (
+                      <DropdownMenuItem
+                        onClick={() => window.dispatchEvent(new Event('open-weekly-report'))}
+                        className="rounded-xl px-3 py-2 gap-2 cursor-pointer focus:bg-primary focus:text-primary-foreground transition-colors"
+                      >
+                        <BarChart3 className="h-3.5 w-3.5" />
+                        <span className="font-bold text-xs">认知资产周报</span>
+                      </DropdownMenuItem>
+                    )}
+                    <DropdownMenuSeparator className="my-2 bg-border" />
+                    <DropdownMenuItem onClick={() => setShowLogoutAlert(true)} className="rounded-xl px-3 py-2 gap-2 cursor-pointer text-destructive focus:bg-destructive focus:text-destructive-foreground transition-colors">
+                      <LogOut className="h-3.5 w-3.5" />
+                      <span className="font-bold text-xs">退出登录</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
+            </header>
+          )}
+          <div className={cn(
+            "flex-1 w-full relative",
+            (isMobileImmersivePage || isMobileStudyPage)
+              ? "px-0 py-0 h-full overflow-hidden"
+              : !isFullPage && "px-4 py-4 md:px-8 md:py-6"
+          )}>
             <Outlet />
           </div>
         </main>
+
+        <nav className={cn(
+          "md:hidden fixed bottom-0 inset-x-0 z-30 border-t border-border bg-card/95 backdrop-blur-xl pb-[env(safe-area-inset-bottom)]",
+          hideMobileBottomNav && "hidden"
+        )}>
+          <div className="grid grid-cols-5 gap-1 px-2 py-2">
+            {mobileNavItems.map((item) => {
+              const active =
+                item.to === '/articles'
+                  ? location.pathname === '/articles' || location.pathname.startsWith('/article/')
+                  : location.pathname === item.to || location.pathname.startsWith(`${item.to}/`);
+              const restricted = item.restricted && !user?.is_member;
+              return (
+                <button
+                  key={item.to}
+                  onClick={() => {
+                    if (restricted) {
+                      setShowActivateDialog(true);
+                      return;
+                    }
+                    navigate(item.to);
+                  }}
+                  className={cn(
+                    "h-14 rounded-xl flex flex-col items-center justify-center gap-1 transition-colors",
+                    active ? "bg-white shadow-sm border border-border text-foreground" : "text-muted-foreground"
+                  )}
+                >
+                  <item.icon className="h-4 w-4" />
+                  <span className="text-[10px] font-bold">{item.label}</span>
+                </button>
+              );
+            })}
+          </div>
+        </nav>
 
         {/* 激活会员弹窗 */}
         <Dialog open={showActivateDialog} onOpenChange={setShowActivateDialog}>

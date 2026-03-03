@@ -45,10 +45,10 @@ export const ArticleCenter: React.FC = () => {
 
   return (
     <PageWrapper title="文章中心" subtitle="沉淀学术思想，探索知识前沿。">
-      <div className="flex flex-col gap-8 w-full text-left">
+      <div className="flex flex-col gap-5 md:gap-8 w-full text-left">
         
         {/* Tags */}
-        <div className="flex flex-col gap-3 px-2">
+        <div className="flex flex-col gap-3 px-1 md:px-2">
           <div className={cn(
             "flex flex-wrap gap-2 overflow-hidden transition-all duration-500",
             !showAllTags ? "max-h-[32px]" : "max-h-[500px]"
@@ -88,7 +88,7 @@ export const ArticleCenter: React.FC = () => {
         </div>
 
         {/* List Content */}
-        <div className="flex flex-col border border-border/50 rounded-[2rem] bg-card overflow-hidden shadow-sm">
+        <div className="flex flex-col border border-border/50 rounded-2xl md:rounded-[2rem] bg-card overflow-hidden shadow-sm">
           {/* List Header */}
           <div className="hidden md:grid grid-cols-12 gap-4 px-8 py-4 bg-muted/30 text-[11px] font-black uppercase tracking-widest border-b border-border/50">
             <div className="col-span-2">日期</div>
@@ -104,27 +104,37 @@ export const ArticleCenter: React.FC = () => {
                 <p className="text-muted-foreground font-bold text-xs uppercase tracking-widest">No articles found</p>
               </div>
             ) : articles.map(article => (
-              <div 
-                key={article.id} 
-                onClick={() => navigate(`/article/${article.id}`)}
-                className="grid grid-cols-4 md:grid-cols-12 gap-4 px-8 py-5 items-center hover:bg-muted/50 transition-all border-b border-border last:border-0 cursor-pointer group"
-              >
-                <div className="col-span-1 md:col-span-2 text-[11px] font-bold text-muted-foreground tabular-nums">
-                  {new Date(article.created_at).toLocaleDateString('zh-CN')}
-                </div>
-                <div className="col-span-1 md:col-span-2">
-                  <span className="inline-flex px-2 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-950/30 text-[9px] font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-tighter truncate max-w-full">
+              <div key={article.id} onClick={() => navigate(`/article/${article.id}`)} className="hover:bg-muted/50 transition-all border-b border-border last:border-0 cursor-pointer group">
+                <div className="md:hidden px-4 py-4 space-y-2">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-[11px] font-bold text-muted-foreground tabular-nums">{new Date(article.created_at).toLocaleDateString('zh-CN')}</span>
+                    <span className="text-[11px] font-bold text-muted-foreground/60">{article.views || 0} 浏览</span>
+                  </div>
+                  <h3 className="font-bold text-foreground group-hover:text-primary transition-colors text-sm leading-relaxed">
+                    {article.title}
+                  </h3>
+                  <span className="inline-flex px-2 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-950/30 text-[9px] font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-tighter">
                     {article.author_display_name || 'KS Academy'}
                   </span>
                 </div>
-                <div className="col-span-2 md:col-span-6">
-                  <h3 className="font-bold text-foreground group-hover:text-primary transition-colors text-sm truncate pr-4">
-                    {article.title}
-                  </h3>
-                </div>
-                <div className="hidden md:flex col-span-2 justify-end items-center gap-4 text-right">
-                  <span className="tabular-nums text-[11px] font-bold text-muted-foreground/60">{article.views || 0}</span>
-                  <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/20 group-hover:text-primary transition-all group-hover:translate-x-1" />
+                <div className="hidden md:grid grid-cols-12 gap-4 px-8 py-5 items-center">
+                  <div className="col-span-2 text-[11px] font-bold text-muted-foreground tabular-nums">
+                    {new Date(article.created_at).toLocaleDateString('zh-CN')}
+                  </div>
+                  <div className="col-span-2">
+                    <span className="inline-flex px-2 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-950/30 text-[9px] font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-tighter truncate max-w-full">
+                      {article.author_display_name || 'KS Academy'}
+                    </span>
+                  </div>
+                  <div className="col-span-6">
+                    <h3 className="font-bold text-foreground group-hover:text-primary transition-colors text-sm truncate pr-4">
+                      {article.title}
+                    </h3>
+                  </div>
+                  <div className="col-span-2 flex justify-end items-center gap-4 text-right">
+                    <span className="tabular-nums text-[11px] font-bold text-muted-foreground/60">{article.views || 0}</span>
+                    <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/20 group-hover:text-primary transition-all group-hover:translate-x-1" />
+                  </div>
                 </div>
               </div>
             ))}
@@ -132,7 +142,7 @@ export const ArticleCenter: React.FC = () => {
 
           {/* Pagination Controls */}
           {totalPages > 1 && (
-            <div className="p-6 border-t border-border/50 flex items-center justify-between bg-muted/10">
+            <div className="p-4 md:p-6 border-t border-border/50 flex flex-col md:flex-row items-center justify-between gap-3 md:gap-0 bg-muted/10">
               <Button 
                 disabled={page === 1} 
                 onClick={() => handlePageChange(page - 1)}

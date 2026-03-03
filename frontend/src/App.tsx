@@ -14,6 +14,7 @@ import { AIAssistant } from './pages/AIAssistant';
 import { SystemSettings } from './pages/SystemSettings';
 import { KnowledgeMap } from './pages/KnowledgeMap';
 import { QASystem } from './pages/QASystem';
+import { TestSessionPage } from './pages/TestSessionPage';
 import { useAuthStore } from './store/useAuthStore';
 import { useSystemStore } from './store/useSystemStore';
 import { Loader2 } from 'lucide-react';
@@ -111,6 +112,7 @@ const router = createBrowserRouter([
       { path: "qa", element: <RequireAuth><QASystem /></RequireAuth> },
       { path: "article/:id", element: <RequireAuth><ArticleDetail /></RequireAuth> },
       { path: "tests", element: <RequireAuth><TestLadder /></RequireAuth> },
+      { path: "tests/session", element: <RequireAuth><TestSessionPage /></RequireAuth> },
       { path: "study", element: <RequireAuth><StudyRoom /></RequireAuth> },
       { path: "ai", element: <RequireAuth><AIAssistant /></RequireAuth> },
       { path: "knowledge-map", element: <RequireAuth><KnowledgeMap /></RequireAuth> },

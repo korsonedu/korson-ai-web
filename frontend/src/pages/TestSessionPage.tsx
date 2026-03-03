@@ -1,0 +1,258 @@
+import React, { useEffect, useMemo, useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { ArrowLeft, CheckCircle2, ChevronLeft, ChevronRight, Loader2, Star } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { toast } from 'sonner';
+import { cn, processMathContent } from '@/lib/utils';
+import api from '@/lib/api';
+import ReactMarkdown from 'react-markdown';
+import remarkMath from 'remark-math';
+import rehypeKatex from 'rehype-katex';
+
+const hasAnswer = (val: any) => {
+  if (typeof val === 'string') return val.trim().length > 0;
+  return val !== null && val !== undefined && val !== '';
+};
+
+export const TestSessionPage: React.FC = () => {
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const [questions, setQuestions] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [currentIdx, setCurrentIdx] = useState(0);
+  const [answers, setAnswers] = useState<Record<number, any>>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const questionLimit = useMemo(() => {
+    const raw = Number.parseInt(searchParams.get('count') || '5', 10);
+    if (!Number.isFinite(raw)) return 5;
+    return Math.max(1, Math.min(raw, 50));
+  }, [searchParams]);
+
+  useEffect(() => {
+    const fetchQuestions = async () => {
+      setLoading(true);
+      try {
+        const res = await api.get(`/quizzes/questions/?limit=${questionLimit}`);
+        if (!res.data?.length) {
+          toast.error('题库暂无可用题目');
+          navigate('/tests', { replace: true });
+          return;
+        }
+        setQuestions(res.data);
+      } catch (e) {
+        toast.error('题目加载失败');
+        navigate('/tests', { replace: true });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchQuestions();
+  }, [navigate, questionLimit]);
+
+  const currentQ = questions[currentIdx];
+  const totalNeedAnswer = questions.filter((q) => !q.is_mastered).length;
+  const answeredCount = questions.filter((q) => !q.is_mastered && hasAnswer(answers[q.id])).length;
+
+  const toggleFavorite = async (qId: number) => {
+    try {
+      const res = await api.post('/quizzes/favorite/toggle/', { question_id: qId });
+      setQuestions((prev) => prev.map((q) => (q.id === qId ? { ...q, is_favorite: res.data.is_favorite } : q)));
+      toast.success(res.data.is_favorite ? '已加入收藏' : '已取消收藏');
+    } catch (e) {
+      toast.error('操作失败');
+    }
+  };
+
+  const toggleMastered = async (qId: number) => {
+    try {
+      const res = await api.post('/quizzes/mastered/toggle/', { question_id: qId });
+      const isNowMastered = res.data.is_mastered;
+      setQuestions((prev) => prev.map((q) => (q.id === qId ? { ...q, is_mastered: isNowMastered } : q)));
+      if (isNowMastered) {
+        setAnswers((prev) => {
+          const next = { ...prev };
+          delete next[qId];
+          return next;
+        });
+        toast.success('稳稳拿捏');
+      }
+    } catch (e) {
+      toast.error('操作失败');
+    }
+  };
+
+  const handleSubmit = async () => {
+    const unmasteredQuestions = questions.filter((q) => !q.is_mastered);
+    const validAnswers = unmasteredQuestions.filter((q) => hasAnswer(answers[q.id]));
+
+    if (unmasteredQuestions.length > 0 && validAnswers.length < unmasteredQuestions.length) {
+      toast.error(`请完成所有题目 (${validAnswers.length}/${unmasteredQuestions.length})`);
+      return;
+    }
+
+    if (unmasteredQuestions.length === 0) {
+      toast.info('练习已结束');
+      navigate('/tests', { replace: true });
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const payload = unmasteredQuestions.map((q) => ({ question_id: q.id, answer: answers[q.id] }));
+      await api.post('/quizzes/submit-exam/', { answers: payload });
+      toast.success('试卷已提交 AI 批改', { description: '完成后请在通知中心查看报告。' });
+      navigate('/tests', { replace: true });
+    } catch (e: any) {
+      toast.error(e.response?.data?.error || '提交失败');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="h-full min-h-0 flex items-center justify-center bg-background">
+        <Loader2 className="h-7 w-7 animate-spin text-muted-foreground/50" />
+      </div>
+    );
+  }
+
+  if (!currentQ) {
+    return null;
+  }
+
+  return (
+    <div className="h-full min-h-0 bg-background text-foreground flex flex-col overflow-hidden">
+      <header className="h-12 shrink-0 border-b border-border px-3 flex items-center justify-between bg-background/90 backdrop-blur-md">
+        <Button variant="ghost" size="sm" onClick={() => navigate('/tests')} className="h-8 px-2 rounded-lg text-xs font-bold">
+          <ArrowLeft className="h-4 w-4 mr-1" />
+          返回
+        </Button>
+        <div className="px-3 py-1 rounded-lg bg-slate-900 text-white font-mono font-bold text-xs tabular-nums">
+          {currentIdx + 1} / {questions.length}
+        </div>
+      </header>
+
+      <div className="flex-1 min-h-0 flex flex-col">
+        <div className="flex-1 min-h-0 overflow-y-auto px-3 py-3">
+          <div className="bg-white border border-border/60 rounded-2xl p-4 space-y-4">
+            <div className="flex flex-wrap items-center gap-2">
+              <Badge variant="secondary" className="rounded-lg px-2 py-0.5 text-[10px] font-black uppercase tracking-widest bg-slate-100 text-slate-500 border-none">
+                {currentQ.q_type === 'objective'
+                  ? '客观选择'
+                  : currentQ.subjective_type === 'calculate'
+                    ? '主观计算'
+                    : currentQ.subjective_type === 'noun'
+                      ? '名词解释'
+                      : '主观论述'}
+              </Badge>
+              <Badge variant="outline" className="rounded-lg px-2 py-0.5 text-[10px] font-bold text-indigo-500 border-indigo-100 bg-indigo-50/30">
+                {currentQ.difficulty_level_display || '适当'} (ELO {currentQ.difficulty || 1200})
+              </Badge>
+            </div>
+
+            <div className="text-base font-bold text-slate-900 leading-relaxed">
+              <ReactMarkdown remarkPlugins={[remarkMath]} rehypePlugins={[rehypeKatex]}>
+                {processMathContent(currentQ.text)}
+              </ReactMarkdown>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => toggleMastered(currentQ.id)}
+                className={cn(
+                  'rounded-xl h-8 px-3 gap-2 border transition-all',
+                  currentQ.is_mastered
+                    ? 'text-emerald-600 bg-emerald-50 border-emerald-100'
+                    : 'text-slate-400 border-slate-100 hover:text-emerald-500 hover:bg-emerald-50/50'
+                )}
+              >
+                <CheckCircle2 className="h-4 w-4" />
+                <span className="text-[10px] font-black uppercase tracking-widest">{currentQ.is_mastered ? '已拿捏' : '拿捏'}</span>
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => toggleFavorite(currentQ.id)}
+                className={cn(
+                  'rounded-xl h-8 w-8 shrink-0 border border-slate-100 transition-all',
+                  currentQ.is_favorite ? 'text-amber-500 fill-amber-500 bg-amber-50' : 'text-slate-300 hover:text-slate-400 hover:bg-slate-50'
+                )}
+              >
+                <Star className="h-4 w-4" />
+              </Button>
+            </div>
+
+            <div className={cn('transition-opacity', currentQ.is_mastered && 'opacity-40')}>
+              {currentQ.q_type === 'objective' ? (
+                <div className="grid grid-cols-1 gap-2.5">
+                  {currentQ.options?.map((opt: string, i: number) => (
+                    <button
+                      key={i}
+                      disabled={currentQ.is_mastered}
+                      onClick={() => setAnswers((prev) => ({ ...prev, [currentQ.id]: opt }))}
+                      className={cn(
+                        'w-full p-3 rounded-xl border text-left font-bold transition-all flex items-center gap-3',
+                        answers[currentQ.id] === opt ? 'bg-slate-900 text-white border-slate-900 shadow-sm' : 'bg-white border-slate-200/60 hover:border-indigo-400 hover:bg-slate-50',
+                        currentQ.is_mastered && 'cursor-not-allowed'
+                      )}
+                    >
+                      <div className={cn('h-6 w-6 rounded-lg border-2 flex items-center justify-center transition-all', answers[currentQ.id] === opt ? 'border-white/20 bg-indigo-600' : 'border-slate-100 bg-slate-50')}>
+                        <span className={cn('text-[10px] font-black', answers[currentQ.id] === opt ? 'text-white' : 'text-slate-400')}>
+                          {String.fromCharCode(65 + i)}
+                        </span>
+                      </div>
+                      <span className="text-xs">{opt}</span>
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <textarea
+                  value={answers[currentQ.id] || ''}
+                  disabled={currentQ.is_mastered}
+                  onChange={(e) => setAnswers((prev) => ({ ...prev, [currentQ.id]: e.target.value }))}
+                  className={cn(
+                    'w-full bg-slate-50 border border-slate-100/60 rounded-xl p-3 min-h-[170px] font-medium text-sm focus:ring-2 focus:ring-indigo-500/10 transition-all resize-none',
+                    currentQ.is_mastered && 'cursor-not-allowed'
+                  )}
+                  placeholder={currentQ.is_mastered ? '该题已标记掌握，无需填写答案...' : '在此输入你的分析或计算过程...'}
+                />
+              )}
+            </div>
+          </div>
+        </div>
+
+        <footer className="shrink-0 border-t border-border bg-background/95 backdrop-blur-md px-3 pt-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] space-y-2">
+          <div className="flex justify-between items-center text-[11px] font-bold uppercase tracking-wider text-slate-400">
+            <span>已答进度</span>
+            <span className="text-slate-900">{answeredCount} / {totalNeedAnswer}</span>
+          </div>
+          <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
+            <div className="h-full bg-indigo-600 transition-all duration-300" style={{ width: `${totalNeedAnswer ? (answeredCount / totalNeedAnswer) * 100 : 100}%` }} />
+          </div>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" onClick={() => setCurrentIdx((prev) => Math.max(0, prev - 1))} disabled={currentIdx === 0} className="h-10 rounded-xl px-3 text-xs font-bold">
+              <ChevronLeft className="h-4 w-4 mr-1" />
+              上一题
+            </Button>
+            {currentIdx === questions.length - 1 ? (
+              <Button onClick={handleSubmit} disabled={isSubmitting} className="h-10 flex-1 rounded-xl bg-slate-900 text-white font-bold text-xs">
+                {isSubmitting ? '提交中...' : '提交评分'}
+              </Button>
+            ) : (
+              <Button onClick={() => setCurrentIdx((prev) => Math.min(questions.length - 1, prev + 1))} className="h-10 flex-1 rounded-xl bg-slate-900 text-white font-bold text-xs">
+                下一题
+                <ChevronRight className="h-4 w-4 ml-1" />
+              </Button>
+            )}
+          </div>
+        </footer>
+      </div>
+    </div>
+  );
+};

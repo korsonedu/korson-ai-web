@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -25,14 +25,25 @@ export const ResultReportDialog: React.FC<ResultReportProps> = ({
   currentReportIdx,
   setCurrentReportIdx
 }) => {
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const media = window.matchMedia('(max-width: 767px)');
+    const sync = () => setIsMobile(media.matches);
+    sync();
+    media.addEventListener('change', sync);
+    return () => media.removeEventListener('change', sync);
+  }, []);
+
   return (
     <Dialog modal={false} open={open} onOpenChange={onOpenChange}>
       <DialogContent
         onInteractOutside={(e) => e.preventDefault()}
-        className="sm:max-w-[1200px] rounded-[3rem] border-none bg-white p-0 shadow-2xl overflow-hidden flex flex-col h-[90vh] max-h-[920px] z-[100]"
+        className="w-[96vw] sm:max-w-[1200px] rounded-2xl md:rounded-[3rem] border-none bg-white p-0 shadow-2xl overflow-hidden flex flex-col h-[92vh] md:h-[90vh] md:max-h-[920px] z-[100]"
       >
-        <DialogHeader className="px-8 py-4 border-b border-slate-100 shrink-0 bg-white">
-          <div className="flex justify-between items-center">
+        <DialogHeader className="px-4 md:px-8 py-4 border-b border-slate-100 shrink-0 bg-white">
+          <div className="flex flex-col md:flex-row justify-between md:items-center gap-3">
             <div className="space-y-0.5 text-left">
               <DialogTitle className="text-xl font-black tracking-tight text-slate-900 uppercase">评估分析报告</DialogTitle>
               <p className="text-[11px] font-bold uppercase tracking-[0.3em] text-indigo-600">Academic Audit</p>
@@ -55,8 +66,8 @@ export const ResultReportDialog: React.FC<ResultReportProps> = ({
           </div>
         </DialogHeader>
 
-        <div className="flex-1 flex overflow-hidden">
-          <div className="flex-1 overflow-y-auto p-4 pt-2 bg-slate-50/30 scrollbar-thin border-r border-slate-50">
+        <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
+          <div className="flex-1 overflow-y-auto p-3 md:p-4 pt-2 bg-slate-50/30 scrollbar-thin md:border-r border-slate-50">
             {results.length > 0 && (
               <div className="animate-in fade-in slide-in-from-bottom-2 duration-500">
                 <Card className="border border-slate-100 bg-white rounded-[2rem] overflow-hidden shadow-sm">
@@ -109,7 +120,7 @@ export const ResultReportDialog: React.FC<ResultReportProps> = ({
             )}
           </div>
 
-          <div className="w-64 bg-slate-50/50 p-6 flex flex-col shrink-0">
+          <div className={cn("w-full md:w-64 bg-slate-50/50 p-4 md:p-6 md:flex flex-col shrink-0 border-t md:border-t-0 border-slate-100", isMobile ? "hidden" : "flex")}>
             <h5 className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-4 text-left">评估矩阵</h5>
             <ScrollArea className="flex-1 pr-2">
               <div className="grid grid-cols-4 gap-2">

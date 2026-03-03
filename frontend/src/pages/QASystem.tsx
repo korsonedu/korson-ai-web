@@ -94,7 +94,7 @@ const AnswerItem = ({ answer, isFirst, onReplyClick, onRefresh }: { answer: any,
   };
 
   return (
-    <div className={cn("flex gap-3 text-left group/answer relative", isFirst ? "mb-2" : "mt-3 ml-4")}>
+    <div className={cn("flex gap-3 text-left group/answer relative", isFirst ? "mb-2" : "mt-3 ml-2 md:ml-4")}>
       <Avatar className={cn("border border-border shadow-sm", isFirst ? "h-8 w-8" : "h-7 w-7")}>
         <AvatarImage src={answer.user_detail.avatar_url} />
         <AvatarFallback className={cn("font-bold", answer.is_teacher ? "bg-indigo-100 text-indigo-700" : "bg-muted")}>
@@ -279,7 +279,7 @@ const ThreadCard = ({ question, onRefresh, isAdmin }: { question: any, onRefresh
   };
 
   return (
-    <Card className="border-none shadow-sm bg-white rounded-3xl p-6 transition-all hover:shadow-md border border-border/40 group">
+    <Card className="border-none shadow-sm bg-white rounded-2xl md:rounded-3xl p-4 md:p-6 transition-all hover:shadow-md border border-border/40 group">
       {/* Header */}
       <div className="flex justify-between items-start mb-4">
         <div className="flex items-center gap-3">
@@ -345,7 +345,7 @@ const ThreadCard = ({ question, onRefresh, isAdmin }: { question: any, onRefresh
       </div>
 
       {/* Question Content */}
-      <div className="pl-13 mb-6">
+      <div className="pl-0 md:pl-13 mb-5 md:mb-6">
         {isEditing ? (
              <div className="space-y-2 animate-in fade-in zoom-in-95 duration-200">
              <textarea
@@ -376,8 +376,8 @@ const ThreadCard = ({ question, onRefresh, isAdmin }: { question: any, onRefresh
         {question.attachment && (
           <div className="mt-3">
             {isImageAttachment ? (
-              <div className="rounded-2xl overflow-hidden border border-border/50 max-w-sm group/img relative">
-                <img src={question.attachment} alt="attachment" className="w-full h-auto max-h-[300px] object-cover" />
+              <div className="rounded-xl overflow-hidden border border-border/50 max-w-[200px] md:max-w-sm group/img relative">
+                <img src={question.attachment} alt="attachment" className="w-full h-auto max-h-[140px] md:max-h-[300px] object-cover" />
                 <a href={question.attachment} target="_blank" rel="noreferrer" className="absolute top-2 right-2 p-1.5 bg-black/50 text-white rounded-lg opacity-0 group-hover/img:opacity-100 transition-opacity">
                   <Paperclip className="h-3.5 w-3.5" />
                 </a>
@@ -411,7 +411,7 @@ const ThreadCard = ({ question, onRefresh, isAdmin }: { question: any, onRefresh
 
       {/* First Answer (Teacher) */}
       {firstAnswer && (
-        <div className="pl-4 border-l-2 border-indigo-100 ml-4 mb-2">
+        <div className="pl-2 md:pl-4 border-l-2 border-indigo-100 ml-1 md:ml-4 mb-2">
           <div className="relative">
             <AnswerItem answer={firstAnswer} isFirst={true} onReplyClick={triggerReply} onRefresh={onRefresh} />
           </div>
@@ -420,9 +420,9 @@ const ThreadCard = ({ question, onRefresh, isAdmin }: { question: any, onRefresh
 
       {/* Replies & Expansion */}
       {hasOthers && (
-        <div className="pl-8 mt-2">
+        <div className="pl-2 md:pl-8 mt-2">
           {isExpanded && (
-            <div className="space-y-4 mb-4 border-l-2 border-muted ml-4 pb-2 animate-in slide-in-from-top-2 duration-300">
+            <div className="space-y-4 mb-4 border-l-2 border-muted ml-1 md:ml-4 pb-2 animate-in slide-in-from-top-2 duration-300">
               {otherAnswers.map((ans: any) => (
                 <AnswerItem key={ans.id} answer={ans} isFirst={false} onReplyClick={triggerReply} onRefresh={onRefresh} />
               ))}
@@ -431,7 +431,7 @@ const ThreadCard = ({ question, onRefresh, isAdmin }: { question: any, onRefresh
           <Button 
             variant="ghost" 
             onClick={() => setIsExpanded(!isExpanded)}
-            className="h-8 text-[12px] font-bold text-muted-foreground uppercase tracking-widest hover:text-foreground ml-4"
+            className="h-8 text-[12px] font-bold text-muted-foreground uppercase tracking-widest hover:text-foreground ml-1 md:ml-4"
           >
             {isExpanded ? <ChevronUp className="mr-2 h-3 w-3" /> : <CornerDownRight className="mr-2 h-3 w-3" />}
             {isExpanded ? "收起回复" : `查看 ${otherAnswers.length} 条追问回复`}
@@ -441,7 +441,7 @@ const ThreadCard = ({ question, onRefresh, isAdmin }: { question: any, onRefresh
 
       {/* Reply Input */}
       {showInput && (
-        <div className="pl-13 mt-4 flex gap-2 items-start animate-in fade-in slide-in-from-bottom-2">
+        <div className="pl-0 md:pl-13 mt-4 flex flex-col sm:flex-row gap-2 items-stretch sm:items-start animate-in fade-in slide-in-from-bottom-2">
           <textarea
             autoFocus
             ref={inputRef}
@@ -463,7 +463,7 @@ const ThreadCard = ({ question, onRefresh, isAdmin }: { question: any, onRefresh
               }
             }}
           />
-          <div className="flex gap-1">
+          <div className="flex gap-1 justify-end sm:justify-start">
             <Button 
               onMouseDown={(e) => e.preventDefault()} // Prevent blur before click
               disabled={isSubmitting} 
@@ -488,6 +488,7 @@ export const QASystem: React.FC = () => {
   const [filter, setFilter] = useState('all');
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [isMobile, setIsMobile] = useState(false);
   
   // New Question State
   const [qContent, setQContent] = useState('');
@@ -508,6 +509,14 @@ export const QASystem: React.FC = () => {
   };
 
   useEffect(() => { fetchQuestions(); }, [filter, search]);
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const media = window.matchMedia('(max-width: 767px)');
+    const sync = () => setIsMobile(media.matches);
+    sync();
+    media.addEventListener('change', sync);
+    return () => media.removeEventListener('change', sync);
+  }, []);
 
   const handlePost = async () => {
     if (!qContent.trim()) return toast.error("请输入问题内容");
@@ -531,10 +540,10 @@ export const QASystem: React.FC = () => {
 
   return (
     <PageWrapper title="答疑" subtitle="学术疑问 · 权威解答 · 深度探讨">
-      <div className="max-w-5xl mx-auto space-y-8 animate-in fade-in duration-500">
+      <div className="max-w-5xl mx-auto space-y-5 md:space-y-8 animate-in fade-in duration-500">
         
         {/* Top Input Area */}
-        <Card className="border-none shadow-sm bg-white rounded-[2rem] p-6 border border-border/50">
+        <Card className="border-none shadow-sm bg-white rounded-2xl md:rounded-[2rem] p-4 md:p-6 border border-border/50">
           <div className="space-y-4">
             <textarea 
               value={qContent}
@@ -542,19 +551,30 @@ export const QASystem: React.FC = () => {
               placeholder="请详细描述你的疑问..."
               className="w-full min-h-[100px] p-4 rounded-2xl bg-[#F5F5F7] border-none text-sm font-medium resize-none focus:ring-2 focus:ring-black/5 transition-all placeholder:text-muted-foreground/40"
             />
-            <div className="flex justify-between items-center">
-              <div className="flex items-center gap-2">
+            <div className={cn(isMobile ? "flex items-center gap-2" : "flex justify-between items-center")}>
+              <div className={cn("flex items-center gap-2", isMobile && "flex-1 min-w-0")}>
                 <Button 
                   variant="outline" 
                   onClick={() => fileInputRef.current?.click()}
-                  className={cn("rounded-xl h-10 border-dashed border-2 px-4 gap-2 text-xs font-bold text-muted-foreground hover:text-primary hover:border-primary/30 hover:bg-primary/5", qFile && "border-solid border-primary text-primary bg-primary/5")}
+                  className={cn(
+                    "rounded-xl h-10 border-dashed border-2 gap-2 text-xs font-bold text-muted-foreground hover:text-primary hover:border-primary/30 hover:bg-primary/5",
+                    isMobile ? "w-full justify-start px-3 min-w-0" : "px-4",
+                    qFile && "border-solid border-primary text-primary bg-primary/5"
+                  )}
                 >
                   <Paperclip className="h-3.5 w-3.5" />
-                  {qFile ? qFile.name : "添加附件 (图片/文档)"}
+                  {isMobile ? <span className="truncate">{qFile ? qFile.name : "添加附件 (图片/文档)"}</span> : (qFile ? qFile.name : "添加附件 (图片/文档)")}
                 </Button>
-                <input type="file" ref={fileInputRef} onChange={e => setQFile(e.target.files?.[0] || null)} className="hidden" />
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={e => setQFile(e.target.files?.[0] || null)}
+                  className="hidden"
+                  accept={isMobile ? "image/*,application/pdf,.doc,.docx,.txt" : undefined}
+                  capture={isMobile ? "environment" : undefined}
+                />
               </div>
-              <Button onClick={handlePost} disabled={isPosting} className="h-10 px-8 rounded-xl bg-black text-white font-bold shadow-xl hover:scale-[1.02] transition-transform text-xs uppercase tracking-widest">
+              <Button onClick={handlePost} disabled={isPosting} className={cn("h-10 rounded-xl bg-black text-white font-bold shadow-xl hover:scale-[1.02] transition-transform text-xs uppercase tracking-widest", isMobile ? "shrink-0 px-5" : "px-8")}>
                 {isPosting ? <Loader2 className="h-4 w-4 animate-spin"/> : "提交问题"}
               </Button>
             </div>
@@ -562,8 +582,9 @@ export const QASystem: React.FC = () => {
         </Card>
 
         {/* Filter Bar */}
-        <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-          <div className="flex bg-muted/30 p-1 rounded-2xl border border-border/50">
+        <div className="flex flex-col md:flex-row justify-between items-stretch md:items-center gap-4">
+          <div className="w-full md:w-auto overflow-x-auto">
+          <div className="inline-flex min-w-max bg-muted/30 p-1 rounded-2xl border border-border/50">
             {[
               { id: 'all', label: '全部' },
               { id: 'followed', label: '关注' },
@@ -585,13 +606,14 @@ export const QASystem: React.FC = () => {
               </button>
             ))}
           </div>
-          <div className="relative">
+          </div>
+          <div className="relative w-full md:w-auto">
             <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground/50" />
             <Input 
               value={search}
               onChange={e => setSearch(e.target.value)}
               placeholder="搜索历史问答..." 
-              className="pl-9 h-10 rounded-xl bg-white border-transparent hover:border-border focus:border-black/10 shadow-sm w-64 text-xs font-bold transition-all"
+              className="pl-9 h-10 rounded-xl bg-white border-transparent hover:border-border focus:border-black/10 shadow-sm w-full md:w-64 text-xs font-bold transition-all"
             />
           </div>
         </div>

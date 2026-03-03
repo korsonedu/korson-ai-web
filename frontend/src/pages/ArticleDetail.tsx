@@ -53,7 +53,7 @@ export const ArticleDetail: React.FC = () => {
   const processedContent = processMathContent(article.content);
 
   return (
-    <div className="w-full max-w-4xl mx-auto animate-in fade-in duration-700 text-left p-10 pb-32 relative">
+    <div className="w-full max-w-4xl mx-auto animate-in fade-in duration-700 text-left p-4 md:p-10 pb-24 md:pb-32 relative">
       <style>{`
         .article-content h1 { font-size: 1.5rem; font-weight: 900; line-height: 1.2; margin-top: 1.5rem; margin-bottom: 0.75rem; letter-spacing: -0.05em; color: #0f172a; }
         .article-content h2 { font-size: 1.25rem; font-weight: 900; line-height: 1.3; margin-top: 1.25rem; margin-bottom: 0.5rem; color: #0f172a; }
@@ -81,7 +81,7 @@ export const ArticleDetail: React.FC = () => {
         />
       </div>
 
-      <header className="space-y-8 border-b border-border/50 pb-10 mb-12">
+      <header className="space-y-5 md:space-y-8 border-b border-border/50 pb-7 md:pb-10 mb-8 md:mb-12">
         <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="rounded-xl hover:bg-muted shadow-sm border border-border h-10 w-10 transition-all">
           <ChevronLeft className="h-5 w-5"/>
         </Button>
@@ -108,7 +108,7 @@ export const ArticleDetail: React.FC = () => {
          </ReactMarkdown>
       </div>
 
-      <footer className="mt-20 pt-12 border-t border-border/50 flex items-center justify-between">
+      <footer className="mt-14 md:mt-20 pt-8 md:pt-12 border-t border-border/50 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
          <div className="flex items-center gap-4 text-left">
             <div className="h-12 w-12 rounded-full bg-black flex items-center justify-center text-white font-bold text-sm shadow-xl uppercase">
                {article.author_display_name?.[0] || '宇'}
@@ -118,7 +118,7 @@ export const ArticleDetail: React.FC = () => {
                <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-widest">Verified Academic Resource</p>
             </div>
          </div>
-         <Button onClick={() => navigate('/articles')} variant="outline" className="rounded-2xl font-bold h-12 px-8 border-border hover:bg-muted transition-colors">返回文章列表</Button>
+         <Button onClick={() => navigate('/articles')} variant="outline" className="rounded-2xl font-bold h-12 w-full md:w-auto px-8 border-border hover:bg-muted transition-colors">返回文章列表</Button>
       </footer>
     </div>
   );

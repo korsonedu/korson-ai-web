@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { PageWrapper } from '@/components/PageWrapper';
 import { Target, Maximize2, ZoomIn, ZoomOut, GitMerge } from 'lucide-react';
 import api from '@/lib/api';
-import { processMathContent } from '@/lib/utils';
+import { processMathContent, cn } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -232,11 +232,20 @@ export const KnowledgeMap: React.FC = () => {
   const [selectedNode, setSelectedNode] = useState<KPNode | null>(null);
   const [nodeDetails, setNodeDetails] = useState<{ courses: any[], articles: any[], questions: any[] }>({ courses: [], articles: [], questions: [] });
   const [searchQuery, setSearchQuery] = useState('');
-  const [viewMode, setViewMode] = useState<'list' | 'graph'>('graph'); 
+  const [isMobile, setIsMobile] = useState(false);
+  const [viewMode, setViewMode] = useState<'list' | 'graph'>('graph');
   const [selectedRootId, setSelectedRootId] = useState<string>('all');
   const [selectedQuestion, setSelectedQuestion] = useState<any>(null);
 
   useEffect(() => { fetchMap(); }, []);
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const media = window.matchMedia('(max-width: 767px)');
+    const sync = () => setIsMobile(media.matches);
+    sync();
+    media.addEventListener('change', sync);
+    return () => media.removeEventListener('change', sync);
+  }, []);
 
   const fetchMap = async () => {
     try {
@@ -276,47 +285,109 @@ export const KnowledgeMap: React.FC = () => {
     let added = true;
     while (added) {
       added = false;
-      for (const node of allNodes) if (node.parent && validIds.has(node.parent) && !validIds.has(node.id)) { validIds.add(node.id); added = true; }
+      for (const node of allNodes) {
+        if (node.parent && validIds.has(node.parent) && !validIds.has(node.id)) {
+          validIds.add(node.id);
+          added = true;
+        }
+      }
     }
     return allNodes.filter(n => validIds.has(n.id));
   }, [allNodes, selectedRootId]);
 
-  const listNodes = displayNodes.filter(n => n.level === 'kp' && n.name.toLowerCase().includes(searchQuery.toLowerCase()));
+  const listNodes = useMemo(
+    () => (isMobile ? allNodes : displayNodes).filter(n => n.level === 'kp' && n.name.toLowerCase().includes(searchQuery.toLowerCase())),
+    [allNodes, displayNodes, isMobile, searchQuery]
+  );
 
   return (
     <PageWrapper title="知识地图" subtitle="可视化呈现知识载体间的逻辑脉络与关联结构。">
-      <div className="w-full space-y-6 text-left animate-in fade-in duration-700">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div className="flex items-center gap-3 w-full sm:max-w-xl">
-            <Select value={selectedRootId} onValueChange={setSelectedRootId}>
-              <SelectTrigger className="w-[220px] h-11 bg-white rounded-2xl font-bold border-border shadow-sm"><GitMerge className="w-4 h-4 mr-2 text-indigo-500" /><SelectValue placeholder="全部分支" /></SelectTrigger>
-              <SelectContent className="rounded-2xl"><SelectItem value="all" className="font-bold">全部分支</SelectItem>{rootOptions.map(opt => (<SelectItem key={opt.id} value={opt.id.toString()}>{opt.name}</SelectItem>))}</SelectContent>
-            </Select>
-            <Input placeholder={viewMode === 'list' ? "搜索考点..." : "关系图模式"} value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="flex-1 rounded-2xl bg-white border-border shadow-sm h-11 px-5 font-bold" disabled={viewMode === 'graph'} />
+      <div className={cn("w-full text-left animate-in fade-in duration-700", isMobile ? "space-y-3" : "space-y-6")}>
+        {isMobile ? (
+          <div className="w-full">
+            <Input
+              placeholder="搜索知识卡片..."
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              className="w-full rounded-2xl bg-white border-border shadow-sm h-10 px-4 font-bold"
+            />
           </div>
-          <div className="flex bg-muted/30 p-1 rounded-2xl border border-border/50 shrink-0">
-            <Button variant={viewMode === 'graph' ? 'secondary' : 'ghost'} onClick={() => setViewMode('graph')} className="rounded-xl h-9 text-xs font-bold px-6">关系图</Button>
-            <Button variant={viewMode === 'list' ? 'secondary' : 'ghost'} onClick={() => setViewMode('list')} className="rounded-xl h-9 text-xs font-bold px-6">词条表</Button>
+        ) : (
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div className="flex items-center gap-3 w-full sm:max-w-xl">
+              <Select value={selectedRootId} onValueChange={setSelectedRootId}>
+                <SelectTrigger className="w-[220px] h-11 bg-white rounded-2xl font-bold border-border shadow-sm">
+                  <GitMerge className="w-4 h-4 mr-2 text-indigo-500" />
+                  <SelectValue placeholder="全部分支" />
+                </SelectTrigger>
+                <SelectContent className="rounded-2xl">
+                  <SelectItem value="all" className="font-bold">全部分支</SelectItem>
+                  {rootOptions.map(opt => (
+                    <SelectItem key={opt.id} value={opt.id.toString()}>
+                      {opt.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Input
+                placeholder={viewMode === 'list' ? "搜索考点..." : "关系图模式"}
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                className="flex-1 rounded-2xl bg-white border-border shadow-sm h-11 px-5 font-bold"
+                disabled={viewMode === 'graph'}
+              />
+            </div>
+            <div className="flex bg-muted/30 p-1 rounded-2xl border border-border/50 shrink-0">
+              <Button variant={viewMode === 'graph' ? 'secondary' : 'ghost'} onClick={() => setViewMode('graph')} className="rounded-xl h-9 text-xs font-bold px-6">关系图</Button>
+              <Button variant={viewMode === 'list' ? 'secondary' : 'ghost'} onClick={() => setViewMode('list')} className="rounded-xl h-9 text-xs font-bold px-6">词条表</Button>
+            </div>
           </div>
-        </div>
+        )}
 
         {loading ? (
-          <div className="py-20 text-center opacity-20 font-bold uppercase text-[10px] animate-pulse">Mapping...</div>
-        ) : viewMode === 'graph' ? (
+          <div className={cn("text-center opacity-20 font-bold uppercase text-[10px] animate-pulse", isMobile ? "py-16" : "py-20")}>Mapping...</div>
+        ) : (!isMobile && viewMode === 'graph') ? (
           <KnowledgeGraph nodes={displayNodes} onNodeClick={handleNodeSelect} />
         ) : (
-          <div className="flex flex-wrap gap-2 bg-slate-50/50 p-6 rounded-[3rem] border border-border/50 min-h-[400px] content-start">
-            {listNodes.map(node => (
+          <div
+            className={cn(
+              "bg-slate-50/50 border border-border/50",
+              isMobile
+                ? "rounded-[2rem] grid grid-cols-2 gap-2 p-2 h-[calc(100dvh-15.5rem)] overflow-y-auto content-start min-h-[360px]"
+                : "rounded-[3rem] flex flex-wrap gap-2 p-6 content-start min-h-[400px]"
+            )}
+          >
+            {listNodes.map(node => isMobile ? (
+              <button
+                key={node.id}
+                onClick={() => handleNodeSelect(node)}
+                className="group flex items-center justify-between bg-white border border-border/50 hover:border-indigo-500/30 hover:shadow-md px-2.5 py-2 rounded-xl cursor-pointer transition-all active:scale-[0.99] text-left min-h-[58px]"
+              >
+                <span className="text-[12px] font-bold text-slate-700 truncate pr-2 leading-snug">{node.name}</span>
+              </button>
+            ) : (
               <div key={node.id} onClick={() => handleNodeSelect(node)} className="group flex items-center gap-2 bg-white border border-border/50 hover:border-indigo-500/30 hover:shadow-md px-4 py-2 rounded-xl cursor-pointer transition-all active:scale-95">
                 <span className="text-xs font-bold text-slate-700">{node.name}</span>
-                {node.questions_count !== undefined && node.questions_count > 0 && <Badge variant="secondary" className="text-[9px] rounded-full px-1.5 py-0.5 h-4 bg-indigo-50 text-indigo-600 border-none font-black opacity-60 group-hover:opacity-100 transition-opacity">{node.questions_count} 题</Badge>}
+                {node.questions_count !== undefined && node.questions_count > 0 && (
+                  <Badge variant="secondary" className="text-[9px] rounded-full px-1.5 py-0.5 h-4 bg-indigo-50 text-indigo-600 border-none font-black opacity-60 group-hover:opacity-100 transition-opacity">
+                    {node.questions_count} 题
+                  </Badge>
+                )}
               </div>
             ))}
+            {listNodes.length === 0 && (
+              <div className={cn("w-full text-center text-xs font-bold text-muted-foreground", isMobile ? "col-span-2 py-12" : "py-20")}>
+                没有匹配到相关知识点
+              </div>
+            )}
           </div>
         )}
 
         <Dialog modal={false} open={!!selectedNode} onOpenChange={open => !open && setSelectedNode(null)}>
-          <DialogContent className="sm:max-w-[750px] rounded-[3rem] p-10 border-none shadow-2xl text-left overflow-hidden max-h-[85vh] min-h-0 flex flex-col">
+          <DialogContent className={cn(
+            "sm:max-w-[750px] border-none shadow-2xl text-left overflow-hidden min-h-0 flex flex-col",
+            isMobile ? "rounded-[2rem] p-5 max-h-[90vh]" : "rounded-[3rem] p-10 max-h-[85vh]"
+          )}>
             <DialogHeader>
               <div className="flex items-center gap-3 mb-2"><Badge className="bg-emerald-500 text-white border-none uppercase text-[9px] font-bold">Knowledge Point</Badge></div>
               <DialogTitle className="text-3xl font-bold tracking-tight">{selectedNode?.name}</DialogTitle>
