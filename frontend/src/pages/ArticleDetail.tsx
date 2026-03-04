@@ -43,8 +43,8 @@ export const ArticleDetail: React.FC = () => {
 
   if (loading) return (
     <div className="h-screen flex flex-col items-center justify-center gap-4 text-center">
-      <Loader2 className="h-10 w-10 animate-spin text-black/10" />
-      <p className="text-[10px] font-bold text-black/20 uppercase tracking-[0.2em]">Loading Academic Context...</p>
+      <Loader2 className="h-10 w-10 animate-spin text-muted-foreground/40" />
+      <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em]">Loading Academic Context...</p>
     </div>
   );
 

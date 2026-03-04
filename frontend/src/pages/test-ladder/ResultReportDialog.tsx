@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -7,6 +7,7 @@ import { cn, processMathContent } from '@/lib/utils';
 import ReactMarkdown from 'react-markdown';
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
+import { isLearningReminderEnabled, sendLearningReminder } from '@/lib/learningReminders';
 
 interface ResultReportProps {
   open: boolean;
@@ -26,6 +27,7 @@ export const ResultReportDialog: React.FC<ResultReportProps> = ({
   setCurrentReportIdx
 }) => {
   const [isMobile, setIsMobile] = useState(false);
+  const resultReminderKeyRef = useRef<string>('');
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -36,27 +38,41 @@ export const ResultReportDialog: React.FC<ResultReportProps> = ({
     return () => media.removeEventListener('change', sync);
   }, []);
 
+  useEffect(() => {
+    if (!open || !isMobile || !examSummary || !isLearningReminderEnabled('testResult')) return;
+    const key = `${examSummary.total_score}-${examSummary.max_score}-${examSummary.elo_change}`;
+    if (resultReminderKeyRef.current === key) return;
+    resultReminderKeyRef.current = key;
+
+    const elo = Number(examSummary.elo_change || 0);
+    const eloText = elo >= 0 ? `+${elo}` : `${elo}`;
+    sendLearningReminder(
+      '做题结果提醒',
+      `总分 ${examSummary.total_score}/${examSummary.max_score}，ELO ${eloText}`
+    );
+  }, [examSummary, isMobile, open]);
+
   return (
-    <Dialog modal={false} open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         onInteractOutside={(e) => e.preventDefault()}
-        className="w-[96vw] sm:max-w-[1200px] rounded-2xl md:rounded-[3rem] border-none bg-white p-0 shadow-2xl overflow-hidden flex flex-col h-[92vh] md:h-[90vh] md:max-h-[920px] z-[100]"
+        className="w-[96vw] sm:max-w-[1200px] rounded-2xl md:rounded-[3rem] border-none bg-card p-0 shadow-2xl overflow-hidden flex flex-col h-[92vh] md:h-[90vh] md:max-h-[920px] z-[100]"
       >
-        <DialogHeader className="px-4 md:px-8 py-4 border-b border-slate-100 shrink-0 bg-white">
+        <DialogHeader className="px-4 md:px-8 py-4 border-b border-border shrink-0 bg-card">
           <div className="flex flex-col md:flex-row justify-between md:items-center gap-3">
             <div className="space-y-0.5 text-left">
-              <DialogTitle className="text-xl font-black tracking-tight text-slate-900 uppercase">评估分析报告</DialogTitle>
+              <DialogTitle className="text-xl font-black tracking-tight text-foreground uppercase">评估分析报告</DialogTitle>
               <p className="text-[11px] font-bold uppercase tracking-[0.3em] text-indigo-600">Academic Audit</p>
             </div>
             {examSummary && (
               <div className="flex items-center gap-6">
                 <div className="text-right">
-                  <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">总分统计</p>
-                  <p className="text-lg font-black text-slate-900 tabular-nums">{examSummary.total_score} / {examSummary.max_score}</p>
+                  <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest">总分统计</p>
+                  <p className="text-lg font-black text-foreground tabular-nums">{examSummary.total_score} / {examSummary.max_score}</p>
                 </div>
-                <div className="h-6 w-px bg-slate-100" />
+                <div className="h-6 w-px bg-border" />
                 <div className="text-right">
-                  <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">ELO 变动</p>
+                  <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest">ELO 变动</p>
                   <p className={cn("text-lg font-black tabular-nums", examSummary.elo_change >= 0 ? "text-emerald-500" : "text-rose-500")}>
                     {examSummary.elo_change >= 0 ? `+${examSummary.elo_change}` : examSummary.elo_change}
                   </p>
@@ -67,15 +83,15 @@ export const ResultReportDialog: React.FC<ResultReportProps> = ({
         </DialogHeader>
 
         <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
-          <div className="flex-1 overflow-y-auto p-3 md:p-4 pt-2 bg-slate-50/30 scrollbar-thin md:border-r border-slate-50">
+          <div className="flex-1 overflow-y-auto p-3 md:p-4 pt-2 bg-muted/30 scrollbar-thin md:border-r border-border">
             {results.length > 0 && (
               <div className="animate-in fade-in slide-in-from-bottom-2 duration-500">
-                <Card className="border border-slate-100 bg-white rounded-[2rem] overflow-hidden shadow-sm">
+                <Card className="border border-border bg-card rounded-[2rem] overflow-hidden shadow-sm">
                   <div className="p-6 space-y-4">
                     <div className="flex justify-between items-start gap-4">
                       <div className="flex gap-3 items-start flex-1 text-left">
-                        <span className="text-2xl font-black text-slate-100 tabular-nums leading-none">{(currentReportIdx + 1).toString().padStart(2, '0')}</span>
-                        <div className="font-bold text-base text-slate-900 leading-snug">
+                        <span className="text-2xl font-black text-muted-foreground/30 tabular-nums leading-none">{(currentReportIdx + 1).toString().padStart(2, '0')}</span>
+                        <div className="font-bold text-base text-foreground leading-snug">
                           <ReactMarkdown remarkPlugins={[remarkMath]} rehypePlugins={[rehypeKatex]}>
                             {processMathContent(results[currentReportIdx].question?.text || "")}
                           </ReactMarkdown>
@@ -86,17 +102,17 @@ export const ResultReportDialog: React.FC<ResultReportProps> = ({
                       </Badge>
                     </div>
 
-                    <div className="grid gap-4 pt-4 border-t border-slate-50">
+                    <div className="grid gap-4 pt-4 border-t border-border">
                       <div className="space-y-1 text-left">
-                        <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-400 ml-1">My Response</p>
-                        <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-100 text-[13px] font-medium text-slate-700 leading-relaxed whitespace-pre-wrap">
+                        <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted-foreground ml-1">My Response</p>
+                        <div className="p-3.5 bg-muted rounded-xl border border-border text-[13px] font-medium text-foreground leading-relaxed whitespace-pre-wrap">
                           {results[currentReportIdx].user_answer || "(未作答)"}
                         </div>
                       </div>
                       
                       <div className="space-y-1 text-left">
                         <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-emerald-500 ml-1">AI Feedback</p>
-                        <div className="p-4 bg-emerald-50/50 rounded-xl border border-emerald-100/50 text-[14px] font-bold text-emerald-900 leading-relaxed shadow-sm text-left">
+                        <div className="p-4 bg-emerald-500/10 rounded-xl border border-emerald-400/20 text-[14px] font-bold text-foreground leading-relaxed shadow-sm text-left">
                           <ReactMarkdown remarkPlugins={[remarkMath]} rehypePlugins={[rehypeKatex]}>
                             {processMathContent(results[currentReportIdx].feedback)}
                           </ReactMarkdown>
@@ -120,8 +136,8 @@ export const ResultReportDialog: React.FC<ResultReportProps> = ({
             )}
           </div>
 
-          <div className={cn("w-full md:w-64 bg-slate-50/50 p-4 md:p-6 md:flex flex-col shrink-0 border-t md:border-t-0 border-slate-100", isMobile ? "hidden" : "flex")}>
-            <h5 className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-4 text-left">评估矩阵</h5>
+          <div className={cn("w-full md:w-64 bg-muted/50 p-4 md:p-6 md:flex flex-col shrink-0 border-t md:border-t-0 border-border", isMobile ? "hidden" : "flex")}>
+            <h5 className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest mb-4 text-left">评估矩阵</h5>
             <ScrollArea className="flex-1 pr-2">
               <div className="grid grid-cols-4 gap-2">
                 {results.map((res, i) => (
@@ -144,20 +160,20 @@ export const ResultReportDialog: React.FC<ResultReportProps> = ({
               </div>
             </ScrollArea>
 
-            <div className="mt-6 space-y-3 pt-4 border-t border-slate-100 text-left">
-              <div className="flex justify-between items-center text-[11px] font-bold uppercase tracking-widest text-slate-400">
+            <div className="mt-6 space-y-3 pt-4 border-t border-border text-left">
+              <div className="flex justify-between items-center text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
                 <span>得分率</span>
-                <span className="text-slate-900">
+                <span className="text-foreground">
                   {examSummary ? Math.round((examSummary.total_score / examSummary.max_score) * 100) : 0}%
                 </span>
               </div>
-              <div className="h-1 w-full bg-slate-100 rounded-full overflow-hidden">
+              <div className="h-1 w-full bg-muted rounded-full overflow-hidden">
                 <div
                   className="h-full bg-indigo-600 transition-all duration-500"
                   style={{ width: `${examSummary ? (examSummary.total_score / examSummary.max_score) * 100 : 0}%` }}
                 />
               </div>
-              <p className="text-[11px] font-medium text-slate-400 leading-tight pt-1">
+              <p className="text-[11px] font-medium text-muted-foreground leading-tight pt-1">
                 点击题号快速切换。绿色代表通过，红色代表挑战。
               </p>
             </div>

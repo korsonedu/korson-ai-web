@@ -111,12 +111,12 @@ export const KnowledgeTrainingDialog: React.FC<KnowledgeTrainingDialogProps> = (
     <Dialog open={!!question} onOpenChange={(open) => { if (!open && !isSubmitting) onClose(); }}>
       <DialogContent
         onInteractOutside={(e) => e.preventDefault()}
-        className="sm:max-w-[1100px] rounded-[3rem] border-none bg-white p-0 shadow-2xl overflow-hidden flex flex-col h-[min(800px,92vh)] max-h-[92vh] z-[100]"
+        className="sm:max-w-[1100px] rounded-[3rem] border-none bg-card p-0 shadow-2xl overflow-hidden flex flex-col h-[min(800px,92vh)] max-h-[92vh] z-[100]"
       >
-        <DialogHeader className="p-10 pb-6 border-b border-slate-100 shrink-0 bg-white">
+        <DialogHeader className="p-10 pb-6 border-b border-border shrink-0 bg-card">
           <div className="flex justify-between items-center">
             <div className="space-y-1.5 text-left">
-              <DialogTitle className="text-2xl font-black tracking-tight text-slate-900 uppercase">学术特训</DialogTitle>
+              <DialogTitle className="text-2xl font-black tracking-tight text-foreground uppercase">学术特训</DialogTitle>
               <p className="text-[11px] font-bold uppercase tracking-[0.3em] text-indigo-600 animate-pulse">Smart Evaluation Active</p>
             </div>
             <div className="px-6 py-2 bg-slate-900 rounded-2xl text-white font-mono font-bold text-sm tabular-nums shadow-xl">
@@ -125,13 +125,13 @@ export const KnowledgeTrainingDialog: React.FC<KnowledgeTrainingDialogProps> = (
           </div>
         </DialogHeader>
 
-        <div ref={contentRef} className="flex-1 overflow-y-auto p-8 bg-white scrollbar-thin">
+        <div ref={contentRef} className="flex-1 overflow-y-auto p-8 bg-card scrollbar-thin">
           <div className="max-w-4xl mx-auto space-y-8 text-left">
             {!showResult ? (
               <>
-                <div className="space-y-4 border-b border-slate-50 pb-5">
+                <div className="space-y-4 border-b border-border pb-5">
                   <div className="flex flex-wrap items-center gap-3">
-                    <Badge variant="secondary" className="rounded-lg px-2 py-0.5 text-[11px] font-black uppercase tracking-widest bg-slate-100 text-slate-500 border-none">
+                    <Badge variant="secondary" className="rounded-lg px-2 py-0.5 text-[11px] font-black uppercase tracking-widest bg-muted text-muted-foreground border-none">
                       {question.q_type === 'objective'
                         ? '客观选择'
                         : question.subjective_type === 'calculate'
@@ -144,12 +144,12 @@ export const KnowledgeTrainingDialog: React.FC<KnowledgeTrainingDialogProps> = (
                       {question.difficulty_level_display || '适当'} (ELO {question.difficulty || 1200})
                     </Badge>
                     {question.knowledge_point_detail?.name && (
-                      <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">
+                      <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest">
                         {question.knowledge_point_detail.name}
                       </span>
                     )}
                   </div>
-                  <div className="text-xl font-bold text-slate-900 leading-relaxed">
+                  <div className="text-xl font-bold text-foreground leading-relaxed">
                     <ReactMarkdown remarkPlugins={[remarkMath]} rehypePlugins={[rehypeKatex]}>
                       {processMathContent(question.text)}
                     </ReactMarkdown>
@@ -166,7 +166,7 @@ export const KnowledgeTrainingDialog: React.FC<KnowledgeTrainingDialogProps> = (
                           "w-full p-4 rounded-2xl border text-left font-bold transition-all flex items-center gap-5 group/opt",
                           answer === opt.key
                             ? "bg-slate-900 text-white border-slate-900 shadow-xl scale-[1.01]"
-                            : "bg-white border-slate-200/60 hover:border-indigo-400 hover:bg-slate-50"
+                            : "bg-card border-border hover:border-indigo-400 hover:bg-muted"
                         )}
                       >
                         <div
@@ -174,10 +174,10 @@ export const KnowledgeTrainingDialog: React.FC<KnowledgeTrainingDialogProps> = (
                             "h-7 w-7 rounded-xl border-2 flex items-center justify-center transition-all shrink-0",
                             answer === opt.key
                               ? "border-white/20 bg-indigo-600"
-                              : "border-slate-100 bg-slate-50 group-hover/opt:border-indigo-200"
+                              : "border-border bg-muted group-hover/opt:border-indigo-200"
                           )}
                         >
-                          <span className={cn("text-[11px] font-black", answer === opt.key ? "text-white" : "text-slate-400")}>
+                          <span className={cn("text-[11px] font-black", answer === opt.key ? "text-white" : "text-muted-foreground")}>
                             {opt.key}
                           </span>
                         </div>
@@ -190,7 +190,7 @@ export const KnowledgeTrainingDialog: React.FC<KnowledgeTrainingDialogProps> = (
                     value={answer}
                     onChange={(e) => setAnswer(e.target.value)}
                     placeholder="在此输入您的分析或计算过程..."
-                    className="w-full bg-slate-50 border border-slate-100/60 rounded-[2rem] p-8 min-h-[260px] font-bold text-base focus:ring-4 focus:ring-indigo-500/5 transition-all placeholder:text-slate-300 resize-none shadow-inner"
+                    className="w-full bg-muted border border-border rounded-[2rem] p-8 min-h-[260px] font-bold text-base focus:ring-4 focus:ring-indigo-500/20 transition-all placeholder:text-muted-foreground resize-none shadow-inner text-foreground"
                   />
                 )}
               </>
@@ -223,8 +223,8 @@ export const KnowledgeTrainingDialog: React.FC<KnowledgeTrainingDialogProps> = (
                 </div>
 
                 <div className="space-y-4">
-                  <h5 className="text-[11px] font-bold uppercase tracking-widest text-black/30">标准答案（满分示范）</h5>
-                  <div className="p-8 bg-slate-50 rounded-[2.5rem] border border-black/[0.03] text-sm font-medium leading-relaxed text-slate-700">
+                  <h5 className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">标准答案（满分示范）</h5>
+                  <div className="p-8 bg-muted rounded-[2.5rem] border border-border text-sm font-medium leading-relaxed text-foreground">
                     <ReactMarkdown remarkPlugins={[remarkMath]} rehypePlugins={[rehypeKatex]}>
                       {processMathContent(standardAnswerText)}
                     </ReactMarkdown>
@@ -232,7 +232,7 @@ export const KnowledgeTrainingDialog: React.FC<KnowledgeTrainingDialogProps> = (
                 </div>
 
                 <div className="space-y-4">
-                  <h5 className="text-[11px] font-bold uppercase tracking-widest text-black/30 flex items-center gap-2">
+                  <h5 className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
                     <Sparkles className="w-3.5 h-3.5" /> 判分依据与深度解析
                   </h5>
                   <div className="p-8 bg-slate-900 text-slate-200 rounded-[2.5rem] text-sm leading-relaxed shadow-xl">
@@ -246,14 +246,14 @@ export const KnowledgeTrainingDialog: React.FC<KnowledgeTrainingDialogProps> = (
           </div>
         </div>
 
-        <div className="p-8 border-t border-slate-100 flex justify-between items-center bg-white shrink-0">
+        <div className="p-8 border-t border-border flex justify-between items-center bg-card shrink-0">
           {!showResult ? (
             <>
               <Button
                 variant="ghost"
                 onClick={onClose}
                 disabled={isSubmitting}
-                className="rounded-xl h-12 px-6 font-bold text-slate-500 hover:text-slate-900"
+                className="rounded-xl h-12 px-6 font-bold text-muted-foreground hover:text-foreground"
               >
                 退出特训
               </Button>
@@ -277,10 +277,10 @@ export const KnowledgeTrainingDialog: React.FC<KnowledgeTrainingDialogProps> = (
             </>
           ) : (
             <div className="ml-auto flex gap-3">
-              <Button variant="outline" onClick={handleReset} className="h-12 px-8 rounded-2xl font-bold border-black/10">
+              <Button variant="outline" onClick={handleReset} className="h-12 px-8 rounded-2xl font-bold border-border">
                 再次练习
               </Button>
-              <Button onClick={onClose} className="h-12 px-10 rounded-2xl bg-black text-white font-bold">
+              <Button onClick={onClose} className="h-12 px-10 rounded-2xl bg-primary text-primary-foreground font-bold">
                 完成特训
               </Button>
             </div>

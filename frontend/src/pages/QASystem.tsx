@@ -138,11 +138,11 @@ const AnswerItem = ({ answer, isFirst, onReplyClick, onRefresh }: { answer: any,
             <textarea
               value={editContent}
               onChange={e => setEditContent(e.target.value)}
-              className="w-full text-xs p-3 rounded-xl border border-input bg-muted/30 focus:bg-white min-h-[80px] transition-colors resize-none"
+              className="w-full text-xs p-3 rounded-xl border border-input bg-muted/30 focus:bg-card min-h-[80px] transition-colors resize-none"
             />
             <div className="flex justify-end gap-2">
               <Button size="sm" variant="ghost" onClick={() => setIsEditing(false)} className="h-7 text-xs rounded-lg hover:bg-muted">取消</Button>
-              <Button size="sm" onClick={handleEdit} disabled={isSubmitting} className="h-7 text-xs bg-black text-white rounded-lg hover:bg-black/90">保存</Button>
+              <Button size="sm" onClick={handleEdit} disabled={isSubmitting} className="h-7 text-xs bg-primary text-primary-foreground rounded-lg hover:opacity-90">保存</Button>
             </div>
           </div>
         ) : (
@@ -151,7 +151,7 @@ const AnswerItem = ({ answer, isFirst, onReplyClick, onRefresh }: { answer: any,
                 onClick={onReplyClick}
                 className={cn(
                 "text-xs leading-relaxed break-words whitespace-pre-wrap rounded-2xl px-4 py-2.5 relative cursor-pointer hover:ring-2 hover:ring-indigo-100 transition-all", 
-                isFirst ? "bg-indigo-50/50 text-indigo-950 font-medium border border-indigo-100/50" : "bg-muted/30 text-foreground"
+                isFirst ? "bg-indigo-500/10 text-indigo-700 dark:text-indigo-200 font-medium border border-indigo-200/50 dark:border-indigo-300/20" : "bg-muted/30 text-foreground"
                 )}
             >
                 <ReactMarkdown 
@@ -164,7 +164,7 @@ const AnswerItem = ({ answer, isFirst, onReplyClick, onRefresh }: { answer: any,
                 {answer.is_teacher && (
                 <button 
                     onClick={(e) => { e.stopPropagation(); onReplyClick(); }}
-                    className="absolute -bottom-2 -right-2 h-6 w-6 rounded-full bg-white shadow-sm border border-border flex items-center justify-center text-muted-foreground hover:text-indigo-600 hover:border-indigo-200 transition-all cursor-pointer z-10"
+                    className="absolute -bottom-2 -right-2 h-6 w-6 rounded-full bg-card shadow-sm border border-border flex items-center justify-center text-muted-foreground hover:text-indigo-600 hover:border-indigo-200 transition-all cursor-pointer z-10"
                     title="回复老师"
                 >
                     <MessageCircle className="h-3 w-3" />
@@ -279,7 +279,7 @@ const ThreadCard = ({ question, onRefresh, isAdmin }: { question: any, onRefresh
   };
 
   return (
-    <Card className="border-none shadow-sm bg-white rounded-2xl md:rounded-3xl p-4 md:p-6 transition-all hover:shadow-md border border-border/40 group">
+    <Card className="border-none shadow-sm bg-card rounded-2xl md:rounded-3xl p-4 md:p-6 transition-all hover:shadow-md border border-border/40 group">
       {/* Header */}
       <div className="flex justify-between items-start mb-4">
         <div className="flex items-center gap-3">
@@ -294,7 +294,7 @@ const ThreadCard = ({ question, onRefresh, isAdmin }: { question: any, onRefresh
               {question.is_solved ? (
                 <Badge variant="outline" className="text-[11px] h-4 px-1.5 bg-emerald-50 text-emerald-600 border-emerald-200">已解决</Badge>
               ) : (
-                <Badge variant="outline" className="text-[11px] h-4 px-1.5 bg-slate-50 text-slate-500 border-slate-200">待解答</Badge>
+                <Badge variant="outline" className="text-[11px] h-4 px-1.5 bg-muted text-muted-foreground border-border">待解答</Badge>
               )}
             </h4>
             <p className="text-[11px] text-muted-foreground font-bold uppercase tracking-widest mt-0.5 tabular-nums">
@@ -351,11 +351,11 @@ const ThreadCard = ({ question, onRefresh, isAdmin }: { question: any, onRefresh
              <textarea
                value={editContent}
                onChange={e => setEditContent(e.target.value)}
-               className="w-full text-sm p-4 rounded-xl border border-input bg-muted/30 focus:bg-white min-h-[120px] transition-colors resize-none leading-relaxed"
+               className="w-full text-sm p-4 rounded-xl border border-input bg-muted/30 focus:bg-card min-h-[120px] transition-colors resize-none leading-relaxed"
              />
              <div className="flex justify-end gap-2">
                <Button size="sm" variant="ghost" onClick={() => setIsEditing(false)} className="rounded-lg">取消</Button>
-               <Button size="sm" onClick={handleUpdate} className="bg-black text-white rounded-lg hover:bg-black/90">保存修改</Button>
+               <Button size="sm" onClick={handleUpdate} className="bg-primary text-primary-foreground rounded-lg hover:opacity-90">保存修改</Button>
              </div>
            </div>
         ) : (
@@ -448,7 +448,7 @@ const ThreadCard = ({ question, onRefresh, isAdmin }: { question: any, onRefresh
             value={replyContent} 
             onChange={e => setReplyContent(e.target.value)} 
             placeholder={isAdmin ? "教师回复... (Enter发送，Shift+Enter换行)" : "回复... (Enter发送，Shift+Enter换行)"}
-            className="w-full min-h-[40px] max-h-36 rounded-xl bg-muted/30 border border-transparent focus:bg-white transition-all text-xs font-medium px-3 py-2 resize-none leading-relaxed focus:outline-none focus:ring-2 focus:ring-black/5"
+            className="w-full min-h-[40px] max-h-36 rounded-xl bg-muted/30 border border-transparent focus:bg-card transition-all text-xs font-medium px-3 py-2 resize-none leading-relaxed focus:outline-none focus:ring-2 focus:ring-ring/30"
             onKeyDown={e => {
               if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) {
                 e.preventDefault();
@@ -469,7 +469,7 @@ const ThreadCard = ({ question, onRefresh, isAdmin }: { question: any, onRefresh
               disabled={isSubmitting} 
               onClick={handleReply} 
               size="icon" 
-              className="h-10 w-10 rounded-xl bg-black text-white shrink-0 shadow-lg hover:opacity-90 send-button"
+              className="h-10 w-10 rounded-xl bg-primary text-primary-foreground shrink-0 shadow-lg hover:opacity-90 send-button"
             >
               {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin"/> : <Send className="h-4 w-4" />}
             </Button>
@@ -543,13 +543,13 @@ export const QASystem: React.FC = () => {
       <div className="max-w-5xl mx-auto space-y-5 md:space-y-8 animate-in fade-in duration-500">
         
         {/* Top Input Area */}
-        <Card className="border-none shadow-sm bg-white rounded-2xl md:rounded-[2rem] p-4 md:p-6 border border-border/50">
+        <Card className="border-none shadow-sm bg-card rounded-2xl md:rounded-[2rem] p-4 md:p-6 border border-border/50">
           <div className="space-y-4">
             <textarea 
               value={qContent}
               onChange={e => setQContent(e.target.value)}
               placeholder="请详细描述你的疑问..."
-              className="w-full min-h-[100px] p-4 rounded-2xl bg-[#F5F5F7] border-none text-sm font-medium resize-none focus:ring-2 focus:ring-black/5 transition-all placeholder:text-muted-foreground/40"
+              className="w-full min-h-[100px] p-4 rounded-2xl bg-muted/60 border border-border/50 text-sm font-medium resize-none focus:ring-2 focus:ring-ring/30 transition-all placeholder:text-muted-foreground/40"
             />
             <div className={cn(isMobile ? "flex items-center gap-2" : "flex justify-between items-center")}>
               <div className={cn("flex items-center gap-2", isMobile && "flex-1 min-w-0")}>
@@ -570,11 +570,10 @@ export const QASystem: React.FC = () => {
                   ref={fileInputRef}
                   onChange={e => setQFile(e.target.files?.[0] || null)}
                   className="hidden"
-                  accept={isMobile ? "image/*,application/pdf,.doc,.docx,.txt" : undefined}
-                  capture={isMobile ? "environment" : undefined}
+                  accept="image/*,application/pdf,.doc,.docx,.txt"
                 />
               </div>
-              <Button onClick={handlePost} disabled={isPosting} className={cn("h-10 rounded-xl bg-black text-white font-bold shadow-xl hover:scale-[1.02] transition-transform text-xs uppercase tracking-widest", isMobile ? "shrink-0 px-5" : "px-8")}>
+              <Button onClick={handlePost} disabled={isPosting} className={cn("h-10 rounded-xl bg-primary text-primary-foreground font-bold shadow-xl hover:scale-[1.02] transition-transform text-xs uppercase tracking-widest", isMobile ? "shrink-0 px-5" : "px-8")}>
                 {isPosting ? <Loader2 className="h-4 w-4 animate-spin"/> : "提交问题"}
               </Button>
             </div>
@@ -598,7 +597,7 @@ export const QASystem: React.FC = () => {
                 className={cn(
                   "px-6 py-2 rounded-xl text-xs font-bold transition-all duration-300",
                   filter === tab.id 
-                    ? "bg-white text-foreground shadow-sm scale-105" 
+                    ? "bg-card text-foreground shadow-sm scale-105" 
                     : "text-muted-foreground hover:text-foreground"
                 )}
               >
@@ -613,7 +612,7 @@ export const QASystem: React.FC = () => {
               value={search}
               onChange={e => setSearch(e.target.value)}
               placeholder="搜索历史问答..." 
-              className="pl-9 h-10 rounded-xl bg-white border-transparent hover:border-border focus:border-black/10 shadow-sm w-full md:w-64 text-xs font-bold transition-all"
+              className="pl-9 h-10 rounded-xl bg-card border-transparent hover:border-border focus:border-border shadow-sm w-full md:w-64 text-xs font-bold transition-all"
             />
           </div>
         </div>

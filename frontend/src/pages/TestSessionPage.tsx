@@ -1,14 +1,23 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { ArrowLeft, CheckCircle2, ChevronLeft, ChevronRight, Loader2, Star } from 'lucide-react';
+import { ArrowLeft, Bell, CheckCircle2, ChevronLeft, ChevronRight, Loader2, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
 import { toast } from 'sonner';
 import { cn, processMathContent } from '@/lib/utils';
 import api from '@/lib/api';
 import ReactMarkdown from 'react-markdown';
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
+import {
+  getLearningReminderSettings,
+  sendLearningReminder,
+  updateLearningReminderSetting,
+  type LearningReminderSettings,
+} from '@/lib/learningReminders';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 
 const hasAnswer = (val: any) => {
   if (typeof val === 'string') return val.trim().length > 0;
@@ -23,6 +32,9 @@ export const TestSessionPage: React.FC = () => {
   const [currentIdx, setCurrentIdx] = useState(0);
   const [answers, setAnswers] = useState<Record<number, any>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  const [reminderSettings, setReminderSettings] = useState<LearningReminderSettings>(getLearningReminderSettings());
+  const lastTypeReminderQidRef = useRef<number | null>(null);
 
   const questionLimit = useMemo(() => {
     const raw = Number.parseInt(searchParams.get('count') || '5', 10);
@@ -52,9 +64,34 @@ export const TestSessionPage: React.FC = () => {
     fetchQuestions();
   }, [navigate, questionLimit]);
 
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const media = window.matchMedia('(max-width: 767px)');
+    const sync = () => setIsMobile(media.matches);
+    sync();
+    media.addEventListener('change', sync);
+    return () => media.removeEventListener('change', sync);
+  }, []);
+
   const currentQ = questions[currentIdx];
   const totalNeedAnswer = questions.filter((q) => !q.is_mastered).length;
   const answeredCount = questions.filter((q) => !q.is_mastered && hasAnswer(answers[q.id])).length;
+
+  useEffect(() => {
+    if (!isMobile || !currentQ?.id || !reminderSettings.questionType) return;
+    if (lastTypeReminderQidRef.current === currentQ.id) return;
+    lastTypeReminderQidRef.current = currentQ.id;
+
+    const typeLabel = currentQ.q_type === 'objective'
+      ? '客观选择'
+      : currentQ.subjective_type === 'calculate'
+        ? '主观计算'
+        : currentQ.subjective_type === 'noun'
+          ? '名词解释'
+          : '主观论述';
+
+    sendLearningReminder('题型提醒', `当前题型：${typeLabel}`);
+  }, [currentQ, isMobile, reminderSettings.questionType]);
 
   const toggleFavorite = async (qId: number) => {
     try {
@@ -131,16 +168,50 @@ export const TestSessionPage: React.FC = () => {
           <ArrowLeft className="h-4 w-4 mr-1" />
           返回
         </Button>
-        <div className="px-3 py-1 rounded-lg bg-slate-900 text-white font-mono font-bold text-xs tabular-nums">
-          {currentIdx + 1} / {questions.length}
+        <div className="flex items-center gap-2">
+          {isMobile && (
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" size="icon" className="h-8 w-8 rounded-lg border-border">
+                  <Bell className="h-4 w-4" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent side="bottom" align="end" className="w-64 rounded-2xl p-4 bg-card border-border">
+                <div className="space-y-3 text-left">
+                  <p className="text-xs font-black uppercase tracking-widest text-muted-foreground">提醒设置</p>
+                  <div className="flex items-center justify-between">
+                    <Label className="text-xs font-bold">题型提醒</Label>
+                    <Switch
+                      checked={reminderSettings.questionType}
+                      onCheckedChange={(enabled) => {
+                        setReminderSettings(updateLearningReminderSetting('questionType', enabled));
+                      }}
+                    />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <Label className="text-xs font-bold">做题结果提醒</Label>
+                    <Switch
+                      checked={reminderSettings.testResult}
+                      onCheckedChange={(enabled) => {
+                        setReminderSettings(updateLearningReminderSetting('testResult', enabled));
+                      }}
+                    />
+                  </div>
+                </div>
+              </PopoverContent>
+            </Popover>
+          )}
+          <div className="px-3 py-1 rounded-lg bg-primary text-primary-foreground font-mono font-bold text-xs tabular-nums">
+            {currentIdx + 1} / {questions.length}
+          </div>
         </div>
       </header>
 
       <div className="flex-1 min-h-0 flex flex-col">
         <div className="flex-1 min-h-0 overflow-y-auto px-3 py-3">
-          <div className="bg-white border border-border/60 rounded-2xl p-4 space-y-4">
+          <div className="bg-card border border-border/60 rounded-2xl p-4 space-y-4">
             <div className="flex flex-wrap items-center gap-2">
-              <Badge variant="secondary" className="rounded-lg px-2 py-0.5 text-[10px] font-black uppercase tracking-widest bg-slate-100 text-slate-500 border-none">
+              <Badge variant="secondary" className="rounded-lg px-2 py-0.5 text-[10px] font-black uppercase tracking-widest bg-muted text-muted-foreground border-none">
                 {currentQ.q_type === 'objective'
                   ? '客观选择'
                   : currentQ.subjective_type === 'calculate'
@@ -154,7 +225,7 @@ export const TestSessionPage: React.FC = () => {
               </Badge>
             </div>
 
-            <div className="text-base font-bold text-slate-900 leading-relaxed">
+            <div className="text-base font-bold text-foreground leading-relaxed">
               <ReactMarkdown remarkPlugins={[remarkMath]} rehypePlugins={[rehypeKatex]}>
                 {processMathContent(currentQ.text)}
               </ReactMarkdown>
@@ -169,7 +240,7 @@ export const TestSessionPage: React.FC = () => {
                   'rounded-xl h-8 px-3 gap-2 border transition-all',
                   currentQ.is_mastered
                     ? 'text-emerald-600 bg-emerald-50 border-emerald-100'
-                    : 'text-slate-400 border-slate-100 hover:text-emerald-500 hover:bg-emerald-50/50'
+                    : 'text-muted-foreground border-border hover:text-emerald-500 hover:bg-emerald-50/50'
                 )}
               >
                 <CheckCircle2 className="h-4 w-4" />
@@ -180,8 +251,8 @@ export const TestSessionPage: React.FC = () => {
                 size="icon"
                 onClick={() => toggleFavorite(currentQ.id)}
                 className={cn(
-                  'rounded-xl h-8 w-8 shrink-0 border border-slate-100 transition-all',
-                  currentQ.is_favorite ? 'text-amber-500 fill-amber-500 bg-amber-50' : 'text-slate-300 hover:text-slate-400 hover:bg-slate-50'
+                  'rounded-xl h-8 w-8 shrink-0 border border-border transition-all',
+                  currentQ.is_favorite ? 'text-amber-500 fill-amber-500 bg-amber-50' : 'text-muted-foreground hover:text-foreground hover:bg-muted'
                 )}
               >
                 <Star className="h-4 w-4" />
@@ -198,12 +269,12 @@ export const TestSessionPage: React.FC = () => {
                       onClick={() => setAnswers((prev) => ({ ...prev, [currentQ.id]: opt }))}
                       className={cn(
                         'w-full p-3 rounded-xl border text-left font-bold transition-all flex items-center gap-3',
-                        answers[currentQ.id] === opt ? 'bg-slate-900 text-white border-slate-900 shadow-sm' : 'bg-white border-slate-200/60 hover:border-indigo-400 hover:bg-slate-50',
+                        answers[currentQ.id] === opt ? 'bg-slate-900 text-white border-slate-900 shadow-sm' : 'bg-card border-border hover:border-indigo-400 hover:bg-muted',
                         currentQ.is_mastered && 'cursor-not-allowed'
                       )}
                     >
-                      <div className={cn('h-6 w-6 rounded-lg border-2 flex items-center justify-center transition-all', answers[currentQ.id] === opt ? 'border-white/20 bg-indigo-600' : 'border-slate-100 bg-slate-50')}>
-                        <span className={cn('text-[10px] font-black', answers[currentQ.id] === opt ? 'text-white' : 'text-slate-400')}>
+                      <div className={cn('h-6 w-6 rounded-lg border-2 flex items-center justify-center transition-all', answers[currentQ.id] === opt ? 'border-white/20 bg-indigo-600' : 'border-border bg-muted')}>
+                        <span className={cn('text-[10px] font-black', answers[currentQ.id] === opt ? 'text-white' : 'text-muted-foreground')}>
                           {String.fromCharCode(65 + i)}
                         </span>
                       </div>
@@ -217,7 +288,7 @@ export const TestSessionPage: React.FC = () => {
                   disabled={currentQ.is_mastered}
                   onChange={(e) => setAnswers((prev) => ({ ...prev, [currentQ.id]: e.target.value }))}
                   className={cn(
-                    'w-full bg-slate-50 border border-slate-100/60 rounded-xl p-3 min-h-[170px] font-medium text-sm focus:ring-2 focus:ring-indigo-500/10 transition-all resize-none',
+                    'w-full bg-muted border border-border rounded-xl p-3 min-h-[170px] font-medium text-sm focus:ring-2 focus:ring-indigo-500/20 transition-all resize-none text-foreground',
                     currentQ.is_mastered && 'cursor-not-allowed'
                   )}
                   placeholder={currentQ.is_mastered ? '该题已标记掌握，无需填写答案...' : '在此输入你的分析或计算过程...'}
@@ -228,11 +299,11 @@ export const TestSessionPage: React.FC = () => {
         </div>
 
         <footer className="shrink-0 border-t border-border bg-background/95 backdrop-blur-md px-3 pt-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] space-y-2">
-          <div className="flex justify-between items-center text-[11px] font-bold uppercase tracking-wider text-slate-400">
+          <div className="flex justify-between items-center text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
             <span>已答进度</span>
-            <span className="text-slate-900">{answeredCount} / {totalNeedAnswer}</span>
+            <span className="text-foreground">{answeredCount} / {totalNeedAnswer}</span>
           </div>
-          <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
+          <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
             <div className="h-full bg-indigo-600 transition-all duration-300" style={{ width: `${totalNeedAnswer ? (answeredCount / totalNeedAnswer) * 100 : 100}%` }} />
           </div>
           <div className="flex items-center gap-2">
@@ -241,11 +312,11 @@ export const TestSessionPage: React.FC = () => {
               上一题
             </Button>
             {currentIdx === questions.length - 1 ? (
-              <Button onClick={handleSubmit} disabled={isSubmitting} className="h-10 flex-1 rounded-xl bg-slate-900 text-white font-bold text-xs">
+              <Button onClick={handleSubmit} disabled={isSubmitting} className="h-10 flex-1 rounded-xl bg-primary text-primary-foreground font-bold text-xs">
                 {isSubmitting ? '提交中...' : '提交评分'}
               </Button>
             ) : (
-              <Button onClick={() => setCurrentIdx((prev) => Math.min(questions.length - 1, prev + 1))} className="h-10 flex-1 rounded-xl bg-slate-900 text-white font-bold text-xs">
+              <Button onClick={() => setCurrentIdx((prev) => Math.min(questions.length - 1, prev + 1))} className="h-10 flex-1 rounded-xl bg-primary text-primary-foreground font-bold text-xs">
                 下一题
                 <ChevronRight className="h-4 w-4 ml-1" />
               </Button>

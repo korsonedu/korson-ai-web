@@ -50,14 +50,14 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
           "p-3 px-4 rounded-2xl text-[13px] shadow-sm transition-all border border-border w-fit text-left",
           isUser 
             ? "bg-primary text-primary-foreground rounded-tr-none font-medium" 
-            : "bg-slate-100/80 dark:bg-slate-800/80 text-foreground rounded-tl-none font-medium"
+            : "bg-muted text-foreground rounded-tl-none font-medium"
         )}>
           {isThinking ? (
             <div className="flex items-center justify-center py-1">
               <Loader2 className="h-4 w-4 animate-spin opacity-40" />
             </div>
           ) : (
-            <div className={cn("prose prose-slate dark:prose-invert prose-sm max-w-none text-left prose-headings:font-black prose-headings:tracking-tight prose-p:leading-relaxed prose-p:text-slate-600 dark:prose-p:text-slate-300")}>
+            <div className={cn("prose prose-sm max-w-none text-left prose-headings:font-black prose-headings:tracking-tight prose-p:leading-relaxed prose-p:text-foreground prose-strong:text-foreground prose-li:text-foreground")}>
               <ReactMarkdown 
                 remarkPlugins={[remarkMath]} 
                 rehypePlugins={[rehypeKatex]}

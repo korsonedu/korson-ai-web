@@ -11,6 +11,7 @@ from django.conf import settings
 from django.utils.dateparse import parse_datetime
 import datetime
 import logging
+import re
 
 
 logger = logging.getLogger(__name__)
@@ -92,6 +93,7 @@ class UpdateProfileView(generics.UpdateAPIView):
         user.save()
 
 from django.db.models import Q
+from django.db.models.functions import TruncDate
 
 class DailyPlanListView(generics.ListCreateAPIView):
     serializer_class = DailyPlanSerializer
@@ -127,9 +129,10 @@ class DailyPlanDetailView(generics.UpdateAPIView, generics.DestroyAPIView):
         else:
             serializer.save()
 
-from django.db.models import Sum, Count, Q
-from quizzes.models import UserQuestionStatus, KnowledgePoint
+from django.db.models import Sum, Count, Q, Avg
+from quizzes.models import UserQuestionStatus, KnowledgePoint, QuizAttempt
 from courses.models import VideoProgress, Course
+from study_room.models import ChatMessage
 
 class BIAnalyticsView(APIView):
     permission_classes = [permissions.IsAdminUser]
@@ -199,6 +202,97 @@ class WeeklyCognitiveReportView(APIView):
         # 3. 核心统计
         week_reviews = last_week_qs.aggregate(total_reps=Sum('reps'))['total_reps'] or 0
         
+        # 4. 行为指标（用于周趋势图）
+        last_week_attempts = QuizAttempt.objects.filter(
+            user=user,
+            created_at__range=(start_of_last_week, end_of_last_week)
+        )
+        attempts_by_day = (
+            last_week_attempts
+            .annotate(day=TruncDate('created_at'))
+            .values('day')
+            .annotate(avg_score=Avg('score'), question_count=Count('id'))
+        )
+        attempts_day_map = {}
+        for row in attempts_by_day:
+            day = row.get('day')
+            if not day:
+                continue
+            key = day.isoformat()
+            attempts_day_map[key] = {
+                'accuracy': round((row.get('avg_score') or 0) * 100, 1),
+                'question_count': int(row.get('question_count') or 0),
+            }
+
+        focus_messages = ChatMessage.objects.filter(
+            user=user,
+            timestamp__range=(start_of_last_week, end_of_last_week)
+        ).values('timestamp', 'content')
+        focus_pattern = re.compile(r'专注\s*(\d+)\s*分钟')
+        focus_day_map = {}
+        for msg in focus_messages:
+            ts = msg.get('timestamp')
+            if not ts:
+                continue
+            local_day = timezone.localtime(ts).date().isoformat()
+            text = str(msg.get('content') or '')
+            parsed = sum(int(v) for v in focus_pattern.findall(text))
+            if parsed <= 0:
+                continue
+            focus_day_map[local_day] = focus_day_map.get(local_day, 0) + parsed
+
+        lesson_by_day = (
+            VideoProgress.objects.filter(
+            user=user,
+            updated_at__range=(start_of_last_week, end_of_last_week)
+            )
+            .annotate(day=TruncDate('updated_at'))
+            .values('day')
+            .annotate(total_seconds=Sum('last_position'))
+        )
+        lesson_day_map = {}
+        for row in lesson_by_day:
+            day = row.get('day')
+            if not day:
+                continue
+            key = day.isoformat()
+            lesson_day_map[key] = round(float(row.get('total_seconds') or 0) / 60, 1)
+
+        daily_series = []
+        total_questions = 0
+        weighted_accuracy_sum = 0.0
+        total_focus_minutes = 0
+        total_lesson_minutes = 0.0
+
+        for offset in range(7):
+            day_date = (start_of_last_week + datetime.timedelta(days=offset)).date()
+            day_key = day_date.isoformat()
+            attempt_info = attempts_day_map.get(day_key, {})
+            question_count = int(attempt_info.get('question_count', 0))
+            accuracy = float(attempt_info.get('accuracy', 0))
+            focus_minutes = int(focus_day_map.get(day_key, 0))
+            lesson_minutes = float(lesson_day_map.get(day_key, 0))
+
+            total_questions += question_count
+            weighted_accuracy_sum += (accuracy / 100.0) * question_count
+            total_focus_minutes += focus_minutes
+            total_lesson_minutes += lesson_minutes
+
+            daily_series.append({
+                'date': day_key,
+                'label': day_date.strftime('%m-%d'),
+                'weekday': day_date.strftime('%a'),
+                'accuracy': round(accuracy, 1),
+                'question_count': question_count,
+                'focus_minutes': focus_minutes,
+                'lesson_minutes': round(lesson_minutes, 1),
+            })
+
+        weekly_question_count = total_questions
+        weekly_accuracy = round((weighted_accuracy_sum / total_questions) * 100, 1) if total_questions > 0 else 0
+        weekly_focus_minutes = total_focus_minutes
+        weekly_lesson_minutes = round(total_lesson_minutes, 1)
+        
         return Response({
             'user_nickname': user.nickname or user.username,
             'conversion_rate': conversion_rate,
@@ -207,7 +301,12 @@ class WeeklyCognitiveReportView(APIView):
             'week_reviews': week_reviews,
             'current_elo': user.elo_score,
             'report_date': f"{start_of_last_week.strftime('%Y.%m.%d')} - {end_of_last_week.strftime('%m.%d')}",
-            'week_label': f"{start_of_last_week.isocalendar()[0]}-W{start_of_last_week.isocalendar()[1]}"
+            'week_label': f"{start_of_last_week.isocalendar()[0]}-W{start_of_last_week.isocalendar()[1]}",
+            'weekly_accuracy': weekly_accuracy,
+            'weekly_question_count': weekly_question_count,
+            'weekly_focus_minutes': weekly_focus_minutes,
+            'weekly_lesson_minutes': weekly_lesson_minutes,
+            'daily_series': daily_series,
         })
 
 class OnlineUserListView(generics.ListAPIView):

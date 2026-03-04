@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { PageWrapper } from '@/components/PageWrapper';
 import { Target, Maximize2, ZoomIn, ZoomOut, GitMerge } from 'lucide-react';
 import api from '@/lib/api';
@@ -116,6 +117,9 @@ const buildStableLayout = (nodes: KPNode[]) => {
 export const KnowledgeGraph = ({ nodes, onNodeClick }: { nodes: KPNode[], onNodeClick: (node: KPNode) => void }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [transform, setTransform] = useState({ x: 0, y: 0, k: 1 });
+  const [isDark, setIsDark] = useState(
+    () => typeof document !== 'undefined' && document.documentElement.classList.contains('dark')
+  );
   const nodesRef = useRef<KPNode[]>([]);
   const targetRef = useRef<Map<number, { x: number; y: number }>>(new Map());
   const requestRef = useRef<number | null>(null);
@@ -138,6 +142,15 @@ export const KnowledgeGraph = ({ nodes, onNodeClick }: { nodes: KPNode[], onNode
     });
     setTransform({ x: 0, y: 0, k: 1 });
   }, [nodes]);
+
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+    const sync = () => setIsDark(document.documentElement.classList.contains('dark'));
+    sync();
+    const observer = new MutationObserver(sync);
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+    return () => observer.disconnect();
+  }, []);
 
   const animate = () => {
     const canvas = canvasRef.current;
@@ -162,7 +175,7 @@ export const KnowledgeGraph = ({ nodes, onNodeClick }: { nodes: KPNode[], onNode
     ctx.translate(canvas.width / 2 + transform.x, canvas.height / 2 + transform.y);
     ctx.scale(transform.k, transform.k);
     ctx.beginPath();
-    ctx.strokeStyle = 'rgba(148, 163, 184, 0.28)';
+    ctx.strokeStyle = isDark ? 'rgba(148, 163, 184, 0.45)' : 'rgba(148, 163, 184, 0.28)';
     ctx.lineWidth = 1.2 / transform.k;
     const hideDenseKpEdges = currentNodes.length > 180 && transform.k < 1.05;
     for (const node of currentNodes) {
@@ -178,11 +191,19 @@ export const KnowledgeGraph = ({ nodes, onNodeClick }: { nodes: KPNode[], onNode
       const radius = node.level === 'sub' ? 20 : node.level === 'ch' ? 14 : node.level === 'sec' ? 10 : 6 + Math.sqrt(node.questions_count || 0) * 1.5;
       ctx.beginPath();
       ctx.arc(node.x!, node.y!, radius, 0, Math.PI * 2);
-      ctx.fillStyle = node.level === 'sub' ? '#1e1b4b' : node.level === 'ch' ? '#4338ca' : node.level === 'sec' ? '#818cf8' : '#ffffff';
+      ctx.fillStyle = node.level === 'sub'
+        ? (isDark ? '#6366f1' : '#1e1b4b')
+        : node.level === 'ch'
+          ? (isDark ? '#818cf8' : '#4338ca')
+          : node.level === 'sec'
+            ? (isDark ? '#a5b4fc' : '#818cf8')
+            : (isDark ? '#1f2937' : '#ffffff');
       ctx.fill();
-      if (node.level === 'kp') { ctx.strokeStyle = "#94a3b8"; ctx.lineWidth = 1.2 / transform.k; ctx.stroke(); }
+      if (node.level === 'kp') { ctx.strokeStyle = isDark ? '#64748b' : '#94a3b8'; ctx.lineWidth = 1.2 / transform.k; ctx.stroke(); }
       if (node.level !== 'kp' || transform.k > 1.15) {
-        ctx.fillStyle = node.level === 'kp' ? "#475569" : "#1e293b";
+        ctx.fillStyle = node.level === 'kp'
+          ? (isDark ? '#cbd5e1' : '#475569')
+          : (isDark ? '#e2e8f0' : '#1e293b');
         ctx.font = `${node.level === 'kp' ? 'normal' : 'bold'} ${ (node.level === 'kp' ? 10 : 13) / transform.k}px sans-serif`;
         ctx.textAlign = "center";
         ctx.fillText(node.name, node.x!, node.y! + radius + (14 / transform.k));
@@ -198,7 +219,7 @@ export const KnowledgeGraph = ({ nodes, onNodeClick }: { nodes: KPNode[], onNode
     return () => {
       if (requestRef.current) cancelAnimationFrame(requestRef.current);
     };
-  }, [nodes, transform]);
+  }, [nodes, transform, isDark]);
   const handleWheel = (e: React.WheelEvent) => { const delta = e.deltaY > 0 ? 0.9 : 1.1; setTransform(prev => ({ ...prev, k: Math.max(0.1, Math.min(5, prev.k * delta)) })); };
   const handleMouseDown = (e: React.MouseEvent) => {
     const startX = e.clientX - transform.x, startY = e.clientY - transform.y;
@@ -215,7 +236,7 @@ export const KnowledgeGraph = ({ nodes, onNodeClick }: { nodes: KPNode[], onNode
   };
 
   return (
-    <div className="relative w-full h-[650px] bg-slate-50/50 rounded-[3rem] border border-border/50 overflow-hidden cursor-move shadow-inner">
+    <div className="relative w-full h-[650px] bg-muted/50 rounded-[3rem] border border-border/50 overflow-hidden cursor-move shadow-inner">
       <canvas ref={canvasRef} width={1200} height={650} className="w-full h-full" onWheel={handleWheel} onMouseDown={handleMouseDown} onClick={handleClick} />
       <div className="absolute bottom-8 left-8 flex flex-col gap-2">
         <Button variant="secondary" size="icon" className="rounded-xl shadow-lg" onClick={() => setTransform(p => ({ ...p, k: p.k * 1.2 }))}><ZoomIn className="h-4 w-4" /></Button>
@@ -227,6 +248,7 @@ export const KnowledgeGraph = ({ nodes, onNodeClick }: { nodes: KPNode[], onNode
 };
 
 export const KnowledgeMap: React.FC = () => {
+  const navigate = useNavigate();
   const [allNodes, setAllNodes] = useState<KPNode[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedNode, setSelectedNode] = useState<KPNode | null>(null);
@@ -266,6 +288,10 @@ export const KnowledgeMap: React.FC = () => {
 
   const handleNodeSelect = async (node: KPNode) => {
     if (node.level !== 'kp') return; 
+    if (isMobile) {
+      navigate(`/knowledge-map/node/${node.id}`);
+      return;
+    }
     setSelectedNode(node);
     try {
       const [cRes, aRes, qRes] = await Promise.all([
@@ -309,14 +335,14 @@ export const KnowledgeMap: React.FC = () => {
               placeholder="搜索知识卡片..."
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
-              className="w-full rounded-2xl bg-white border-border shadow-sm h-10 px-4 font-bold"
+              className="w-full rounded-2xl bg-card border-border shadow-sm h-10 px-4 font-bold"
             />
           </div>
         ) : (
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div className="flex items-center gap-3 w-full sm:max-w-xl">
               <Select value={selectedRootId} onValueChange={setSelectedRootId}>
-                <SelectTrigger className="w-[220px] h-11 bg-white rounded-2xl font-bold border-border shadow-sm">
+                <SelectTrigger className="w-[220px] h-11 bg-card rounded-2xl font-bold border-border shadow-sm">
                   <GitMerge className="w-4 h-4 mr-2 text-indigo-500" />
                   <SelectValue placeholder="全部分支" />
                 </SelectTrigger>
@@ -333,7 +359,7 @@ export const KnowledgeMap: React.FC = () => {
                 placeholder={viewMode === 'list' ? "搜索考点..." : "关系图模式"}
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
-                className="flex-1 rounded-2xl bg-white border-border shadow-sm h-11 px-5 font-bold"
+                className="flex-1 rounded-2xl bg-card border-border shadow-sm h-11 px-5 font-bold"
                 disabled={viewMode === 'graph'}
               />
             </div>
@@ -351,7 +377,7 @@ export const KnowledgeMap: React.FC = () => {
         ) : (
           <div
             className={cn(
-              "bg-slate-50/50 border border-border/50",
+              "bg-muted/50 border border-border/50",
               isMobile
                 ? "rounded-[2rem] grid grid-cols-2 gap-2 p-2 h-[calc(100dvh-15.5rem)] overflow-y-auto content-start min-h-[360px]"
                 : "rounded-[3rem] flex flex-wrap gap-2 p-6 content-start min-h-[400px]"
@@ -361,13 +387,13 @@ export const KnowledgeMap: React.FC = () => {
               <button
                 key={node.id}
                 onClick={() => handleNodeSelect(node)}
-                className="group flex items-center justify-between bg-white border border-border/50 hover:border-indigo-500/30 hover:shadow-md px-2.5 py-2 rounded-xl cursor-pointer transition-all active:scale-[0.99] text-left min-h-[58px]"
+                className="group flex items-center justify-between bg-card border border-border/50 hover:border-indigo-500/30 hover:shadow-md px-2.5 py-2 rounded-xl cursor-pointer transition-all active:scale-[0.99] text-left min-h-[58px]"
               >
-                <span className="text-[12px] font-bold text-slate-700 truncate pr-2 leading-snug">{node.name}</span>
+                <span className="text-[12px] font-bold text-foreground truncate pr-2 leading-snug">{node.name}</span>
               </button>
             ) : (
-              <div key={node.id} onClick={() => handleNodeSelect(node)} className="group flex items-center gap-2 bg-white border border-border/50 hover:border-indigo-500/30 hover:shadow-md px-4 py-2 rounded-xl cursor-pointer transition-all active:scale-95">
-                <span className="text-xs font-bold text-slate-700">{node.name}</span>
+              <div key={node.id} onClick={() => handleNodeSelect(node)} className="group flex items-center gap-2 bg-card border border-border/50 hover:border-indigo-500/30 hover:shadow-md px-4 py-2 rounded-xl cursor-pointer transition-all active:scale-95">
+                <span className="text-xs font-bold text-foreground">{node.name}</span>
                 {node.questions_count !== undefined && node.questions_count > 0 && (
                   <Badge variant="secondary" className="text-[9px] rounded-full px-1.5 py-0.5 h-4 bg-indigo-50 text-indigo-600 border-none font-black opacity-60 group-hover:opacity-100 transition-opacity">
                     {node.questions_count} 题
@@ -383,7 +409,7 @@ export const KnowledgeMap: React.FC = () => {
           </div>
         )}
 
-        <Dialog modal={false} open={!!selectedNode} onOpenChange={open => !open && setSelectedNode(null)}>
+        <Dialog open={!!selectedNode} onOpenChange={open => !open && setSelectedNode(null)}>
           <DialogContent className={cn(
             "sm:max-w-[750px] border-none shadow-2xl text-left overflow-hidden min-h-0 flex flex-col",
             isMobile ? "rounded-[2rem] p-5 max-h-[90vh]" : "rounded-[3rem] p-10 max-h-[85vh]"
@@ -391,18 +417,18 @@ export const KnowledgeMap: React.FC = () => {
             <DialogHeader>
               <div className="flex items-center gap-3 mb-2"><Badge className="bg-emerald-500 text-white border-none uppercase text-[9px] font-bold">Knowledge Point</Badge></div>
               <DialogTitle className="text-3xl font-bold tracking-tight">{selectedNode?.name}</DialogTitle>
-              <div className="text-sm font-medium text-[#86868B] mt-2 leading-relaxed">
+              <div className="text-sm font-medium text-muted-foreground mt-2 leading-relaxed">
                 <ReactMarkdown remarkPlugins={[remarkMath]} rehypePlugins={[rehypeKatex]}>{processMathContent(selectedNode?.description || "")}</ReactMarkdown>
               </div>
             </DialogHeader>
             <ScrollArea className="flex-1 min-h-0 mt-8 pr-4">
               <div className="space-y-4 text-left">
-                <h5 className="text-[10px] font-bold uppercase tracking-widest text-black/30 flex items-center gap-2"><Target className="w-3.5 h-3.5" /> 关联题目 ({nodeDetails.questions.length})</h5>
+                <h5 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2"><Target className="w-3.5 h-3.5" /> 关联题目 ({nodeDetails.questions.length})</h5>
                 <div className="grid gap-2">{nodeDetails.questions.map(q => (
-                  <div key={q.id} onClick={() => setSelectedQuestion(q)} className="p-4 bg-slate-50 rounded-2xl flex items-center gap-3 border border-black/[0.01] cursor-pointer hover:bg-slate-100 transition-colors group">
+                  <div key={q.id} onClick={() => setSelectedQuestion(q)} className="p-4 bg-muted/60 rounded-2xl flex items-center gap-3 border border-border cursor-pointer hover:bg-muted transition-colors group">
                     <Badge variant="outline" className="text-[8px] py-0 h-4 uppercase">{q.subjective_type || q.q_type}</Badge>
-                    <div className="text-xs font-bold text-[#1D1D1F] truncate flex-1"><ReactMarkdown remarkPlugins={[remarkMath]} rehypePlugins={[rehypeKatex]}>{processMathContent(q.text)}</ReactMarkdown></div>
-                    <Maximize2 className="w-3 h-3 text-slate-300 opacity-0 group-hover:opacity-100 transition-all" />
+                    <div className="text-xs font-bold text-foreground truncate flex-1"><ReactMarkdown remarkPlugins={[remarkMath]} rehypePlugins={[rehypeKatex]}>{processMathContent(q.text)}</ReactMarkdown></div>
+                    <Maximize2 className="w-3 h-3 text-muted-foreground/60 opacity-0 group-hover:opacity-100 transition-all" />
                   </div>))}
                 </div>
               </div>

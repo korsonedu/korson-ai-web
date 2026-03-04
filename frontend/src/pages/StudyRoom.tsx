@@ -625,6 +625,43 @@ export const StudyRoom: React.FC = () => {
         )}>
           <div className="max-w-4xl mx-auto space-y-3">
             <div className="flex gap-2 px-1">
+              {isMobile && (
+                <Popover open={showMobileTimerSetup} onOpenChange={setShowMobileTimerSetup}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className={cn(
+                        "h-8 w-8 rounded-lg transition-colors",
+                        isActive
+                          ? "text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50"
+                          : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                      )}
+                    >
+                      <Timer className="h-4 w-4" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent side="top" align="start" className="w-[82vw] max-w-72 rounded-2xl p-4 border-none shadow-2xl bg-card/95 backdrop-blur-xl z-[100]">
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <p className="text-xs font-black uppercase tracking-widest text-muted-foreground">番茄钟</p>
+                        <span className="font-mono font-black text-lg tabular-nums">{formatTime(timeLeft)}</span>
+                      </div>
+                      <Input value={taskName} onChange={e => setTaskName(e.target.value)} placeholder="任务名称..." className="h-10 rounded-xl bg-muted border-none text-sm font-bold" />
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between text-[11px] font-bold text-muted-foreground uppercase">
+                          <span>时长</span>
+                          <span>{duration} 分钟</span>
+                        </div>
+                        <Slider disabled={isActive} value={[duration]} onValueChange={v => handleDurationChange(v[0])} max={120} min={1} step={1} />
+                      </div>
+                      <Button onClick={handleEnterMobileFocus} className="w-full h-10 rounded-xl bg-slate-900 text-white font-black">
+                        进入全屏专注
+                      </Button>
+                    </div>
+                  </PopoverContent>
+                </Popover>
+              )}
               <Popover>
                 <PopoverTrigger asChild><Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"><Smile className="h-4 w-4"/></Button></PopoverTrigger>
                 <PopoverContent side="top" className="w-64 p-2 rounded-2xl border-border shadow-2xl bg-card"><div className="grid grid-cols-8 gap-1">{['😊','😂','🤣','😍','😒','🤔','😭','👍','🙌','🔥','✨','💯','📚','🎓','💪','🎯','❤️','✔️','❌','⚠️','🚀','💡','🌟','🎉'].map(e => (<button key={e} onClick={() => setChatInput(prev => prev + e)} className="h-8 w-8 flex items-center justify-center hover:bg-muted rounded-lg text-lg transition-colors">{e}</button>))}</div></PopoverContent>
@@ -681,7 +718,7 @@ export const StudyRoom: React.FC = () => {
                     sendMessage();
                   }
                 }}
-                placeholder="发送消息 (Enter发送 / Shift+Enter换行)..."
+                placeholder=""
                 className={cn(
                   "flex-1 bg-transparent border-none shadow-none focus:outline-none focus-visible:ring-0 text-[13px] px-4 py-2.5 text-foreground placeholder:text-muted-foreground/50 resize-none leading-5",
                   isMobile ? "h-10 min-h-10 max-h-10" : "min-h-10 max-h-32"
@@ -693,36 +730,6 @@ export const StudyRoom: React.FC = () => {
           </div>
         </footer>
 
-        {isMobile && (
-          <div className="absolute right-4 bottom-4 z-40">
-            <Popover open={showMobileTimerSetup} onOpenChange={setShowMobileTimerSetup}>
-              <PopoverTrigger asChild>
-                <button className={cn("h-12 w-12 rounded-full shadow-2xl border border-white/20 flex items-center justify-center text-white transition-transform active:scale-95", isActive ? "bg-emerald-500" : "bg-slate-900")}>
-                  <Timer className="h-5 w-5" />
-                </button>
-              </PopoverTrigger>
-              <PopoverContent side="top" align="end" className="w-[82vw] max-w-72 rounded-2xl p-4 border-none shadow-2xl bg-card/95 backdrop-blur-xl z-[100]">
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <p className="text-xs font-black uppercase tracking-widest text-muted-foreground">番茄钟</p>
-                    <span className="font-mono font-black text-lg tabular-nums">{formatTime(timeLeft)}</span>
-                  </div>
-                  <Input value={taskName} onChange={e => setTaskName(e.target.value)} placeholder="任务名称..." className="h-10 rounded-xl bg-muted border-none text-sm font-bold" />
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between text-[11px] font-bold text-muted-foreground uppercase">
-                      <span>时长</span>
-                      <span>{duration} 分钟</span>
-                    </div>
-                    <Slider disabled={isActive} value={[duration]} onValueChange={v => handleDurationChange(v[0])} max={120} min={1} step={1} />
-                  </div>
-                  <Button onClick={handleEnterMobileFocus} className="w-full h-10 rounded-xl bg-slate-900 text-white font-black">
-                    进入全屏专注
-                  </Button>
-                </div>
-              </PopoverContent>
-            </Popover>
-          </div>
-        )}
       </div>
 
       <div className="hidden md:flex w-72 flex-col gap-6 shrink-0 text-foreground">

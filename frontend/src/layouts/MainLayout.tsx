@@ -131,6 +131,7 @@ export const MainLayout: React.FC = () => {
     pathname.startsWith('/qa/') ||
     pathname === '/study' ||
     pathname === '/knowledge-map' ||
+    pathname.startsWith('/knowledge-map/') ||
     pathname === '/tests' ||
     pathname.startsWith('/tests/session') ||
     pathname === '/settings';
@@ -203,7 +204,7 @@ export const MainLayout: React.FC = () => {
           {/* Header Section */}
           <div className={cn("mb-6 mt-2 flex items-center transition-all", collapsed ? "flex-col gap-2 justify-center" : "justify-between px-2")}>
             <div className={cn("shrink-0 overflow-hidden", collapsed ? "w-10 h-10 rounded-xl" : "w-32 h-8")}>
-              <img src={UnimindLogo} alt="Unimind.ai" className="w-full h-full object-contain" />
+              <img src={UnimindLogo} alt="Unimind.ai" className="w-full h-full object-contain brand-logo-invert" />
             </div>
             <Button
               variant="ghost"
@@ -271,17 +272,19 @@ export const MainLayout: React.FC = () => {
                     <UserIcon className="h-3.5 w-3.5" />
                     <span className="font-bold text-xs">个人设置</span>
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => navigate('/system-settings')} className="rounded-xl px-3 py-2 gap-3 cursor-pointer focus:bg-primary focus:text-primary-foreground transition-colors">
-                    <Settings2 className="h-3.5 w-3.5" />
-                    <span className="font-bold text-xs">外观与系统</span>
-                  </DropdownMenuItem>
+                  {user?.role === 'admin' && (
+                    <DropdownMenuItem onClick={() => navigate('/system-settings')} className="rounded-xl px-3 py-2 gap-3 cursor-pointer focus:bg-primary focus:text-primary-foreground transition-colors">
+                      <Settings2 className="h-3.5 w-3.5" />
+                      <span className="font-bold text-xs">外观与系统</span>
+                    </DropdownMenuItem>
+                  )}
                   {user?.is_member && (
                     <DropdownMenuItem
                       onClick={() => window.dispatchEvent(new Event('open-weekly-report'))}
                       className="rounded-xl px-3 py-2 gap-3 cursor-pointer focus:bg-primary focus:text-primary-foreground transition-colors"
                     >
                       <BarChart3 className="h-3.5 w-3.5" />
-                      <span className="font-bold text-xs">认知资产周报</span>
+                      <span className="font-bold text-xs">周报</span>
                     </DropdownMenuItem>
                   )}
                   <DropdownMenuSeparator className="my-2 bg-border" />
@@ -337,7 +340,7 @@ export const MainLayout: React.FC = () => {
           {!isFullPage && !isMobileImmersivePage && (
             <header className="sticky top-0 h-14 shrink-0 border-b border-border bg-background/90 backdrop-blur-xl z-20 px-4 flex items-center justify-between md:hidden">
               <div className="flex items-center gap-2 min-w-0">
-                <img src={UnimindLogo} alt="Unimind.ai" className="w-20 h-5 object-contain shrink-0" />
+                <img src={UnimindLogo} alt="Unimind.ai" className="w-20 h-5 object-contain shrink-0 brand-logo-invert" />
                 {pageTitle && <span className="text-xs font-black tracking-tight truncate">{pageTitle}</span>}
               </div>
               {user && (
@@ -367,7 +370,7 @@ export const MainLayout: React.FC = () => {
                         className="rounded-xl px-3 py-2 gap-2 cursor-pointer focus:bg-primary focus:text-primary-foreground transition-colors"
                       >
                         <BarChart3 className="h-3.5 w-3.5" />
-                        <span className="font-bold text-xs">认知资产周报</span>
+                        <span className="font-bold text-xs">周报</span>
                       </DropdownMenuItem>
                     )}
                     <DropdownMenuSeparator className="my-2 bg-border" />

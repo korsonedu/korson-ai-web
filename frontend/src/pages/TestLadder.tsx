@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
-import { ArrowRight, BrainCircuit, Activity, ChevronDown } from 'lucide-react';
+import { ArrowRight, BrainCircuit, Activity, ChevronDown, Bell } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
   DropdownMenu,
@@ -11,11 +11,19 @@ import {
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
 import { PageWrapper } from '@/components/PageWrapper';
 import { toast } from "sonner";
 import api from '@/lib/api';
 import { useSystemStore } from '@/store/useSystemStore';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import {
+  getLearningReminderSettings,
+  updateLearningReminderSetting,
+  type LearningReminderSettings,
+} from '@/lib/learningReminders';
 
 // Modularized Components
 import { AssessmentDialog } from './test-ladder/AssessmentDialog';
@@ -28,6 +36,7 @@ export const TestLadder: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [isMobile, setIsMobile] = useState(false);
   const [mobileTab, setMobileTab] = useState<'practice' | 'leaderboard'>('practice');
+  const [reminderSettings, setReminderSettings] = useState<LearningReminderSettings>(getLearningReminderSettings());
   
   // Data State
   const [leaderboard, setLeaderboard] = useState<any[]>([]);
@@ -179,36 +188,68 @@ export const TestLadder: React.FC = () => {
     <PageWrapper title="学术天梯" subtitle="基于 FSRS 记忆算法的智能评估，精准量化学术成长路径。">
       <div className="flex flex-col gap-8 md:gap-12 text-left animate-in fade-in duration-700 pb-20 max-w-6xl mx-auto">
         {isMobile && (
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setMobileTab('practice')}
-              className={cn(
-                "h-8 px-3 rounded-full text-xs font-bold border transition-colors",
-                mobileTab === 'practice'
-                  ? "bg-slate-900 text-white border-slate-900"
-                  : "bg-white text-muted-foreground border-border hover:text-foreground"
-              )}
-            >
-              习题训练
-            </button>
-            <button
-              onClick={() => setMobileTab('leaderboard')}
-              className={cn(
-                "h-8 px-3 rounded-full text-xs font-bold border transition-colors",
-                mobileTab === 'leaderboard'
-                  ? "bg-slate-900 text-white border-slate-900"
-                  : "bg-white text-muted-foreground border-border hover:text-foreground"
-              )}
-            >
-              全站排名
-            </button>
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setMobileTab('practice')}
+                className={cn(
+                  "h-8 px-3 rounded-full text-xs font-bold border transition-colors",
+                  mobileTab === 'practice'
+                    ? "bg-slate-900 text-white border-slate-900"
+                    : "bg-card text-muted-foreground border-border hover:text-foreground"
+                )}
+              >
+                习题训练
+              </button>
+              <button
+                onClick={() => setMobileTab('leaderboard')}
+                className={cn(
+                  "h-8 px-3 rounded-full text-xs font-bold border transition-colors",
+                  mobileTab === 'leaderboard'
+                    ? "bg-slate-900 text-white border-slate-900"
+                    : "bg-card text-muted-foreground border-border hover:text-foreground"
+                )}
+              >
+                全站排名
+              </button>
+            </div>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" size="icon" className="h-8 w-8 rounded-lg border-border">
+                  <Bell className="h-4 w-4" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent side="bottom" align="end" className="w-64 rounded-2xl p-4 bg-card border-border">
+                <div className="space-y-3 text-left">
+                  <p className="text-xs font-black uppercase tracking-widest text-muted-foreground">提醒设置</p>
+                  <div className="flex items-center justify-between">
+                    <Label className="text-xs font-bold">题型提醒</Label>
+                    <Switch
+                      checked={reminderSettings.questionType}
+                      onCheckedChange={(enabled) => {
+                        setReminderSettings(updateLearningReminderSetting('questionType', enabled));
+                      }}
+                    />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <Label className="text-xs font-bold">做题结果提醒</Label>
+                    <Switch
+                      checked={reminderSettings.testResult}
+                      onCheckedChange={(enabled) => {
+                        setReminderSettings(updateLearningReminderSetting('testResult', enabled));
+                      }}
+                    />
+                  </div>
+                </div>
+              </PopoverContent>
+            </Popover>
           </div>
         )}
 
         {(!isMobile || mobileTab === 'practice') && (
           <Card className={cn(
-            "bg-white overflow-hidden relative transition-all",
-            isMobile ? "border-none shadow-none rounded-none p-0" : "border border-slate-200/60 rounded-[3rem] p-12 shadow-sm hover:shadow-md"
+            "bg-card overflow-hidden relative transition-all",
+            isMobile ? "border-none shadow-none rounded-none p-0" : "border border-border rounded-[3rem] p-12 shadow-sm hover:shadow-md"
           )}>
             <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-indigo-500/5 rounded-full blur-[80px] -mr-32 -mt-32 pointer-events-none" />
             <div className={cn(
@@ -218,12 +259,12 @@ export const TestLadder: React.FC = () => {
                 : "flex flex-col lg:flex-row items-center justify-between gap-12"
             )}>
               <div className={cn("max-w-2xl text-left", isMobile ? "space-y-4" : "space-y-6")}>
-                <h2 className={cn("font-black tracking-tighter text-slate-900 leading-[1.1]", isMobile ? "text-2xl" : "text-4xl md:text-5xl")}>
+                <h2 className={cn("font-black tracking-tighter text-foreground leading-[1.1]", isMobile ? "text-2xl" : "text-4xl md:text-5xl")}>
                   开启 FSRS
                   <br />
                   智能评估系统
                 </h2>
-                <p className={cn("font-medium leading-relaxed text-slate-500 max-w-lg", isMobile ? "text-sm" : "text-base")}>
+                <p className={cn("font-medium leading-relaxed text-muted-foreground max-w-lg", isMobile ? "text-sm" : "text-base")}>
                   {isMobile
                     ? '基于你的学习轨迹快速定位薄弱点，直接进入专注训练。'
                     : 'FSRS 系统将根据您的历史记录自动定位知识盲区。通过深度学术训练，协助您在有限的时间内构建出色的专业素养与得分能力。'}
@@ -232,28 +273,28 @@ export const TestLadder: React.FC = () => {
                 <div className={cn(isMobile ? "flex flex-col items-stretch gap-3 pt-1" : "flex flex-wrap items-center gap-6 pt-4")}>
                   {isMobile ? (
                     <div className="space-y-2">
-                      <span className="text-[11px] font-bold text-slate-400 uppercase tracking-[0.15em] ml-1">抽题数量</span>
+                      <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-[0.15em] ml-1">抽题数量</span>
                       <Input
                         type="number"
                         min="1"
                         value={qCount}
                         onChange={(e) => setQCount(e.target.value)}
                         onBlur={() => { if (!qCount || parseInt(qCount) < 1) setQCount("1"); }}
-                        className="w-full h-10 rounded-xl bg-slate-50 border-slate-200/60 font-bold text-center"
+                        className="w-full h-10 rounded-xl bg-muted border-border font-bold text-center"
                       />
                     </div>
                   ) : (
                     <div className="flex flex-col gap-2">
-                      <span className="text-[14px] font-bold text-slate-400 uppercase tracking-[0.2em] ml-1">单次抽题量</span>
+                      <span className="text-[14px] font-bold text-muted-foreground uppercase tracking-[0.2em] ml-1">单次抽题量</span>
                       <div className="flex items-center gap-2">
                         <DropdownMenu modal={false}>
                           <DropdownMenuTrigger asChild>
-                            <Button variant="outline" className="w-32 h-12 rounded-2xl bg-slate-50 border-slate-200/60 text-slate-900 font-bold text-sm hover:bg-slate-100 transition-all flex justify-between px-4">
+                            <Button variant="outline" className="w-32 h-12 rounded-2xl bg-muted border-border text-foreground font-bold text-sm hover:bg-muted/80 transition-all flex justify-between px-4">
                               {isCustomCount ? "自定义" : `${qCount} 道题`}
                               <ChevronDown className="h-4 w-4 opacity-50" />
                             </Button>
                           </DropdownMenuTrigger>
-                          <DropdownMenuContent className="w-32 rounded-2xl border-slate-200 bg-white shadow-2xl p-2" align="start">
+                          <DropdownMenuContent className="w-32 rounded-2xl border-border bg-card shadow-2xl p-2" align="start">
                             {["3", "5", "10", "20"].map(v => (
                               <DropdownMenuItem key={v} onClick={() => { setIsCustomCount(false); setQCount(v); }} className="rounded-xl font-bold py-2.5 cursor-pointer">
                                 {v} 道题
@@ -265,7 +306,7 @@ export const TestLadder: React.FC = () => {
                           </DropdownMenuContent>
                         </DropdownMenu>
                         {isCustomCount && (
-                          <Input type="number" min="1" value={qCount} onChange={(e) => setQCount(e.target.value)} onBlur={() => { if (!qCount || parseInt(qCount) < 1) setQCount("1"); }} className="w-20 h-12 rounded-2xl bg-slate-50 border-slate-200/60 font-bold text-center" />
+                          <Input type="number" min="1" value={qCount} onChange={(e) => setQCount(e.target.value)} onBlur={() => { if (!qCount || parseInt(qCount) < 1) setQCount("1"); }} className="w-20 h-12 rounded-2xl bg-muted border-border font-bold text-center" />
                         )}
                       </div>
                     </div>
@@ -289,29 +330,29 @@ export const TestLadder: React.FC = () => {
                   : "flex flex-col gap-4 w-full lg:w-72 shrink-0"
               )}>
                 <div className={cn(
-                  "bg-slate-50 transition-all flex flex-col justify-center",
-                  isMobile ? "p-3 rounded-xl border-none shadow-none" : "p-7 border border-slate-100 rounded-[2.5rem] hover:bg-white hover:shadow-lg"
+                  "bg-muted transition-all flex flex-col justify-center",
+                  isMobile ? "p-3 rounded-xl border-none shadow-none" : "p-7 border border-border rounded-[2.5rem] hover:bg-card hover:shadow-lg"
                 )}>
                   <div className="flex items-center gap-3 mb-2">
-                    <div className={cn("bg-white shadow-sm flex items-center justify-center text-indigo-500", isMobile ? "h-8 w-8 rounded-xl" : "h-9 w-9 rounded-2xl")}><BrainCircuit className="h-4 w-4" /></div>
-                    <p className={cn("font-bold text-slate-400 uppercase tracking-widest leading-none", isMobile ? "text-[11px]" : "text-[14px]")}>今日复习</p>
+                    <div className={cn("bg-card shadow-sm flex items-center justify-center text-indigo-500", isMobile ? "h-8 w-8 rounded-xl" : "h-9 w-9 rounded-2xl")}><BrainCircuit className="h-4 w-4" /></div>
+                    <p className={cn("font-bold text-muted-foreground uppercase tracking-widest leading-none", isMobile ? "text-[11px]" : "text-[14px]")}>今日复习</p>
                   </div>
                   <div className="flex items-baseline gap-1">
-                    <p className={cn("font-black text-slate-900 tabular-nums", isMobile ? "text-3xl" : "text-4xl")}>{goals.review_goal}</p>
-                    <span className="text-[12px] font-bold text-slate-400 uppercase">Due</span>
+                    <p className={cn("font-black text-foreground tabular-nums", isMobile ? "text-3xl" : "text-4xl")}>{goals.review_goal}</p>
+                    <span className="text-[12px] font-bold text-muted-foreground uppercase">Due</span>
                   </div>
                 </div>
                 <div className={cn(
-                  "bg-slate-50 transition-all flex flex-col justify-center",
-                  isMobile ? "p-3 rounded-xl border-none shadow-none" : "p-7 border border-slate-100 rounded-[2.5rem] hover:bg-white hover:shadow-lg"
+                  "bg-muted transition-all flex flex-col justify-center",
+                  isMobile ? "p-3 rounded-xl border-none shadow-none" : "p-7 border border-border rounded-[2.5rem] hover:bg-card hover:shadow-lg"
                 )}>
                   <div className="flex items-center gap-3 mb-2">
-                    <div className={cn("bg-white shadow-sm flex items-center justify-center text-slate-500", isMobile ? "h-8 w-8 rounded-xl" : "h-9 w-9 rounded-2xl")}><Activity className="h-4 w-4" /></div>
-                    <p className={cn("font-bold text-slate-400 uppercase tracking-widest leading-none", isMobile ? "text-[11px]" : "text-[14px]")}>记忆临界</p>
+                    <div className={cn("bg-card shadow-sm flex items-center justify-center text-muted-foreground", isMobile ? "h-8 w-8 rounded-xl" : "h-9 w-9 rounded-2xl")}><Activity className="h-4 w-4" /></div>
+                    <p className={cn("font-bold text-muted-foreground uppercase tracking-widest leading-none", isMobile ? "text-[11px]" : "text-[14px]")}>记忆临界</p>
                   </div>
                   <div className="flex items-baseline gap-1">
-                    <p className={cn("font-black text-slate-900 tabular-nums", isMobile ? "text-3xl" : "text-4xl")}>{goals.at_risk_count || 0}</p>
-                    <span className="text-[12px] font-bold text-slate-400 uppercase">At Risk</span>
+                    <p className={cn("font-black text-foreground tabular-nums", isMobile ? "text-3xl" : "text-4xl")}>{goals.at_risk_count || 0}</p>
+                    <span className="text-[12px] font-bold text-muted-foreground uppercase">At Risk</span>
                   </div>
                 </div>
               </div>
@@ -321,11 +362,11 @@ export const TestLadder: React.FC = () => {
 
         {isMobile ? (
           mobileTab === 'leaderboard' && (
-            <Card className="border border-slate-200/60 rounded-2xl bg-white overflow-hidden shadow-sm">
-              <div className="px-4 py-3 border-b border-slate-100 bg-slate-50/60">
-                <h3 className="text-base font-black tracking-tight text-slate-900">全站学术排名</h3>
+            <Card className="border border-border rounded-2xl bg-card overflow-hidden shadow-sm">
+              <div className="px-4 py-3 border-b border-border bg-muted/60">
+                <h3 className="text-base font-black tracking-tight text-foreground">全站学术排名</h3>
               </div>
-              <div className="max-h-[calc(100dvh-20rem)] overflow-y-auto divide-y divide-slate-100">
+              <div className="max-h-[calc(100dvh-20rem)] overflow-y-auto divide-y divide-border">
                 {leaderboard.map((u, i) => (
                   <div key={u.id} className="px-3 py-2.5 flex items-center gap-3">
                     <div className={cn(
@@ -333,24 +374,24 @@ export const TestLadder: React.FC = () => {
                       i === 0
                         ? "bg-indigo-600 text-white"
                         : i === 1
-                          ? "bg-slate-200 text-slate-700"
+                          ? "bg-muted text-foreground"
                           : i === 2
                             ? "bg-orange-100 text-orange-700"
-                            : "bg-slate-100 text-slate-500"
+                            : "bg-muted text-muted-foreground"
                     )}>
                       {i + 1}
                     </div>
-                    <Avatar className="h-8 w-8 border border-slate-200 shadow-sm shrink-0">
+                    <Avatar className="h-8 w-8 border border-border shadow-sm shrink-0">
                       <AvatarImage src={u.avatar_url} />
                       <AvatarFallback className="text-[10px] font-bold">{(u.nickname || u.username)?.[0]}</AvatarFallback>
                     </Avatar>
                     <div className="min-w-0 flex-1">
-                      <p className="text-sm font-bold text-slate-900 truncate">{u.nickname || u.username}</p>
-                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest truncate">{u.role || 'student'}</p>
+                      <p className="text-sm font-bold text-foreground truncate">{u.nickname || u.username}</p>
+                      <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest truncate">{u.role || 'student'}</p>
                     </div>
                     <div className="text-right shrink-0">
-                      <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">ELO</p>
-                      <p className="text-base font-black text-slate-900 tabular-nums">{u.elo_score}</p>
+                      <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest">ELO</p>
+                      <p className="text-base font-black text-foreground tabular-nums">{u.elo_score}</p>
                     </div>
                   </div>
                 ))}

@@ -13,6 +13,7 @@ import { ArticleCenter } from './pages/ArticleCenter';
 import { AIAssistant } from './pages/AIAssistant';
 import { SystemSettings } from './pages/SystemSettings';
 import { KnowledgeMap } from './pages/KnowledgeMap';
+import { KnowledgeNodeDetail } from './pages/KnowledgeNodeDetail';
 import { QASystem } from './pages/QASystem';
 import { TestSessionPage } from './pages/TestSessionPage';
 import { useAuthStore } from './store/useAuthStore';
@@ -30,8 +31,12 @@ const RequireAuth = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(!user && !!token);
 
   useEffect(() => {
-    // Initialize theme
-    setTheme(theme);
+    // Theme policy: dark mode beta is only for admins.
+    if (user?.role === 'admin') {
+      if (theme === 'dark') setTheme('dark');
+    } else if (user && theme !== 'light') {
+      setTheme('light');
+    }
 
     if (!user && token) {
       api.get('/users/me/')
@@ -47,15 +52,22 @@ const RequireAuth = ({ children }: { children: ReactNode }) => {
   }, [user, token, theme, setTheme]);
 
   if (loading) return (
-    <div className="h-screen w-screen flex items-center justify-center bg-[#F5F5F7]">
+    <div className="h-screen w-screen flex items-center justify-center bg-background">
       <div className="flex flex-col items-center gap-4 text-center">
-        <Loader2 className="h-10 w-10 animate-spin text-black/10" />
-        <p className="text-[10px] font-bold text-black/20 uppercase tracking-[0.2em]">Synchronizing Secure Session...</p>
+        <Loader2 className="h-10 w-10 animate-spin text-muted-foreground/40" />
+        <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em]">Synchronizing Secure Session...</p>
       </div>
     </div>
   );
 
   if (!token) return <Navigate to="/login" replace />;
+  return children;
+};
+
+const RequireAdmin = ({ children }: { children: ReactNode }) => {
+  const { user } = useAuthStore();
+  if (!user) return <Navigate to="/login" replace />;
+  if (user.role !== 'admin') return <Navigate to="/settings" replace />;
   return children;
 };
 
@@ -81,10 +93,10 @@ const RootRedirect = () => {
   }, [token, user, setAuth]);
 
   if (loading) return (
-    <div className="h-screen w-screen flex items-center justify-center bg-[#F5F5F7]">
+    <div className="h-screen w-screen flex items-center justify-center bg-background">
       <div className="flex flex-col items-center gap-4 text-center">
-        <Loader2 className="h-10 w-10 animate-spin text-black/10" />
-        <p className="text-[10px] font-bold text-black/20 uppercase tracking-[0.2em]">Authenticating Secure Session...</p>
+        <Loader2 className="h-10 w-10 animate-spin text-muted-foreground/40" />
+        <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em]">Authenticating Secure Session...</p>
       </div>
     </div>
   );
@@ -116,8 +128,9 @@ const router = createBrowserRouter([
       { path: "study", element: <RequireAuth><StudyRoom /></RequireAuth> },
       { path: "ai", element: <RequireAuth><AIAssistant /></RequireAuth> },
       { path: "knowledge-map", element: <RequireAuth><KnowledgeMap /></RequireAuth> },
+      { path: "knowledge-map/node/:id", element: <RequireAuth><KnowledgeNodeDetail /></RequireAuth> },
       { path: "settings", element: <RequireAuth><Settings /></RequireAuth> },
-      { path: "system-settings", element: <RequireAuth><SystemSettings /></RequireAuth> },
+      { path: "system-settings", element: <RequireAuth><RequireAdmin><SystemSettings /></RequireAdmin></RequireAuth> },
       { path: "management", element: <RequireAuth><Maintenance /></RequireAuth> },
       { path: "course/:id", element: <RequireAuth><VideoLesson /></RequireAuth> },
     ],
